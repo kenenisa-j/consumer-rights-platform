@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Unified Consumer Grievance and Rights Protection Portal for the Addis Ababa Bureau of Trade and Market Development",
   "workspaces": [
-    "lib/*"
+    "lib/*",
+    "backend"
   ],
   "engines": {
     "node": ">=22.12.0 <25"

@@ -1,0 +1,734 @@
+// ==============================================================================
+// Addis Ababa Consumer Rights Protection Platform
+// Prisma Schema Definition (Reconciled with Dual Routing & Shared Contracts)
+// ==============================================================================
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------------------------------------------------------------------
+// Enums
+// ------------------------------------------------------------------------------
+
+enum RoleCode {
+  CONSUMER
+  BUSINESS_OWNER
+  WOREDA_OFFICER
+  WOREDA_ADMIN
+  SUBCITY_COORDINATOR
+  BUREAU_OFFICER
+  BUREAU_ADMIN
+  CONTENT_ADMIN
+  SYSTEM_SUPERADMIN
+}
+
+enum OfficeLevel {
+  CITY_BUREAU
+  SUBCITY
+  WOREDA
+}
+
+enum ComplaintRoute {
+  DIRECT_GOVERNMENT
+  REGISTERED_BUSINESS
+}
+
+enum CaseStatus {
+  SUBMITTED_TO_BUSINESS
+  BUSINESS_OFFER_PENDING
+  ESCALATED_TO_GOVERNMENT
+  RECEIVED_BY_OFFICE
+  UNDER_INITIAL_REVIEW
+  OFFICER_ASSIGNED
+  INSPECTION_PENDING
+  INSPECTION_ACTIVE
+  INSPECTION_COMPLETED
+  CONCILIATION_SCHEDULED
+  SETTLEMENT_OFFERED
+  RESOLVED_MUTUALLY
+  RESOLVED_ADMINISTRATIVE_ORDER
+  COURT_REFERRAL_ISSUED
+  CLOSED_OUTSIDE_JURISDICTION
+  CLOSED_WITHDRAWN
+}
+
+enum TransferDirection {
+  UPWARD_ESCALATION
+  DOWNWARD_DISPATCH
+  LATERAL_REASSIGNMENT
+}
+
+enum TransferStatus {
+  PENDING_ACCEPTANCE
+  ACCEPTED
+  RETURNED
+}
+
+enum ConversationKind {
+  CONSUMER_BUSINESS
+  CONSUMER_GOVERNMENT
+  BUSINESS_GOVERNMENT
+  GOVERNMENT_GOVERNMENT
+}
+
+enum ParticipantRole {
+  CONSUMER
+  MERCHANT
+  GOVERNMENT_OFFICER
+  SUPERVISORY_OBSERVER
+}
+
+enum SettlementType {
+  FULL_REFUND
+  PARTIAL_REFUND
+  REPLACEMENT
+  REPAIR
+  OTHER
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+// ------------------------------------------------------------------------------
+// Domain 1: IAM, Roles & Permissions
+// ------------------------------------------------------------------------------
+
+model User {
+  id                         String                    @id @default(uuid())
+  phoneNumber                String                    @unique @map("phone_number")
+  fullName                   String                    @map("full_name")
+  email                      String?                   @unique
+  passwordHash               String                    @map("password_hash")
+  nationalIdFayda            String?                   @unique @map("national_id_fayda")
+  status                     String                    @default("ACTIVE")
+  preferredLanguage          String                    @default("am") @map("preferred_language")
+  createdAt                  DateTime                  @default(now()) @map("created_at")
+  updatedAt                  DateTime                  @updatedAt @map("updated_at")
+
+  roles                      UserRole[]
+  offices                    UserOffice[]
+  merchants                  MerchantUser[]
+  casesFiled                 Case[]                    @relation("CitizenCases")
+  caseAssignmentsGiven       CaseAssignment[]          @relation("AssignedBy")
+  caseAssignmentsTaken       CaseAssignment[]          @relation("AssignedTo")
+  transfersInitiated         CaseTransfer[]            @relation("TransferInitiator")
+  transfersResponded         CaseTransfer[]            @relation("TransferResponder")
+  slaPausesAuthorized        CaseSlaPause[]
+  inspectionsLed             Inspection[]              @relation("LeadInspector")
+  settlementOffersMade       SettlementOffer[]         @relation("OfferMaker")
+  evidenceUploaded           EvidenceFile[]
+  conversationJoins          ConversationParticipant[]
+  messagesSent               Message[]
+  auditActions               CaseAuditLog[]
+  notifications              Notification[]
+  courtReferralsInvestigated CourtReferral[]           @relation("InvestigatingOfficer")
+  courtReferralsApproved     CourtReferral[]           @relation("ApprovingDirector")
+  caseHistoryLogged          CaseHistory[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  code        RoleCode         @unique
+  name        String
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  code        String           @unique
+  module      String
+  action      String
+  scope       String           @default("OWN")
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 2: Administrative Offices, Jurisdictions & Markets
+// ------------------------------------------------------------------------------
+
+model AdministrativeOffice {
+  id                 String                 @id @default(uuid())
+  code               String                 @unique
+  nameEn             String                 @map("name_en")
+  nameAm             String                 @map("name_am")
+  level              OfficeLevel
+  parentOfficeId     String?                @map("parent_office_id")
+  subcityCode        String?                @map("subcity_code")
+  woredaCode         String?                @map("woreda_code")
+  address            String
+  phone              String
+  email              String?
+  isActive           Boolean                @default(true) @map("is_active")
+  createdAt          DateTime               @default(now()) @map("created_at")
+
+  parentOffice       AdministrativeOffice?  @relation("OfficeHierarchy", fields: [parentOfficeId], references: [id], onDelete: Restrict)
+  childOffices       AdministrativeOffice[] @relation("OfficeHierarchy")
+  staffDeployments   UserOffice[]
+  merchants          Merchant[]             @relation("WoredaMerchants")
+  markets            Market[]
+  casesCurrentlyHeld Case[]                 @relation("CurrentHoldingOffice")
+  transfersFrom      CaseTransfer[]         @relation("TransferFromOffice")
+  transfersTo        CaseTransfer[]         @relation("TransferToOffice")
+  inspections        Inspection[]
+  anonymousReports   AnonymousReport[]
+  caseAssignments    CaseAssignment[]
+  caseHistoryEntries CaseHistory[]
+
+  @@index([level])
+  @@index([subcityCode])
+  @@index([woredaCode])
+  @@map("administrative_offices")
+}
+
+model UserOffice {
+  id           String               @id @default(uuid())
+  userId       String               @map("user_id")
+  officeId     String               @map("office_id")
+  roleInOffice String               @default("OFFICER") @map("role_in_office")
+  isPrimary    Boolean              @default(true) @map("is_primary")
+  isActive     Boolean              @default(true) @map("is_active")
+  assignedAt   DateTime             @default(now()) @map("assigned_at")
+  unassignedAt DateTime?            @map("unassigned_at")
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  office       AdministrativeOffice @relation(fields: [officeId], references: [id], onDelete: Restrict)
+
+  // Enforced at most one active deployment per user via PostgreSQL partial unique index:
+  // idx_user_single_active_office ON user_offices (user_id) WHERE is_active = TRUE
+  @@index([userId])
+  @@index([officeId])
+  @@map("user_offices")
+}
+
+model Market {
+  id                  String               @id @default(uuid())
+  code                String               @unique
+  nameEn              String               @map("name_en")
+  nameAm              String               @map("name_am")
+  subcityCode         String               @map("subcity_code")
+  woredaOfficeId      String               @map("woreda_office_id")
+  locationDescription String               @map("location_description")
+  gpsCoordinates      String?              @map("gps_coordinates")
+  totalStalls         Int?                 @map("total_stalls")
+  isActive            Boolean              @default(true) @map("is_active")
+  createdAt           DateTime             @default(now()) @map("created_at")
+
+  woredaOffice        AdministrativeOffice @relation(fields: [woredaOfficeId], references: [id], onDelete: Restrict)
+  merchants           Merchant[]
+  cases               Case[]
+  anonymousReports    AnonymousReport[]
+
+  @@index([woredaOfficeId])
+  @@index([subcityCode])
+  @@map("markets")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 3: Merchant Registry & Directory
+// ------------------------------------------------------------------------------
+
+model Merchant {
+  id                 String               @id @default(uuid())
+  registrationNumber String               @unique @map("registration_number")
+  tradeName          String               @map("trade_name")
+  legalName          String               @map("legal_name")
+  businessType       String               @map("business_type")
+  businessCategory   String               @map("business_category")
+  marketId           String?              @map("market_id")
+  stallNumber        String?              @map("stall_number")
+  woredaOfficeId     String               @map("woreda_office_id")
+  verificationStatus String               @default("VERIFIED") @map("verification_status")
+  phoneNumber        String               @map("phone_number")
+  isActive           Boolean              @default(true) @map("is_active")
+  createdAt          DateTime             @default(now()) @map("created_at")
+
+  market             Market?              @relation(fields: [marketId], references: [id], onDelete: Restrict)
+  woredaOffice       AdministrativeOffice @relation("WoredaMerchants", fields: [woredaOfficeId], references: [id], onDelete: Restrict)
+  staff              MerchantUser[]
+  cases              Case[]
+
+  @@index([tradeName])
+  @@index([woredaOfficeId])
+  @@index([marketId])
+  @@map("merchants")
+}
+
+model MerchantUser {
+  id               String   @id @default(uuid())
+  merchantId       String   @map("merchant_id")
+  userId           String   @map("user_id")
+  roleInBusiness   String   @default("OWNER") @map("role_in_business")
+  isPrimaryContact Boolean  @default(true) @map("is_primary_contact")
+
+  merchant         Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([merchantId, userId])
+  @@map("merchant_users")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 4: Complaints, Categories & Dual Routing
+// ------------------------------------------------------------------------------
+
+model ComplaintCategory {
+  id                String      @id @default(uuid())
+  code              String      @unique
+  nameEn            String      @map("name_en")
+  nameAm            String      @map("name_am")
+  nameOm            String?     @map("name_om")
+  nameTi            String?     @map("name_ti")
+  nameSo            String?     @map("name_so")
+  defaultSlaDays    Int         @default(5) @map("default_sla_days")
+  defaultRemitLevel OfficeLevel @default(WOREDA) @map("default_remit_level")
+  isActive          Boolean     @default(true) @map("is_active")
+
+  cases             Case[]
+
+  @@map("complaint_categories")
+}
+
+model Case {
+  id                           String                @id @default(uuid())
+  // Provisional prototype-aligned format: CC-YYYY-NNNNN generated via database trigger/sequence
+  referenceNumber              String                @unique @default(dbgenerated()) @map("reference_number")
+  route                        ComplaintRoute
+  complainantId                String                @map("complainant_id")
+  complainantAlias             String                @map("complainant_alias")
+  // Route A: merchantId is optional (identifies registered merchant dispute; never initiates bilateral business negotiation).
+  // Route B: merchantId is required (initiates private business negotiation).
+  merchantId                   String?               @map("merchant_id")
+  unregisteredMerchantName     String?               @map("unregistered_merchant_name")
+  unregisteredMerchantLocation String?               @map("unregistered_merchant_location")
+  unregisteredMerchantPhone    String?               @map("unregistered_merchant_phone")
+  marketId                     String?               @map("market_id")
+  categoryId                   String                @map("category_id")
+  incidentDate                 DateTime              @map("incident_date")
+  itemDescription              String                @map("item_description")
+  disputedAmount               Decimal               @db.Decimal(12, 2) @map("disputed_amount")
+  currency                     String                @default("ETB")
+  paymentMethod                String?               @map("payment_method")
+  receiptAvailable             Boolean               @default(true) @map("receipt_available")
+  desiredRemedy                String                @map("desired_remedy")
+  status                       CaseStatus
+  // Route A: assigned at creation (mandatory); Route B: null until escalation.
+  // Foreign key guarantees existence; NestJS service transactionally verifies office is active and matches level.
+  currentOfficeId              String?               @map("current_office_id")
+  escalatedToGovAt             DateTime?             @map("escalated_to_gov_at")
+  slaDeadline                  DateTime?             @map("sla_deadline")
+  createdAt                    DateTime              @default(now()) @map("created_at")
+  updatedAt                    DateTime              @updatedAt @map("updated_at")
+
+  complainant                  User                  @relation("CitizenCases", fields: [complainantId], references: [id], onDelete: Restrict)
+  merchant                     Merchant?             @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  market                       Market?               @relation(fields: [marketId], references: [id], onDelete: Restrict)
+  category                     ComplaintCategory     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  currentOffice                AdministrativeOffice? @relation("CurrentHoldingOffice", fields: [currentOfficeId], references: [id], onDelete: Restrict)
+
+  assignments                  CaseAssignment[]
+  transfers                    CaseTransfer[]
+  history                      CaseHistory[]
+  slaPauses                    CaseSlaPause[]
+  inspections                  Inspection[]
+  settlementOffers             SettlementOffer[]
+  evidenceFiles                EvidenceFile[]
+  conversations                Conversation[]
+  auditLogs                    CaseAuditLog[]
+  courtReferral                CourtReferral?
+  convertedFromReport          AnonymousReport?
+  notifications                Notification[]
+
+  @@index([complainantId])
+  @@index([merchantId])
+  @@index([categoryId])
+  @@index([marketId])
+  @@index([currentOfficeId, status])
+  @@index([route])
+  @@index([slaDeadline])
+  @@map("cases")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 5: Lifecycle, Assignments, Transfers & SLAs
+// ------------------------------------------------------------------------------
+
+model CaseAssignment {
+  id                 String               @id @default(uuid())
+  caseId             String               @map("case_id")
+  assignedToUserId   String               @map("assigned_to_user_id")
+  assignedByUserId   String               @map("assigned_by_user_id")
+  officeId           String               @map("office_id")
+  isActive           Boolean              @default(true) @map("is_active")
+  assignedAt         DateTime             @default(now()) @map("assigned_at")
+  unassignedAt       DateTime?            @map("unassigned_at")
+
+  case               Case                 @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  assignedTo         User                 @relation("AssignedTo", fields: [assignedToUserId], references: [id], onDelete: Restrict)
+  assignedBy         User                 @relation("AssignedBy", fields: [assignedByUserId], references: [id], onDelete: Restrict)
+  office             AdministrativeOffice @relation(fields: [officeId], references: [id], onDelete: Restrict)
+
+  // Enforced at most one active assigned officer per case via PostgreSQL partial unique index:
+  // idx_case_single_active_assignment ON case_assignments (case_id) WHERE is_active = TRUE
+  @@index([caseId])
+  @@index([assignedToUserId])
+  @@index([officeId])
+  @@map("case_assignments")
+}
+
+model CaseTransfer {
+  id                 String               @id @default(uuid())
+  caseId             String               @map("case_id")
+  fromOfficeId       String               @map("from_office_id")
+  toOfficeId         String               @map("to_office_id")
+  direction          TransferDirection
+  status             TransferStatus       @default(PENDING_ACCEPTANCE)
+  handoverNote       String               @map("handover_note")
+  initiatedByUserId  String               @map("initiated_by_user_id")
+  respondedByUserId  String?              @map("responded_by_user_id")
+  responseNotes      String?              @map("response_notes")
+  transferredAt      DateTime             @default(now()) @map("transferred_at")
+  respondedAt        DateTime?            @map("responded_at")
+
+  case               Case                 @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  fromOffice         AdministrativeOffice @relation("TransferFromOffice", fields: [fromOfficeId], references: [id], onDelete: Restrict)
+  toOffice           AdministrativeOffice @relation("TransferToOffice", fields: [toOfficeId], references: [id], onDelete: Restrict)
+  initiatedBy        User                 @relation("TransferInitiator", fields: [initiatedByUserId], references: [id], onDelete: Restrict)
+  respondedBy        User?                @relation("TransferResponder", fields: [respondedByUserId], references: [id], onDelete: Restrict)
+
+  // Enforced at most one pending transfer per case via PostgreSQL partial unique index:
+  // idx_case_single_pending_transfer ON case_transfers(case_id) WHERE status = 'PENDING_ACCEPTANCE'
+  @@index([caseId])
+  @@index([fromOfficeId])
+  @@index([toOfficeId])
+  @@index([status])
+  @@map("case_transfers")
+}
+
+model CaseHistory {
+  id            String                @id @default(uuid())
+  caseId        String                @map("case_id")
+  fromStatus    CaseStatus?           @map("from_status")
+  toStatus      CaseStatus            @map("to_status")
+  handlingLevel String                @map("handling_level")
+  officeId      String?               @map("office_id")
+  actorUserId   String                @map("actor_user_id")
+  publicNote    String?               @map("public_note")
+  createdAt     DateTime              @default(now()) @map("created_at")
+
+  case          Case                  @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  actor         User                  @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  office        AdministrativeOffice? @relation(fields: [officeId], references: [id], onDelete: Restrict)
+
+  @@index([caseId, createdAt])
+  @@index([actorUserId])
+  @@index([officeId])
+  @@map("case_history")
+}
+
+model CaseSlaPause {
+  id                 String    @id @default(uuid())
+  caseId             String    @map("case_id")
+  pauseReason        String    @map("pause_reason")
+  pausedAt           DateTime  @default(now()) @map("paused_at")
+  resumedAt          DateTime? @map("resumed_at")
+  durationMinutes    Int?      @map("duration_minutes")
+  authorizedByUserId String    @map("authorized_by_user_id")
+
+  case               Case      @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  authorizedBy       User      @relation(fields: [authorizedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([caseId])
+  @@map("case_sla_pauses")
+}
+
+model Inspection {
+  id              String               @id @default(uuid())
+  caseId          String?              @map("case_id")
+  officeId        String               @map("office_id")
+  leadInspectorId String               @map("lead_inspector_id")
+  inspectionDate  DateTime             @map("inspection_date")
+  locationName    String               @map("location_name")
+  inspectionType  String               @map("inspection_type")
+  summary         String
+  actionTaken     String?              @map("action_taken")
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  case            Case?                @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  office          AdministrativeOffice @relation(fields: [officeId], references: [id], onDelete: Restrict)
+  leadInspector   User                 @relation("LeadInspector", fields: [leadInspectorId], references: [id], onDelete: Restrict)
+  findings        InspectionFinding[]
+
+  @@index([officeId])
+  @@index([caseId])
+  @@map("inspections")
+}
+
+model InspectionFinding {
+  id            String     @id @default(uuid())
+  inspectionId  String     @map("inspection_id")
+  metricName    String     @map("metric_name")
+  nominalValue  Decimal?   @db.Decimal(10, 3) @map("nominal_value")
+  measuredValue Decimal    @db.Decimal(10, 3) @map("measured_value")
+  unit          String
+  isViolation   Boolean    @map("is_violation")
+  notes         String?
+
+  inspection    Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  @@index([inspectionId])
+  @@map("inspection_findings")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 6: Communication, Offers & Evidence Vault
+// ------------------------------------------------------------------------------
+
+model Conversation {
+  id           String                    @id @default(uuid())
+  caseId       String                    @map("case_id")
+  kind         ConversationKind
+  createdAt    DateTime                  @default(now()) @map("created_at")
+
+  case         Case                      @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  participants ConversationParticipant[]
+  messages     Message[]
+  offers       SettlementOffer[]
+
+  // Enforced at most one bilateral consumer-business negotiation conversation per case:
+  // idx_case_single_merchant_negotiation ON conversations (case_id) WHERE kind = 'CONSUMER_BUSINESS'
+  @@index([caseId])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String           @id @default(uuid())
+  conversationId String           @map("conversation_id")
+  userId         String           @map("user_id")
+  role           ParticipantRole
+  joinedAt       DateTime         @default(now()) @map("joined_at")
+
+  conversation   Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id                   String        @id @default(uuid())
+  conversationId       String        @map("conversation_id")
+  senderUserId         String        @map("sender_user_id")
+  content              String
+  attachmentEvidenceId String?       @map("attachment_evidence_id")
+  sentAt               DateTime      @default(now()) @map("sent_at")
+
+  conversation         Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender               User          @relation(fields: [senderUserId], references: [id], onDelete: Restrict)
+  attachmentEvidence   EvidenceFile? @relation(fields: [attachmentEvidenceId], references: [id], onDelete: Restrict)
+
+  @@index([conversationId, sentAt])
+  @@index([senderUserId])
+  @@map("messages")
+}
+
+model SettlementOffer {
+  id               String         @id @default(uuid())
+  caseId           String         @map("case_id")
+  conversationId   String         @map("conversation_id")
+  offeredByUserId  String         @map("offered_by_user_id")
+  offerType        SettlementType @map("offer_type")
+  refundAmount     Decimal?       @db.Decimal(12, 2) @map("refund_amount")
+  termsDescription String         @map("terms_description")
+  status           OfferStatus    @default(PENDING)
+  expiresAt        DateTime?      @map("expires_at")
+  respondedAt      DateTime?      @map("responded_at")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  case             Case           @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  conversation     Conversation   @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  offeredBy        User           @relation("OfferMaker", fields: [offeredByUserId], references: [id], onDelete: Restrict)
+
+  @@index([caseId])
+  @@index([conversationId])
+  @@map("settlement_offers")
+}
+
+model EvidenceFile {
+  id               String    @id @default(uuid())
+  caseId           String    @map("case_id")
+  uploaderUserId   String    @map("uploader_user_id")
+  fileName         String    @map("file_name")
+  fileType         String    @map("file_type")
+  fileSizeBytes    Int       @map("file_size_bytes")
+  storagePath      String    @map("storage_path")
+  isSanitizedCopy  Boolean   @default(false) @map("is_sanitized_copy")
+  isOfficerOnly    Boolean   @default(false) @map("is_officer_only")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  case             Case      @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  uploader         User      @relation(fields: [uploaderUserId], references: [id], onDelete: Restrict)
+  messagesAttached Message[]
+
+  @@index([caseId])
+  @@map("evidence_files")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 7: Surveillance, Audit, Notifications & Referrals
+// ------------------------------------------------------------------------------
+
+model AnonymousReport {
+  id                  String                    @id @default(uuid())
+  trackingTokenHash   String                    @unique @map("tracking_token_hash")
+  category            String
+  marketId            String?                   @map("market_id")
+  marketLocation      String                    @map("market_location")
+  targetBusinessName  String?                   @map("target_business_name")
+  description         String
+  destinationOfficeId String                    @map("destination_office_id")
+  status              String                    @default("received")
+  internalNotes       String?                   @map("internal_notes")
+  convertedCaseId     String?                   @unique @map("converted_case_id")
+  createdAt           DateTime                  @default(now()) @map("created_at")
+  updatedAt           DateTime                  @updatedAt @map("updated_at")
+
+  market              Market?                   @relation(fields: [marketId], references: [id], onDelete: Restrict)
+  destinationOffice   AdministrativeOffice      @relation(fields: [destinationOfficeId], references: [id], onDelete: Restrict)
+  convertedCase       Case?                     @relation(fields: [convertedCaseId], references: [id], onDelete: Restrict)
+  auditLogs           AnonymousReportAuditLog[]
+
+  @@index([trackingTokenHash])
+  @@index([destinationOfficeId])
+  @@index([status])
+  @@index([marketId])
+  @@map("anonymous_reports")
+}
+
+model AnonymousReportAuditLog {
+  id             String          @id @default(uuid())
+  reportId       String          @map("report_id")
+  actionCode     String          @map("action_code")
+  previousStatus String?         @map("previous_status")
+  newStatus      String          @map("new_status")
+  internalNotes  String?         @map("internal_notes")
+  timestamp      DateTime        @default(now())
+
+  report         AnonymousReport @relation(fields: [reportId], references: [id], onDelete: Restrict)
+
+  @@index([reportId, timestamp])
+  @@map("anonymous_report_audit_logs")
+}
+
+model CaseAuditLog {
+  id         String   @id @default(uuid())
+  caseId     String   @map("case_id")
+  actorId    String   @map("actor_id")
+  actionCode String   @map("action_code")
+  fieldName  String?  @map("field_name")
+  oldValue   String?  @map("old_value")
+  newValue   String?  @map("new_value")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  timestamp  DateTime @default(now())
+
+  case       Case     @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([caseId, timestamp])
+  @@index([actorId])
+  @@map("case_audit_logs")
+}
+
+model Notification {
+  id              String    @id @default(uuid())
+  recipientUserId String    @map("recipient_user_id")
+  caseId          String?   @map("case_id")
+  type            String
+  title           String
+  messageBody     String    @map("message_body")
+  channel         String    @default("IN_APP")
+  isRead          Boolean   @default(false) @map("is_read")
+  readAt          DateTime? @map("read_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  recipient       User      @relation(fields: [recipientUserId], references: [id], onDelete: Restrict)
+  case            Case?     @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@index([recipientUserId, isRead])
+  @@index([caseId])
+  @@map("notifications")
+}
+
+model CourtReferral {
+  id                     String               @id @default(uuid())
+  caseId                 String               @unique @map("case_id")
+  referralReference      String               @unique @map("referral_reference")
+  targetCourtOrAuthority String               @map("target_court_or_authority")
+  statutoryBasis         String               @map("statutory_basis")
+  summaryOfViolations    String               @map("summary_of_violations")
+  restitutionSought      String               @map("restitution_sought")
+  investigatingOfficerId String               @map("investigating_officer_id")
+  approvingDirectorId    String               @map("approving_director_id")
+  referralDate           DateTime             @default(now()) @map("referral_date")
+  qrVerificationCode     String               @unique @map("qr_verification_code")
+
+  case                   Case                 @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  investigatingOfficer   User                 @relation("InvestigatingOfficer", fields: [investigatingOfficerId], references: [id], onDelete: Restrict)
+  approvingDirector      User                 @relation("ApprovingDirector", fields: [approvingDirectorId], references: [id], onDelete: Restrict)
+
+  @@map("court_referrals")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 8: Reference Sequence Generators
+// ------------------------------------------------------------------------------
+
+model AnnualCaseSequence {
+  year    Int @id
+  lastVal Int @default(0) @map("last_val")
+
+  @@map("annual_case_sequences")
+}

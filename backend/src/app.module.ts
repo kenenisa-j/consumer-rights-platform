@@ -1,0 +1,31 @@
+import { Module } from '@nestjs/common';
+import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { AppConfigModule } from './lib/config/config.module';
+import { PrismaModule } from './lib/database/prisma.module';
+import { HealthModule } from './lib/health/health.module';
+import { PermissionGuard } from './lib/common/guards/permission.guard';
+import { AllExceptionsFilter } from './lib/common/filters/all-exceptions.filter';
+import { TransformInterceptor } from './lib/common/interceptors/transform.interceptor';
+
+@Module({
+  imports: [
+    AppConfigModule,
+    PrismaModule,
+    HealthModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
+    },
+  ],
+})
+export class AppModule { }

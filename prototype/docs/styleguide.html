@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style guide · Consumer Protection · AddisB2B</title>
+<link rel="stylesheet" href="../assets/css/tokens.css"><link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/components.css"><link rel="stylesheet" href="../assets/css/patterns.css"><link rel="stylesheet" href="../assets/css/public.css">
+</head>
+<body>
+<div class="ribbon" role="note" aria-label="Prototype notice"><div class="container"><strong>Prototype · demo data, fictional people and businesses</strong><span>View as:</span><a href="../index.html">Start page</a><a href="../public/index.html" aria-current="page">Citizen</a><span class="soon">Merchant · next</span><span class="soon">Office · next</span><span class="soon">Administration · next</span></div></div>
+<main id="main">
+<section class="page-head"><div class="container"><h1>Style guide<span class="am" lang="am">የንድፍ መመሪያ</span></h1><p class="lead">Every component used in the prototype. Part A uses the public look; the office and merchant parts will add the navy workspace look.</p></div></section>
+<section class="section"><div class="container stack">
+<div class="card"><h2>Colours</h2><div class="grid-4">
+<div><div style="height:56px;border-radius:8px;background:var(--green)"></div><small>Forest green #123d31</small></div>
+<div><div style="height:56px;border-radius:8px;background:var(--orange)"></div><small>Orange #d76512</small></div>
+<div><div style="height:56px;border-radius:8px;background:var(--navy)"></div><small>Office navy #0e2a47</small></div>
+<div><div style="height:56px;border-radius:8px;background:var(--green-pale);border:1px solid var(--line)"></div><small>Pale green #edf6f2</small></div></div></div>
+<div class="card"><h2>Buttons</h2><div class="btn-row"><a class="btn" href="#">Primary</a><a class="btn btn--accent" href="#">Main action</a><a class="btn btn--secondary" href="#">Secondary</a><a class="btn btn--ghost" href="#">Quiet</a><a class="btn btn--danger" href="#">Danger</a><a class="btn btn--stack" href="#"><span>With Amharic</span><span class="am" lang="am">አማርኛ</span></a></div></div>
+<div class="card"><h2>Statuses</h2><p class="btn-row"><span class="status status--info">Being checked</span><span class="status status--warn">We need more information</span><span class="status status--ok">Resolved</span><span class="status status--bad">Escalated</span><span class="status">Closed</span><span class="badge badge--proposed">proposed</span><span class="badge badge--later">Later phase</span></p></div>
+<div class="card"><h2>Alerts</h2><div class="alert"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><div><strong>Information</strong><p>Neutral information.</p></div></div><div class="alert alert--ok"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Done</strong><p>Something worked.</p></div></div><div class="alert alert--warn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Needs attention</strong><p>Something to do.</p></div></div></div>
+<div class="card"><h2>Form fields</h2><div class="form-grid"><div class="field"><label for="sg-1">Text field</label><input class="input" id="sg-1" required><p class="error-text">The error appears after the field is left empty.</p></div><div class="field"><label for="sg-2">Select</label><select class="select" id="sg-2"><option>Choose</option></select></div></div>
+<div class="choice-grid"><label class="choice"><input type="radio" name="sg" checked><span><b>Choice card</b><small>Selected</small></span></label><label class="choice"><input type="radio" name="sg"><span><b>Choice card</b><small>Not selected</small></span></label><label class="choice choice--disabled"><input type="radio" disabled><span><b>Later phase</b></span></label></div></div>
+<div class="card"><h2>Form steps and case progress</h2><ol class="steps"><li class="done">Done</li><li class="done">Done</li><li class="now">Now</li><li>Next</li></ol>
+<ol class="track"><li class="done">Received</li><li class="done">Checked</li><li class="now">Investigating</li><li>Talking</li><li>Agreement</li><li>Resolved</li></ol></div>
+<div class="card"><h2>Timeline</h2><ol class="timeline"><li class="now"><span class="dot"></span><b>Now</b><time>Today</time></li><li class="done"><span class="dot"></span><b>Done</b><time>Yesterday</time></li><li class="todo"><span class="dot"></span><b>Still to come</b></li></ol></div>
+<div class="card"><h2>Dialog</h2><a class="btn btn--secondary" href="#sg-dialog">Open a dialog</a></div>
+<div class="later"><span class="badge badge--later">Later phase</span><b>Placeholder for a later feature</b><p class="small mb-0">Shown greyed out, does nothing.</p></div>
+</div></section>
+<div class="modal" id="sg-dialog" role="dialog" aria-modal="true" aria-labelledby="sg-dialog-title"><div class="modal__box"><a class="modal__close" href="#" aria-label="Close">×</a><h2 id="sg-dialog-title">A dialog</h2><p>Opened with a link to its id, closed with a link to #.</p><a class="btn" href="#">Close</a></div></div>
+</main>
+</body>
+</html>

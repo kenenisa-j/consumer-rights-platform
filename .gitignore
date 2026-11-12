@@ -1,0 +1,40 @@
+# Dependencies and build output
+node_modules/
+web/.next/
+web/next-env.d.ts
+backend/dist/
+dist/
+out/
+coverage/
+*.tsbuildinfo
+
+# Secrets and local runtime (never commit)
+.env
+.env.*
+!.env.example
+.runtime/
+*.pem
+*.key
+*.log
+
+# Database dumps, exports, archives
+*.sql.gz
+*.dump
+*.zip
+*.xlsx
+
+# Test output
+playwright-report/
+test-results/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+*.bak
+
+# Agent tooling: share team commands/settings, keep personal overrides local
+.claude/settings.local.json

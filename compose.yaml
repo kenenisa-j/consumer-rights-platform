@@ -1,0 +1,23 @@
+name: consumer-rights
+
+# Development database only. The web and backend run on the host with `npm run dev`
+# (added when the apps are scaffolded). A full container stack is a later ADR.
+services:
+  db:
+    image: postgres:16.15-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-consumer_rights}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env first}
+      POSTGRES_DB: ${POSTGRES_DB:-consumer_rights}
+    ports: ["127.0.0.1:${DB_PORT:-5546}:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    logging: { driver: local, options: { max-size: "10m", max-file: "3" } }
+
+volumes:
+  postgres-data:

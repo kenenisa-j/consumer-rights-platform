@@ -1,0 +1,9 @@
+# One line-ending policy for Windows and Linux contributors.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.woff2 binary

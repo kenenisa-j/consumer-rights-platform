@@ -1,0 +1,11 @@
+/* Paper versions: a confirmation slip, a case summary, reports. */
+@media print {
+  .ribbon, .gov-line, .site-header, .nav-bar, .site-footer, .no-print, .btn, .modal { display: none !important; }
+  body { font-size: 11pt; color: #000; background: #fff; }
+  .page-head { background: none; border: 0; padding: 0 0 8pt; }
+  .card { box-shadow: none; border: 1px solid #999; break-inside: avoid; }
+  .layout { grid-template-columns: 1fr; }
+  a { color: #000; text-decoration: none; }
+  .print-only { display: block !important; }
+}
+.print-only { display: none; }

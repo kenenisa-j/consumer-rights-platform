@@ -1,0 +1,43 @@
+/* Consumer Protection prototype: design tokens.
+   Public pages use the AddisB2B public look (forest green and orange).
+   Office and merchant pages (later parts) use the government workspace look (navy and orange). */
+:root {
+  /* public look */
+  --green: #123d31;
+  --green-deep: #0e3027;
+  --green-mid: #1d5a48;
+  --green-pale: #edf6f2;
+  --green-line: #c9dfd3;
+  --orange: #d76512;
+  --orange-deep: #a94d0a;
+  --orange-pale: #fdf0e2;
+
+  /* office look (Parts B to D) */
+  --navy: #0e2a47;
+  --navy-rail: #0c1e32;
+  --navy-pale: #e7edf5;
+  --office-orange: #e0640f;
+
+  /* text and surfaces */
+  --ink: #122421;
+  --muted: #56636b;
+  --line: #d9dde4;
+  --line-strong: #b9c2cc;
+  --surface: #ffffff;
+  --alt: #f5f7f6;
+
+  /* states: text colour and tinted background */
+  --ok: #17734f;      --ok-bg: #e3f4ec;
+  --warn: #7f4b00;    --warn-bg: #fff1dc;
+  --bad: #a3221b;     --bad-bg: #fbe9e7;
+  --info: #1b4a72;    --info-bg: #e8f0f8;
+  --grey: #4c5960;    --grey-bg: #eef1f3;
+
+  --font: Arial, Helvetica, "Noto Sans Ethiopic", Nyala, Ebrima, system-ui, sans-serif;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgba(18, 61, 49, .06), 0 6px 20px rgba(18, 61, 49, .07);
+  --shadow-lg: 0 18px 50px rgba(14, 48, 39, .25);
+  --width: 1180px;
+}

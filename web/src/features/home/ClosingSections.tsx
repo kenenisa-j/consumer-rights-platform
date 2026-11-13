@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { NEWS, FAQ, TALK, QUICK_TIP, SUB_CITIES } from "@/content/home";
+import { NEWS, FAQ, TALK, QUICK_TIP } from "@/content/home";
+import { SUB_CITIES } from "@/content/common";
 import { Icon } from "@/components/ui/Icon";
 import { Am, Bi } from "@/components/ui/Bi";
 
@@ -66,7 +67,7 @@ export function HomeDialogs() {
           <span className="icon-bubble"><Icon name="flag" /></span>
           <h2 id="qt-title" className="mt-4"><Bi t={QUICK_TIP.title} /></h2>
           <p className="muted">{QUICK_TIP.intro}</p>
-          <form action="/tip-sent" method="get">
+          <form action="/tip/sent" method="get">
             <div className="field"><label htmlFor="qt-kind">What did you see?</label>
               <select className="select" id="qt-kind" name="kind">{QUICK_TIP.kinds.map(k => <option key={k}>{k}</option>)}</select></div>
             <div className="field"><label htmlFor="qt-where">Where?</label>

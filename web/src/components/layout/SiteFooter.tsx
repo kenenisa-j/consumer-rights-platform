@@ -17,7 +17,7 @@ export function SiteFooter({ freeCall }: { freeCall: string }) {
               <li>Your Woreda trade office</li>
               <li><a href={`tel:${freeCall}`}>Free call: {freeCall}</a></li>
               <li><Link href="/help#offices">Find an office</Link></li>
-              <li><Link href="/business/complaints">For businesses: sign in</Link></li>
+              <li><Link href="/sign-in">For businesses: sign in</Link></li>
               <li>{FREE_CALL_HOURS.short}</li>
             </ul>
           </div>

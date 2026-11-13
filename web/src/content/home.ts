@@ -84,7 +84,7 @@ export const NEWS = {
   title: bi("Latest from the Directorate", "ዜናና ማስታወቂያዎች"),
   all: "All news",
   items: [
-    { href: "/news/article", icon: "calendar" as IconName, badge: "badge--orange", tag: "Campaign",
+    { href: "/news/check-before-you-buy", icon: "calendar" as IconName, badge: "badge--orange", tag: "Campaign",
       title: "Check before you buy: expiry dates at Sunday Markets", iso: "2026-11-03", date: "3 November 2026" },
     { href: "/news", icon: "scale" as IconName, badge: "badge--green", tag: "Notice",
       title: "Scales at all 282 Sunday Markets will be checked this month", iso: "2026-10-30", date: "30 October 2026" },
@@ -119,5 +119,3 @@ export const QUICK_TIP = {
     "False scales or short weight", "Something else"]
 };
 
-export const SUB_CITIES = ["Addis Ketema", "Akaki Kality", "Arada", "Bole", "Gulele", "Kirkos",
-  "Kolfe Keranio", "Lemi Kura", "Lideta", "Nifas Silk-Lafto", "Yeka"];

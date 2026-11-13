@@ -1,23 +1,14 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type { CaseData, Stamp } from "@/types/case";
+import type { CaseData } from "@/types/case";
+import { stamp } from "@/lib/stamp";
 import { STAGES, STAGE_INDEX } from "@/content/common";
 import { Alert, ProgressTrack, StatusPill } from "@/components/ui/Display";
 import { applyAction, type CaseAction } from "./case-state";
 import { CaseActions } from "./CaseActions";
 import { CaseDialogs, type DialogName } from "./CaseDialogs";
 import { CaseSide, DetailsCard, MessageThread, ReplyForm, UpdatesCard } from "./CaseSections";
-
-function stamp(): Stamp {
-  const d = new Date();
-  const part = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-GB", o).format(d);
-  return {
-    when: `${part({ weekday: "long", day: "numeric", month: "long" })}, ${part({ hour: "2-digit", minute: "2-digit" })} ${d.getFullYear()}`,
-    short: `${part({ weekday: "short", day: "numeric", month: "short" })}, ${part({ hour: "2-digit", minute: "2-digit" })}`,
-    iso: d.toISOString()
-  };
-}
 
 const NO_REPLY = new Set(["info_required", "outside"]);
 

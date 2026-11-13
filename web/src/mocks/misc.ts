@@ -51,3 +51,8 @@ export async function trackTip(reference: string, code: string) {
 }
 
 export const CATEGORY_OPTIONS = (Object.keys(CATEGORY_TEXT) as ComplaintCategory[]).map(value => ({ value, ...CATEGORY_TEXT[value] }));
+
+/** A complaint recorded by staff (phone, in person or letter). The backend allocates the reference. */
+export async function submitIntake(): Promise<{ reference: string }> {
+  return { reference: "CC-2026-00144" };
+}

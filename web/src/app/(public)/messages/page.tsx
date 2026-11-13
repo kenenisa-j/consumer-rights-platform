@@ -1,6 +1,7 @@
 import { bi } from "@/content/types";
 import { PageHead } from "@/components/ui/PageHead";
 import { MessagesView } from "@/features/messages/MessagesView";
+import { CONVERSATIONS } from "@/mocks/conversations";
 
 export const metadata = { title: "Messages" };
 
@@ -10,7 +11,7 @@ export default function MessagesPage() {
     <>
       <PageHead crumbs={[{ label: "My cases", href: "/my-cases" }, { label: "Messages" }]} title={bi("Messages", "መልዕክቶች")}
         lead="Talk to the business and to the offices handling your complaint. You can write, attach a file, or make an offer." />
-      <section className="section"><div className="container"><MessagesView /></div></section>
+      <section className="section"><div className="container"><MessagesView conversations={CONVERSATIONS} caseBase="/cases" /></div></section>
     </>
   );
 }

@@ -55,6 +55,23 @@ export function resolveAllowedCorsOrigins(publicUrl: string, nodeEnv: string): s
   return allowedOrigins;
 }
 
+/**
+ * Configures CORS on a NestJS application using the resolved allowed origins.
+ * Extracted so lightweight test harnesses can apply the same CORS policy
+ * without booting the full AppModule or requiring a database connection.
+ */
+export function configureCors(
+  app: { enableCors: (options: { origin: string[]; credentials: boolean }) => void },
+  publicUrl: string,
+  nodeEnv: string,
+): void {
+  const allowedOrigins = resolveAllowedCorsOrigins(publicUrl, nodeEnv);
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+  });
+}
+
 export async function createNestApp() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
@@ -62,16 +79,12 @@ export async function createNestApp() {
   const authService = app.get(AuthService);
   const nodeEnv = configService.get<string>('NODE_ENV', 'development');
   const publicUrl = configService.get<string>('PUBLIC_URL', 'http://localhost:3300');
-  const allowedOrigins = resolveAllowedCorsOrigins(publicUrl, nodeEnv);
 
   // Security headers
   app.use(helmet());
 
   // CORS configuration
-  app.enableCors({
-    origin: allowedOrigins,
-    credentials: true,
-  });
+  configureCors(app, publicUrl, nodeEnv);
 
   // Mount Better Auth handler BEFORE body parsers for Express 5 catch-all
   const expressApp = app.getHttpAdapter().getInstance();

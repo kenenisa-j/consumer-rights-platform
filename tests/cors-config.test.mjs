@@ -1,49 +1,67 @@
 /**
- * CORS configuration tests for resolveAllowedCorsOrigins (backend/src/main.ts).
+ * CORS configuration tests for resolveAllowedCorsOrigins and configureCors
+ * (backend/src/main.ts).
  *
  * Two levels of verification:
  *   A. Pure-function tests: import the compiled function from dist and assert
  *      its return values / thrown errors directly. This confirms the decision
  *      logic without duplicating the implementation.
- *   B. HTTP preflight tests: boot a real Nest application and send OPTIONS
- *      requests with an Origin header; assert the actual
- *      Access-Control-Allow-Origin response header. This confirms the function
- *      output is correctly wired into app.enableCors().
+ *   B. HTTP preflight tests: boot a minimal Nest application (no AppModule,
+ *      no Prisma, no PostgreSQL) and send OPTIONS requests with an Origin
+ *      header; assert the actual Access-Control-Allow-Origin response header.
+ *      This confirms the function output is correctly wired via configureCors().
  */
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
-import { setupTestDatabase } from "./integration/test-db-setup.mjs";
+import coreModule from "@nestjs/core";
+import commonModule from "@nestjs/common";
 
 process.env.NODE_ENV = "test";
 
-// ── Shared state for HTTP tests ───────────────────────────────────────────────
+const NestFactory = coreModule.NestFactory || coreModule.default?.NestFactory;
+const Module = commonModule.Module || commonModule.default?.Module;
+const Controller = commonModule.Controller || commonModule.default?.Controller;
+const Get = commonModule.Get || commonModule.default?.Get;
+
+// ── Shared state ──────────────────────────────────────────────────────────────
 let resolveAllowedCorsOrigins;
-let createNestApp;
+let configureCors;
 let app;
 let baseUrl;
-let testClient;
 
 before(async () => {
-  const dbSetup = await setupTestDatabase();
-  testClient = dbSetup.testClient;
-  process.env.DATABASE_URL = dbSetup.testDatabaseUrl;
-  process.env.NODE_ENV = "test";
-
   const mainModule = await import("../backend/dist/main.js");
   resolveAllowedCorsOrigins = mainModule.resolveAllowedCorsOrigins;
-  createNestApp = mainModule.createNestApp;
+  configureCors = mainModule.configureCors;
 
   if (!resolveAllowedCorsOrigins) throw new Error("resolveAllowedCorsOrigins not exported from dist/main.js");
-  if (!createNestApp) throw new Error("createNestApp not exported from dist/main.js");
+  if (!configureCors) throw new Error("configureCors not exported from dist/main.js");
 
-  app = await createNestApp();
+  // Minimal NestJS controller and module without AppModule, Prisma, or PostgreSQL
+  class MinimalController {
+    check() {
+      return { status: "pass" };
+    }
+  }
+  Get()(
+    MinimalController.prototype,
+    "check",
+    Object.getOwnPropertyDescriptor(MinimalController.prototype, "check")
+  );
+  Controller("health")(MinimalController);
+
+  class MinimalModule {}
+  Module({ controllers: [MinimalController] })(MinimalModule);
+
+  app = await NestFactory.create(MinimalModule, { logger: false });
+  configureCors(app, "http://localhost:3300", "test");
+  app.setGlobalPrefix("api");
   await app.listen(0, "127.0.0.1");
   const address = app.getHttpServer().address();
   baseUrl = `http://127.0.0.1:${address.port}`;
 });
 
 after(async () => {
-  if (testClient) await testClient.end().catch(() => {});
   if (app) await app.close().catch(() => {});
 });
 

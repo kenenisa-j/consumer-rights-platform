@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { CONVERSATIONS, type ChatItem, type Conversation, type OfferStatus } from "@/mocks/conversations";
+import type { ChatItem, Conversation, OfferStatus } from "@/mocks/conversations";
 import { OFFER_LABELS } from "@/content/common";
 import { bi } from "@/content/types";
 import { Dialog } from "@/components/ui/Dialog";
@@ -33,8 +33,8 @@ function Bubble({ item, onAnswer }: { item: ChatItem; onAnswer: (id: string, sta
 }
 
 /** Conversations with the business and each office. Only the office holding the case now accepts new messages. */
-export function MessagesView() {
-  const [chats, setChats] = useState<readonly Conversation[]>(CONVERSATIONS);
+export function MessagesView({ conversations, caseBase }: { conversations: readonly Conversation[]; caseBase: string }) {
+  const [chats, setChats] = useState<readonly Conversation[]>(conversations);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [offerOpen, setOfferOpen] = useState(false);
   const [sent, setSent] = useState("");
@@ -83,7 +83,7 @@ export function MessagesView() {
                 <div><b>{active.name}</b><small>{active.role}</small></div>
                 <div className="btn-row">
                   <button className="btn btn--ghost btn--sm" type="button" onClick={() => setActiveId(null)}>All conversations</button>
-                  <Link className="btn btn--secondary btn--sm" href={`/cases/${active.caseRef}`}>Open the case</Link>
+                  <Link className="btn btn--secondary btn--sm" href={`${caseBase}/${active.caseRef}`}>Open the case</Link>
                 </div>
               </div>
               <div className="chat-feed" tabIndex={0} aria-label={`Messages with ${active.name}`}>

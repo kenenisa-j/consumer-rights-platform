@@ -53,6 +53,3 @@ export const GOV_MENU: MenuGroup[] = [
     { slug: "settings", label: "Settings", icon: "sliders" }] }
 ];
 
-export const SECTION_TITLES: Record<string, { title: string; text: string }> = Object.fromEntries(
-  GOV_MENU.flatMap(g => g.items).map(i => [i.slug, { title: i.label, text: "" }])
-);

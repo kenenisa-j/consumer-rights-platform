@@ -1,0 +1,58 @@
+/* Interaction patterns that work without JavaScript. */
+
+/* Dialog: <a href="#name"> opens <div class="modal" id="name">; a link to "#" closes it. */
+.modal { position: fixed; inset: 0; z-index: 200; display: none; place-items: center; padding: var(--s4); background: rgba(14, 36, 33, .55); }
+.modal:target { display: grid; }
+.modal__box { position: relative; width: min(560px, 100%); max-height: calc(100vh - 2 * var(--s4)); overflow-y: auto; padding: var(--s6) var(--s5) var(--s5); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow-lg); }
+.modal__box h2 { padding-right: var(--s6); }
+.modal__close { position: absolute; top: var(--s3); right: var(--s3); display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--ink); text-decoration: none; font-size: 1.6rem; line-height: 1; }
+.modal__close:hover { background: var(--alt); color: var(--ink); }
+body:has(.modal:target) { overflow: hidden; }
+
+/* Tabs: radio inputs before .tab-bar and the panels. */
+.tabs > input { position: absolute; opacity: 0; pointer-events: none; }
+.tab-bar { display: flex; gap: var(--s1); margin-bottom: var(--s5); border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab-bar label { flex: none; padding: var(--s3) var(--s4); border-bottom: 3px solid transparent; color: var(--muted); font-weight: 700; cursor: pointer; white-space: nowrap; }
+.tab-bar label:hover { color: var(--green); }
+.tab-panel { display: none; }
+.tabs > input:nth-of-type(1):checked ~ .tab-bar label:nth-of-type(1),
+.tabs > input:nth-of-type(2):checked ~ .tab-bar label:nth-of-type(2),
+.tabs > input:nth-of-type(3):checked ~ .tab-bar label:nth-of-type(3),
+.tabs > input:nth-of-type(4):checked ~ .tab-bar label:nth-of-type(4) { color: var(--green); border-bottom-color: var(--orange); }
+.tabs > input:nth-of-type(1):checked ~ .tab-panel:nth-of-type(1),
+.tabs > input:nth-of-type(2):checked ~ .tab-panel:nth-of-type(2),
+.tabs > input:nth-of-type(3):checked ~ .tab-panel:nth-of-type(3),
+.tabs > input:nth-of-type(4):checked ~ .tab-panel:nth-of-type(4) { display: block; }
+.tabs > input:focus-visible ~ .tab-bar { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+/* Filter chips: radio inputs inside .filter; items carry data-kind. */
+.chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s5); }
+.chips label { padding: 6px 14px; border: 1.5px solid var(--line-strong); border-radius: 999px; background: #fff; font-weight: 700; font-size: .9rem; cursor: pointer; }
+.chips label:has(input:checked) { background: var(--green); border-color: var(--green); color: #fff; }
+.chips label:has(input:focus-visible) { outline: 3px solid var(--orange); outline-offset: 2px; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+
+/* Show a block only when a choice is made: <div class="reveal" data-when="id"> is styled per page. */
+.reveal { display: none; }
+
+/* Accordion: native details and summary */
+.accordion { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+.accordion details { border-bottom: 1px solid var(--line); }
+.accordion details:last-child { border-bottom: 0; }
+.accordion summary { position: relative; padding: var(--s4) var(--s6) var(--s4) var(--s4); font-weight: 700; cursor: pointer; list-style: none; }
+.accordion summary::-webkit-details-marker { display: none; }
+.accordion summary::after { content: "+"; position: absolute; right: var(--s4); top: 50%; transform: translateY(-50%); font-size: 1.4rem; color: var(--green); }
+.accordion details[open] summary::after { content: "−"; }
+.accordion summary .am { margin-top: 2px; }
+.accordion .body { padding: 0 var(--s4) var(--s4); }
+.accordion .body > :last-child { margin-bottom: 0; }
+
+/* Mobile menu: checkbox before the nav */
+.nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
+
+/* Dialogs fade and rise in */
+@keyframes modal-fade { from { opacity: 0; } }
+@keyframes modal-pop { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+.modal:target { animation: modal-fade 180ms ease-out both; }
+.modal:target .modal__box { animation: modal-pop 220ms ease-out both; }
+@media (prefers-reduced-motion: reduce) { .modal:target, .modal:target .modal__box { animation: none; } }

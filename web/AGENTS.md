@@ -1,9 +1,12 @@
 # Frontend ownership (`web/`)
 
-Status: **not scaffolded yet.** Scaffold follows the approved frontend plan
-([documentation/frontend-guide.md](../documentation/frontend-guide.md)).
+Status: scaffolded. Plan and slice status: [documentation/frontend-plan.md](../documentation/frontend-plan.md);
+guide: [documentation/frontend-guide.md](../documentation/frontend-guide.md).
 
-- Next.js App Router, React 19, TypeScript strict, Bootstrap 5.3 base with the prototype's tokens.
+- Next.js App Router, React 19, TypeScript strict. Prototype CSS is ported verbatim into `src/styles/`
+  (no Bootstrap, see ADR-0003). Use the prototype's class names.
+- Copy lives in `src/content/*.ts` as `{ en, am }`; render with `<Bi>`/`<Am>`. Icons come from `components/ui/Icon.tsx`.
+- Product values (free call number) come from `src/lib/config.ts`, never from literals.
 - Build each screen from its prototype page (`prototype/<portal>/<page>.html`). Match layout, wording,
   fields, states and the Amharic line under each label. Do not redesign without approval.
 - One route per real screen. The prototype's `case-00123-*.html` variants are **states of one page**,

@@ -1,0 +1,54 @@
+/* Additions on top of the prototype stylesheets. Keep prototype CSS untouched; put new rules here. */
+
+/* Server-reported errors (native validation uses :user-invalid in components.css). */
+.error-text.show { display: block; }
+.field-error-summary { margin-bottom: var(--s5); }
+
+/* Native <dialog> that reuses the prototype modal box: focus trap, Escape and return focus for free. */
+dialog.dlg { padding: 0; border: 0; background: transparent; max-width: none; max-height: none; width: 100%; overflow: visible; }
+dialog.dlg::backdrop { background: rgba(14, 36, 33, .55); }
+dialog.dlg[open] { display: grid; place-items: center; padding: var(--s4); animation: modal-fade 180ms ease-out both; }
+dialog.dlg[open] .modal__box { animation: modal-pop 220ms ease-out both; }
+button.modal__close { border: 0; background: transparent; cursor: pointer; }
+
+/* Inline status message after an action. */
+.toast { animation: rise 240ms ease-out; }
+
+/* Search box above a filterable list. */
+.search-row { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: end; margin-bottom: var(--s4); }
+.search-row .field { flex: 1 1 260px; margin: 0; }
+.result-count { color: var(--muted); font-size: .9rem; margin: 0 0 var(--s4); }
+
+/* Document and news lists. */
+.doc-list { display: grid; gap: var(--s3); }
+.doc-list .doc { display: flex; gap: var(--s4); align-items: flex-start; }
+.doc-list .doc h3 { margin-bottom: 4px; }
+.doc-list .doc p { margin: 0 0 var(--s2); }
+
+/* Wizard: live summary status marks and review blocks. */
+.review-block { border: 1px solid var(--line); border-radius: var(--radius); padding: var(--s4); margin-bottom: var(--s4); background: #fff; }
+.review-block__head { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
+.review-block__head h3 { margin: 0; font-size: 1.05rem; }
+.file-list li { align-items: center; }
+.sr-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Chat layout: simple list/thread switch driven by state (not radios). */
+.chat-item { width: 100%; border: 0; background: transparent; text-align: left; font: inherit; }
+.chat-item[aria-current="true"] { background: #fff; box-shadow: inset 4px 0 0 var(--orange); }
+.chat-pane.is-open { display: flex; }
+@media (max-width: 800px) {
+  .chat { grid-template-columns: 1fr; }
+  .chat--thread-open .chat-list { display: none; }
+  .chat:not(.chat--thread-open) .chat-panes { display: none; }
+}
+
+/* Print: a sent complaint can be printed as a receipt. */
+@media print { .site-header, .site-footer, .btn-row, .call-box, .modal { display: none !important; } }
+
+/* Wizard: finished steps are buttons (state-driven), styled like the prototype's links. */
+.steps li button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 640px) { .steps li:not(.now) button { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; } }
+
+/* Sidebar file lists: the badge goes under the name so long file names never wrap letter by letter. */
+.side .file-list li { flex-direction: column; align-items: flex-start; gap: var(--s1); }
+.side .file-list li .badge { align-self: flex-start; }

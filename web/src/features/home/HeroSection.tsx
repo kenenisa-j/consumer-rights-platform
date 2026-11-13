@@ -38,7 +38,7 @@ export function HeroSection({ freeCall }: { freeCall: string }) {
       </div></section>
 
       <section className="section section--tight"><div className="container">
-        <div className="card"><form className="track-box" action="/track-result" method="get">
+        <div className="card"><form className="track-box" action="/track/result" method="get">
           <div className="field mb-0">
             <label htmlFor="home-ref"><Icon name="search" /> {TRACK.label.en} <Am text={TRACK.label.am} /></label>
             <input className="input" id="home-ref" name="ref" required placeholder={TRACK.example}

@@ -17,6 +17,37 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: Phase 3 — Better Auth Integration, 13 November 2026
+
+- **Better Auth & Prisma Adapter Integration:**
+  - Pinned `better-auth@^1.1.21` and `@better-auth/prisma-adapter@^1.1.21` in `backend/package.json`.
+  - Configured Better Auth with PostgreSQL Prisma adapter, session lifecycle (7 days expiration, 1 day update age, 5 min cookie cache), and field mappings (`fullName` -> `name`).
+  - Strict field protection configured on `User`: `status` (`returned: false`, `input: false`), `nationalIdFayda` (`returned: false`, `input: false`), `preferredLanguage` (`returned: true`, `input: true`).
+- **Phone-First Citizen Authentication & Prevention Hook:**
+  - Configured `phoneNumber` plugin with 6-digit OTP, 300s TTL, 3 allowed attempts, rate limiting, and synthetic email bridge (`getTempEmail`).
+  - Added `databaseHooks.user.update.before` intercepting and rejecting phone number removal/nullification with `APIError('BAD_REQUEST')` (HTTP 400), safeguarding PostgreSQL `NOT NULL` constraint without 500 DB driver crashes.
+- **Atomic Consumer Registration:**
+  - Implemented `POST /api/auth/register-consumer` with `RegisterConsumerDto` (validating E.164 phone format, 6-digit OTP, min-8 password, min-2 name).
+  - Consumes and verifies OTP via Better Auth server-side API; on invalid/expired OTP, rejects immediately.
+  - Generates password hash via Better Auth cryptographic hasher (`auth.$context.password.hash`).
+  - Runs inside `prisma.$transaction`: creates `User` (with `phone_number_verified: true`), `Account` (`providerId = 'credential'`), and links server-controlled `CONSUMER` role. Rolls back completely on failure.
+  - Automatically establishes session via `auth.api.signInPhoneNumber(..., { asResponse: true })` and forwards genuine Better Auth `Set-Cookie` headers.
+- **Express 5 & NestJS Middleware Integration:**
+  - `main.ts` configured with `NestFactory.create(AppModule, { bodyParser: false })`.
+  - Mounted Better Auth catch-all at `/api/auth/*splat` (Express 5 syntax) before `express.json()` and `express.urlencoded()`.
+- **Authoritative Permission Guard:**
+  - Updated `PermissionGuard` to resolve Better Auth session using `fromNodeHeaders(req.headers)`.
+  - Missing/invalid session throws `401 Unauthorized`.
+  - Inactive/suspended user in live PostgreSQL query throws `403 Forbidden`.
+  - Permission checks evaluate authoritative live user roles/permissions against required policy.
+- **SMS Provider Abstraction:**
+  - `SmsProvider` interface and `MockSmsService` with test history inspection and safe production logging (no raw OTP leaks).
+- **Prisma Schema & Migration SQL:**
+  - Updated `User` model with `emailVerified`, `phoneNumberVerified`, `image`, `sessions`, and `accounts`.
+  - Added `Session`, `Account`, and `Verification` models.
+  - Generated migration SQL at `backend/prisma/migrations/20261113150000_add_better_auth/migration.sql` (unapplied).
+- **Test Suite:** Created `tests/better-auth.test.mjs` verifying all 10 required scenarios.
+
 ## In progress: Phase 2C — NestJS backend foundation, 12 November 2026
 
 ### Initial PostgreSQL Migration Completion (Unapplied)

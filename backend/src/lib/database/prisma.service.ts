@@ -20,16 +20,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly pool?: Pool;
   private readonly logger = new Logger(PrismaService.name);
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(configService: ConfigService) {
     const databaseUrl = configService.get<string>('DATABASE_URL');
-    if (databaseUrl) {
-      const pool = new Pool({ connectionString: databaseUrl });
-      const adapter = new PrismaPg(pool);
-      super({ adapter });
-      this.pool = pool;
-    } else {
-      super();
-    }
+    const pool = databaseUrl ? new Pool({ connectionString: databaseUrl }) : undefined;
+    const adapter = pool ? new PrismaPg(pool) : undefined;
+
+    super(adapter ? { adapter } : undefined);
+
+    this.pool = pool;
   }
 
   async onModuleInit(): Promise<void> {

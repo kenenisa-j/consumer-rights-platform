@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppConfigModule } from './lib/config/config.module';
 import { PrismaModule } from './lib/database/prisma.module';
+import { AuthModule } from './lib/auth/auth.module';
 import { HealthModule } from './lib/health/health.module';
 import { PermissionGuard } from './lib/common/guards/permission.guard';
 import { AllExceptionsFilter } from './lib/common/filters/all-exceptions.filter';
@@ -11,6 +12,7 @@ import { TransformInterceptor } from './lib/common/interceptors/transform.interc
   imports: [
     AppConfigModule,
     PrismaModule,
+    AuthModule,
     HealthModule,
   ],
   providers: [

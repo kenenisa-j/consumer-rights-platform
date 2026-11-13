@@ -1,25 +1,37 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
+import { fromNodeHeaders } from 'better-auth/node';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { PERMISSIONS_KEY } from '../decorators/require-permission.decorator';
+import { PrismaService } from '../../database/prisma.service';
+import { AuthService } from '../../auth/auth.service';
 
 /**
  * Common Permission Guard
  *
  * Enforces route authorization policies:
- * 1. Checks if handler or class has `@Public()`. If true, permits request.
- * 2. Checks required permissions via `@RequirePermission(...)`. If absent and not public, fails closed.
- * 3. Evaluates authenticated user permissions against required permissions.
- *
- * NOTE (Better Auth Integration Boundary - Phase 3):
- * Session extraction, cookie verification, and active membership derivation
- * (portal, role, office level, jurisdiction) will be wired into this guard in Phase 3.
+ * 1. Checks `@Public()`. If true, permits request without authentication.
+ * 2. Checks required permissions via `@RequirePermission(...)`. If absent and not public, fails closed (403).
+ * 3. Resolves Better Auth session from request headers. If missing/invalid, throws 401 Unauthorized.
+ * 4. Queries live database for account status. If not ACTIVE, throws 403 Forbidden.
+ * 5. Evaluates authenticated user permissions against required permissions (403 if insufficient).
  */
 @Injectable()
 export class PermissionGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) { }
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService,
+  ) { }
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -42,23 +54,80 @@ export class PermissionGuard implements CanActivate {
       });
     }
 
-    // Phase 3 boundary: Inspect authenticated request context
-    const request = context.switchToHttp().getRequest<{
-      user?: {
-        id?: string;
-        permissions?: string[];
-      };
-    }>();
+    const req = context.switchToHttp().getRequest<Request>();
+    const headers = fromNodeHeaders(req.headers);
 
-    const user = request.user;
-    if (!user) {
-      throw new ForbiddenException({
+    // Resolve session via Better Auth API with authoritative database verification
+    let sessionData;
+    try {
+      sessionData = await this.authService.auth.api.getSession({
+        headers,
+        query: { disableCookieCache: true },
+      });
+    } catch {
+      sessionData = null;
+    }
+
+    if (!sessionData?.user || !sessionData?.session?.token) {
+      throw new UnauthorizedException({
         code: 'UNAUTHENTICATED',
         message: 'Authentication required to access this resource.',
       });
     }
 
-    const userPermissions = user.permissions ?? [];
+    // Authoritative database session verification: ensure session row exists and is not expired
+    const dbSession = await this.prisma.session.findUnique({
+      where: { token: sessionData.session.token },
+      select: { id: true, userId: true, expiresAt: true },
+    });
+
+    if (
+      !dbSession ||
+      dbSession.userId !== sessionData.user.id ||
+      new Date(dbSession.expiresAt) <= new Date()
+    ) {
+      throw new UnauthorizedException({
+        code: 'UNAUTHENTICATED',
+        message: 'Authentication required to access this resource.',
+      });
+    }
+
+    // Query authoritative database record for live status and permissions
+    const dbUser = await this.prisma.user.findUnique({
+      where: { id: sessionData.user.id },
+      select: {
+        id: true,
+        status: true,
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!dbUser || dbUser.status !== 'ACTIVE') {
+      throw new ForbiddenException({
+        code: 'ACCOUNT_SUSPENDED',
+        message: 'User account is suspended or inactive.',
+      });
+    }
+
+    const userPermissions: string[] = [];
+    for (const userRole of dbUser.roles) {
+      for (const rp of userRole.role.permissions) {
+        userPermissions.push(rp.permission.code);
+      }
+    }
+
     const hasAllPermissions = requiredPermissions.every((perm) =>
       userPermissions.includes(perm),
     );
@@ -69,6 +138,13 @@ export class PermissionGuard implements CanActivate {
         message: 'Insufficient permissions for this action.',
       });
     }
+
+    // Attach verified user context to request
+    (req as any).user = {
+      id: dbUser.id,
+      status: dbUser.status,
+      permissions: userPermissions,
+    };
 
     return true;
   }

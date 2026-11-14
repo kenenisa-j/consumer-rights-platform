@@ -9,21 +9,22 @@ Development: consumers complain, businesses answer, and unresolved complaints cl
 
 ## Status
 
-**Foundation stage.** The repository holds the rules, documentation, shared contracts and tooling. The `web/`
-and `backend/` applications are not scaffolded yet. The approved reference is the clickable HTML prototype
+**Early build.** The repository holds the rules, documentation, shared contracts and tooling, plus the `web/`
+frontend scaffold with the public shell and home page (see the [frontend plan](documentation/frontend-plan.md)).
+The `backend/` application is not scaffolded yet. The approved reference is the clickable HTML prototype
 (~100 screens) described in the [prototype guide](documentation/prototype-guide.md). Nothing here is production
 ready, and the prototype and requirements do not by themselves establish acceptance of any feature.
 
 ## Stack
 
-Next.js 16 · React 19 · Bootstrap 5.3 · NestJS 11 · PostgreSQL 16 · Prisma 7 · Better Auth · TypeScript 5.7,
+Next.js 16 · React 19 · NestJS 11 · PostgreSQL 16 · Prisma 7 · Better Auth · TypeScript 5.7,
 organized as an npm-workspaces monorepo. See [tech stack](documentation/tech-stack.md).
 
 ## Repository layout
 
 | Path | Purpose |
 | --- | --- |
-| `web/` | Next.js frontend (planned) |
+| `web/` | Next.js frontend (scaffolded; `npm run dev -w web` on port 3300) |
 | `backend/` | NestJS API, Prisma schema and migrations (planned) |
 | `lib/contracts/` | Shared definitions and API types |
 | `scripts/` | Node operations and `validate.mjs` |

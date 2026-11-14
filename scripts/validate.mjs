@@ -3,6 +3,8 @@
 //  2. web/ must never import backend or database code.
 //  3. Every controller route declares a Public or RequirePermission policy.
 //  4. Relative links in Markdown files resolve.
+//  5. Every HTML `pattern` in web/src compiles with the `v` flag. Browsers use it, and an invalid pattern is silently
+//     ignored, so the field would accept anything (a bare "-" inside [ ] is the usual mistake: write [ \-]).
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -49,6 +51,15 @@ async function checkFile(file) {
     if (routes !== policies) fail(`${rel(file)} has ${routes} routes and ${policies} permission policies.`);
   }
   if (name.endsWith(".md")) checkLinks(file, text);
+  if (rel(file).startsWith("web/src/") && /\.tsx?$/.test(name)) checkPatterns(file, text);
+}
+
+function checkPatterns(file, text) {
+  const found = [...text.matchAll(/pattern="([^"]+)"/g)].map(m => m[1])
+    .concat([...text.matchAll(/pattern:\s*"([^"]+)"/g)].map(m => m[1]), [...text.matchAll(/String\.raw`([^`]+)`/g)].map(m => m[1]));
+  for (const pattern of found) {
+    try { new RegExp(`^(?:${pattern})$`, "v"); } catch (e) { fail(`${rel(file)} has an HTML pattern browsers will ignore: ${pattern} (${e.message})`); }
+  }
 }
 
 async function visit(directory) {
@@ -64,5 +75,5 @@ async function visit(directory) {
 for (const directory of roots) await visit(path.join(root, directory));
 for (const file of rootFiles) await checkFile(path.join(root, file)).catch(() => {});
 await new Promise(resolve => setTimeout(resolve, 100)); // let async link checks report
-console.log(`Checked ${checked} files: size caps, web/backend boundary, API permission policies, Markdown links.`);
+console.log(`Checked ${checked} files: size caps, web/backend boundary, API permission policies, Markdown links, HTML patterns.`);
 if (errors) process.exitCode = 1;

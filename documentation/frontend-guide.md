@@ -54,7 +54,7 @@ statuses are always shown with **text**, never colour alone. Spacing scale `--s1
 | `:has()` list filters | Server-side filtering through query params; filter bar syncs with URL |
 | `<form action=next.html>` steps | Wizard route with per-step validation and a persisted draft; submit once at the end |
 | CSS bars / conic donuts | Small presentational components or CSS; no chart library unless an ADR says so |
-| Inline SVG icons | Keep inline SVG (offline) or bootstrap-icons font self-hosted |
+| Inline SVG icons | Inline SVG via `components/ui/Icon.tsx` (offline) |
 | `@media print` letters/reports | Keep `print.css` rules; print route per document |
 
 ## Bilingual interface

@@ -14,6 +14,8 @@
   },
   "scripts": {
     "dev": "npm run dev --workspace=@consumer-rights/web",
+    "backend:dev": "npm run start:dev --workspace=@consumer-rights/backend",
+    "backend:build": "npm run build --workspace=@consumer-rights/backend",
     "prisma:generate": "npm run prisma:generate --workspace=@consumer-rights/backend",
     "validate": "node scripts/validate.mjs",
     "test": "node --test tests/*.test.mjs",

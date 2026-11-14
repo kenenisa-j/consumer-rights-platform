@@ -1,6 +1,10 @@
 export default {
   transpilePackages: ["@consumer-rights/contracts"],
   poweredByHeader: false,
+  async rewrites() {
+    const backendUrl = process.env.API_INTERNAL_URL || "http://127.0.0.1:4300";
+    return [{ source: "/api/:path*", destination: `${backendUrl}/api/:path*` }];
+  },
   async headers() {
     return [{
       source: "/:path*",

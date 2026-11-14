@@ -30,6 +30,12 @@ export function createBetterAuth(
     baseURL: `${publicUrl}/api/auth`,
     basePath: '/api/auth',
     secret,
+    trustedOrigins: [
+      'http://localhost:3300',
+      'http://127.0.0.1:3300',
+      'http://localhost:4300',
+      'http://127.0.0.1:4300',
+    ],
     database: prismaAdapter(prisma, {
       provider: 'postgresql',
     }),

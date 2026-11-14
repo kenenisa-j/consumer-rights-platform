@@ -1,6 +1,6 @@
 # Backend ownership (`backend/`)
 
-Status: **not scaffolded yet.** Layout and rules: [documentation/backend-guide.md](../documentation/backend-guide.md).
+Status: **scaffolded (Phase 1 foundation complete).** Layout and rules: [documentation/backend-guide.md](../documentation/backend-guide.md).
 
 - NestJS 11, PostgreSQL 16, Prisma 7 (PrismaPg), Better Auth. Shared infrastructure in `src/lib`,
   domain features in `src/modules` (one folder per module: complaints, tips, messaging, offices, content...).

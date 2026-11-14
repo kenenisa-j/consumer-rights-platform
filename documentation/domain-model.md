@@ -19,18 +19,57 @@ Roles: `consumer`, `business_owner`, `woreda_officer`, `woreda_admin`, `subcity_
 for Woreda/Sub-City, one jurisdiction. The earlier single government portal with a "Working in"
 switch is **gone**.
 
-## The climb
+## Case escalation and the climb rule
 
-A complaint moves up **one level at a time** and never skips or goes down. The City Bureau is last.
+Once a complaint is under investigation or review by a government office, upward referrals
+follow the **climb rule**: a case moves up **one level at a time** and never skips an intermediate
+level or moves downward (`isValidClimb` in `lib/contracts`). The City Bureau is the terminal level.
 
-1. **Business**: consumer and business talk, make offers and counter-offers. Agreement = resolved; government never acts.
-2. **Woreda**: the consumer moves it to the Woreda where they bought. A business **not on AddisB2B** starts here.
-3. **Sub-City**: the Woreda officer passes it up with a **handover note** if unresolved.
-4. **City Bureau**: last level; settles the case or refers it for further action.
+1. **Woreda**: resolves directly, or passes unresolved cases up to its Sub-City with a **handover note**.
+2. **Sub-City**: resolves directly, or passes unresolved cases up to the City Bureau with a **handover note**.
+3. **City Bureau**: last level; settles the case definitively or refers it for external regulatory/legal action.
 
-Every level can resolve. The consumer always sees **one case, one number, and the office holding it now**;
-consumer and business are told at each move. Progress bar: With the business, Woreda office, Sub-City office,
-City Bureau, Resolved.
+Every government level can resolve. The consumer always sees **one case, one number, and the office holding it now**;
+both consumer and business are notified at each move.
+
+**Important distinction: initial intake vs in-progress climb:**
+- The climb rule governs **in-progress inter-office transfers/escalations**.
+- Initial complaint filing does NOT force every complaint through the lowest tier: under **Route A**,
+  consumers select their initial government level (Woreda, Sub-City, or City Bureau) directly.
+- Under **Route B**, the dispute starts with the business; if unresolved, it escalates to government
+  according to Route B escalation rules.
+
+## Dual complaint routing
+
+Consumers have **two filing routes** when submitting a new complaint. The route is set at submission and
+does not change. Machine-readable definitions: `COMPLAINT_ROUTES`, `GOVERNMENT_LEVELS`,
+`validateRouteA`, `validateRouteB` in `lib/contracts`.
+
+### Route A — Direct to Government
+
+1. Consumer selects "Direct to Government".
+2. Consumer selects a **government level**: Woreda, Sub-City, or City Bureau.
+3. Consumer selects a **specific office** within that level.
+4. The complaint is submitted directly to that office.
+
+This route is used when the business is not registered on AddisB2B, or when the consumer chooses not to
+engage the business directly. The complaint enters government custody immediately at `submitted` status.
+`currentOfficeId` is set at submission and is **never null** for Route A cases.
+
+### Route B — Registered Business
+
+1. Consumer selects "Registered Business".
+2. Consumer selects a **specific business** registered on AddisB2B.
+3. The complaint is submitted to the business; the business has an opportunity to resolve it.
+4. If unresolved, the consumer may escalate to the appropriate government office.
+
+Before escalation, `currentOfficeId` is **null** — the case is held at the `"business"` handling level,
+not by any government office. On escalation the consumer (or the system on SLA expiry — *to be confirmed*)
+selects the government office and `currentOfficeId` is set. From that point the complaint climbs the
+standard `isValidClimb` path.
+
+The business sees the consumer only as `Consumer 00123` (see `consumerAlias`). Consumer name, phone
+and address are never exposed to the business at any stage.
 
 ## Statuses
 

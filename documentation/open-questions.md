@@ -34,6 +34,32 @@ Do not decide these silently. Implement the configurable/placeholder form, ask, 
 19. **Notifications.** In-app only for v1; SMS/email later. Confirm.
 20. **Hosting** and who operates it (government vs HEMIN); affects offline/self-hosting constraints.
 
+## Dual routing (confirmed: Route A and Route B)
+
+21. **Route B escalation trigger.** When a Route B complaint is not resolved by the business, what triggers
+    escalation: a consumer-initiated action, an SLA expiry (auto-escalation), or both? If SLA: who sets the
+    target and can it be changed per category?
+
+22. **Route B escalation target and initial government tier.** When a Route B complaint is escalated from
+    the business to government, how is the receiving government office and tier determined?
+    - Does it strictly enter at the local Woreda level (following the prototype's default `business -> woreda` climb),
+      subsequently climbing Woreda -> Sub-City -> Bureau if unresolved?
+    - Or can the consumer (or system) direct the escalation to an office at any government level (e.g. Sub-City
+      or City Bureau directly), similar to Route A's level selection?
+    - How do business physical location, consumer residence, and complaint severity affect this destination?
+    This policy remains unresolved and must be agreed with the Bureau.
+
+23. **Reference number format.** `lib/contracts` uses `CC-YYYY-NNNNN` (5-digit, prototype-aligned) as the
+    provisional format. This is kept intact until the Bureau formally approves an official format. Existing
+    prototype references must not change. Confirm the official format with the Bureau before the first migration.
+
+24. **Route B: business not responding.** If the business never responds, how many days before the consumer
+    may escalate? Is there a system reminder to the business? Who sets this limit?
+
 ## Answered
 
-_None yet._
+- **Route A office selection (resolved 12 Nov 2026).** Decided: For Route A, consumers always select
+  a specific office within their chosen government level (Woreda, Sub-City, or City Bureau). The office
+  listed must belong to that level; a Woreda office is not valid for a Sub-City or Bureau selection and
+  vice versa. This rule applies equally to all three government levels and is enforced by
+  `officeBelongsToLevel` in `lib/contracts` and by backend service logic.

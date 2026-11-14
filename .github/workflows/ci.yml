@@ -18,8 +18,8 @@ jobs:
         with: { node-version: 24, cache: npm }
       - run: npm ci
       - run: npm run validate
-      - run: npm test
       # Workspaces without these scripts (web/backend before scaffolding) are skipped.
       - run: npm run typecheck
       - run: npm run build
+      - run: npm test
       - run: npm audit --audit-level=high

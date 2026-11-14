@@ -1,4 +1,6 @@
-import type { ComponentProps, ReactNode } from "react";
+"use client";
+
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { Icon } from "./Icon";
 
 // Form primitives using the prototype classes. Native constraint validation does the checking;
@@ -67,11 +69,34 @@ export function CheckField({ children, ...rest }: Omit<ComponentProps<"input">, 
 
 export interface ChoiceOption { value: string; title: string; text?: string }
 
-/** Radio cards. Use `columns={1}` for long descriptions. */
-export function ChoiceGroup({ name, legend, options, value, onChange, required = true, columns }: {
+/**
+ * Radio cards for a few choices. With `dropdown`, a long list collapses into one select and the description of the
+ * chosen option shows underneath, so the page does not become a wall of options.
+ */
+export function ChoiceGroup({ name, legend, options, value, onChange, required = true, columns, dropdown, placeholder = "Choose one" }: {
   name: string; legend: ReactNode; options: readonly ChoiceOption[]; value?: string;
-  onChange?: (value: string) => void; required?: boolean; columns?: 1;
+  onChange?: (value: string) => void; required?: boolean; columns?: 1; dropdown?: boolean; placeholder?: string;
 }) {
+  const [own, setOwn] = useState(value ?? "");
+  if (dropdown) {
+    const current = onChange ? (value ?? "") : own;
+    const picked = options.find(o => o.value === current);
+    const id = `dd-${name}`;
+    return (
+      <div className="field">
+        <label className="label" htmlFor={id}>{legend}</label>
+        <select className="select" id={id} name={name} required={required} value={current} aria-describedby={`${id}-note`}
+          onChange={e => (onChange ? onChange(e.target.value) : setOwn(e.target.value))}>
+          <option value="">{placeholder}</option>
+          {options.map(o => <option key={o.value} value={o.value}>{o.title}</option>)}
+        </select>
+        <p className="error-text" id={`${id}-err`}>{placeholder}.</p>
+        <p className="select-note" id={`${id}-note`} aria-live="polite" hidden={!picked?.text}>
+          <Icon name="check" /><span>{picked?.text}</span>
+        </p>
+      </div>
+    );
+  }
   return (
     <fieldset className="field">
       <legend className="label">{legend}</legend>

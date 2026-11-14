@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ME } from "@/mocks/cases";
 import { Icon } from "@/components/ui/Icon";
 
 interface Note { id: string; href: string; title: string; text: string; when: string }
@@ -18,7 +17,7 @@ const NOTES: readonly Note[] = [
   { id: "n7", href: "/cases/CC-2026-00118", title: "CC-2026-00118 is not handled by this office", text: "See where you can go instead.", when: "Fri 30 Oct, 11:00" }
 ];
 
-export function NotificationsView() {
+export function NotificationsView({ email: address }: { email: string | null }) {
   const [read, setRead] = useState<ReadonlySet<string>>(new Set(["n3", "n4", "n5", "n6", "n7"]));
   const [email, setEmail] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -51,7 +50,7 @@ export function NotificationsView() {
           <h2 style={{ fontSize: "1.05rem" }}>How we tell you</h2>
           <form onSubmit={e => { e.preventDefault(); setSaved(true); }}>
             <label className="check mb-0"><input type="checkbox" checked disabled readOnly /> On this website (always)</label><br />
-            <label className="check"><input type="checkbox" checked={email} onChange={e => { setEmail(e.target.checked); setSaved(false); }} /> By email to {ME.email}</label>
+            <label className="check"><input type="checkbox" checked={email} onChange={e => { setEmail(e.target.checked); setSaved(false); }} /> By email to {address ?? "(add an email to your account)"}</label>
             <label className="check"><input type="checkbox" disabled /> By SMS <span className="badge badge--later">Later phase</span></label>
             <button className="btn btn--secondary btn--sm mt-4" type="submit">Save</button>
             <p className="small muted mt-4 mb-0" role="status">{saved ? "Saved." : ""}</p>

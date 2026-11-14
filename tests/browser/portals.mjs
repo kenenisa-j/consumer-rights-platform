@@ -28,7 +28,7 @@ try {
   check("workspace uses the navy theme, not the public green", await b.ev("return getComputedStyle(document.body).backgroundColor==='rgb(243, 245, 248)' && !!document.querySelector('.ws-shell')"));
   check("the public header is not on a portal page", !(await b.ev("return !!document.querySelector('.site-header')")));
   await b.go("/");
-  check("workspace styles do not leak into the public site", await b.ev("return !!document.querySelector('.site-header') && !document.body.classList.contains('ws') && getComputedStyle(document.body).backgroundColor==='rgb(255, 255, 255)'"));
+  check("workspace styles do not leak into the public site", await b.ev("return !!document.querySelector('.site-header') && !document.body.classList.contains('ws') && getComputedStyle(document.body).backgroundColor==='rgb(251, 250, 246)'"));
   await b.go("/bureau/dashboard");
   check("bureau: shows where the open cases are", /Where the open cases are/.test(await main()) && (await b.ev("return document.querySelectorAll('.bar').length")) === 4);
   await b.go("/woreda/staff");

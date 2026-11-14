@@ -1,3 +1,4 @@
+import { requirePortal } from "@/lib/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { REFERENCE_PATTERNS } from "@consumer-rights/contracts";
@@ -15,6 +16,7 @@ export async function generateMetadata({ params }: Props) {
 // Prototype: public/case-00123*.html, case-00140-*.html, case-00118-outside.html. One screen for every state:
 // the page renders from the case's status, and the available actions come from `pending`.
 export default async function CasePage({ params, searchParams }: Props) {
+  await requirePortal("consumer", `/cases/${(await params).reference}`);
   const { reference } = await params;
   const { step } = await searchParams;
   if (!REFERENCE_PATTERNS.complaint.test(reference)) notFound();

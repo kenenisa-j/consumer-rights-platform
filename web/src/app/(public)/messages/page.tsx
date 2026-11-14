@@ -1,3 +1,4 @@
+import { requirePortal } from "@/lib/session";
 import { bi } from "@/content/types";
 import { PageHead } from "@/components/ui/PageHead";
 import { MessagesView } from "@/features/messages/MessagesView";
@@ -6,7 +7,8 @@ import { CONVERSATIONS } from "@/mocks/conversations";
 export const metadata = { title: "Messages" };
 
 // Prototype: public/messages.html. Improved: state-driven list/thread (works on phones), offers can be answered in place.
-export default function MessagesPage() {
+export default async function MessagesPage() {
+  await requirePortal("consumer", "/messages");
   return (
     <>
       <PageHead crumbs={[{ label: "My cases", href: "/my-cases" }, { label: "Messages" }]} title={bi("Messages", "መልዕክቶች")}

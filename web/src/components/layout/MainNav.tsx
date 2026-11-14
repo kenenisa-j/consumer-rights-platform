@@ -9,8 +9,7 @@ export function MainNav() {
   const pathname = usePathname();
   return (
     <nav className="nav-bar" aria-label="Main">
-      <div className="container">
-        <ul>
+      <ul>
           {NAV.map(item => (
             <li key={item.href}>
               <Link href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
@@ -18,8 +17,7 @@ export function MainNav() {
               </Link>
             </li>
           ))}
-        </ul>
-      </div>
+      </ul>
     </nav>
   );
 }

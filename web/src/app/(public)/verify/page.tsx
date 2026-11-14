@@ -1,3 +1,4 @@
+import { requirePortal } from "@/lib/session";
 import { bi } from "@/content/types";
 import { PageHead } from "@/components/ui/PageHead";
 import { VerifyForm } from "@/features/account/VerifyForm";
@@ -5,7 +6,8 @@ import { VerifyForm } from "@/features/account/VerifyForm";
 export const metadata = { title: "Identity check" };
 
 // Prototype: public/verify.html. Fayda verification stays a disabled "Later phase" option (SRS 10.1).
-export default function VerifyPage() {
+export default async function VerifyPage() {
+  await requirePortal("consumer", "/verify");
   return (
     <>
       <PageHead crumbs={[{ label: "My cases", href: "/my-cases" }, { label: "Identity check" }]} title={bi("Confirm who you are", "ማንነትዎን ያረጋግጡ")}

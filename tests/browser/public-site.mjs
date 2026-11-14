@@ -8,30 +8,32 @@ if (SHOT_DIR) mkdirSync(SHOT_DIR, { recursive: true });
 const b = await launch();
 await b.device(1280, 900, false);
 const results = [];
+const errorsFromDialogs = [];
 const check = (name, ok, detail = "") => { results.push({ name, ok }); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  -> " + detail}`); };
 
 try {
   // ---- Complaint wizard, end to end -------------------------------------------------------------
-  await b.go("/complaint/new?step=5");
-  check("wizard: cannot jump ahead (step 5 redirects to 1)", (await b.url()).endsWith("step=1"), await b.url());
+  await b.go("/complaint/new");
+  const stepNow = () => b.ev("return document.querySelector('.wizard-head .kicker')?.textContent.match(/step ([0-9])/)?.[1] ?? ''");
+  check("wizard: opens on step 1", (await stepNow()) === "1");
 
   await b.clickText("Next", "button[type=submit]");
-  check("wizard: step 1 blocks an empty submit", (await b.url()).endsWith("step=1"));
+  check("wizard: step 1 blocks an empty submit", (await stepNow()) === "1");
 
-  await b.click("input[name=category][value=wrong_weight_measure]");
+  await b.set("#dd-category", "wrong_weight_measure");
   await b.set("#c-subject", "Rice sold short and mixed with stones");
   await b.set("#c-what", "I bought a 25 kg sack of white rice. At home it weighed 21 kg and had small stones in it.");
   await b.clickText("Next", "button[type=submit]");
-  await b.waitFor("location.search.includes('step=2')");
-  check("wizard: step 1 -> 2", (await b.url()).endsWith("step=2"), await b.url());
+  await b.waitFor("document.querySelector('.wizard-head .kicker')?.textContent.includes('step 2 of')");
+  check("wizard: step 1 -> 2", (await stepNow()) === "2");
   const sum1 = await b.text("aside[aria-label='Your complaint so far']");
   check("wizard: live summary shows the problem", /Wrong weight or measure/.test(sum1 ?? ""), sum1);
 
   await b.waitFor("document.querySelector('input[name=business][type=radio]')");
   await b.click("input[name=business]"); // first registered business
   await b.clickText("Next", "button[type=submit]");
-  await b.waitFor("location.search.includes('step=3')");
-  check("wizard: step 2 (registered business) -> 3", (await b.url()).endsWith("step=3"), await b.url());
+  await b.waitFor("document.querySelector('.wizard-head .kicker')?.textContent.includes('step 3 of')");
+  check("wizard: step 2 (registered business) -> 3", (await stepNow()) === "3");
 
   await b.set("#p-item", "White rice, one 25 kg sack");
   await b.set("#p-date", "2026-11-01");
@@ -40,24 +42,24 @@ try {
   await b.set("#p-wo", "7");
   await b.set("#p-paid", "2250");
   await b.clickText("Next", "button[type=submit]");
-  await b.waitFor("location.search.includes('step=4')");
-  check("wizard: step 3 -> 4", (await b.url()).endsWith("step=4"), await b.url());
+  await b.waitFor("document.querySelector('.wizard-head .kicker')?.textContent.includes('step 4 of')");
+  check("wizard: step 3 -> 4", (await stepNow()) === "4");
 
   await b.clickText("Next", "button[type=submit]");
-  await b.waitFor("location.search.includes('step=5')");
-  check("wizard: step 4 evidence is optional", (await b.url()).endsWith("step=5"), await b.url());
+  await b.waitFor("document.querySelector('.wizard-head .kicker')?.textContent.includes('step 5 of')");
+  check("wizard: step 4 evidence is optional", (await stepNow()) === "5");
 
-  await b.click("input[name=want][value=refund]");
+  await b.set("#dd-want", "refund");
   await b.waitFor("document.querySelector('#o-amount')");
   await b.set("#o-amount", "2250");
   await b.clickText("Next", "button[type=submit]");
-  await b.waitFor("location.search.includes('step=6')");
-  check("wizard: step 5 -> 6 (amount asked only for refund)", (await b.url()).endsWith("step=6"), await b.url());
+  await b.waitFor("document.querySelector('.wizard-head .kicker')?.textContent.includes('step 6 of')");
+  check("wizard: step 5 -> 6 (amount asked only for refund)", (await stepNow()) === "6");
 
   const review = await b.text(".wizard-box");
   check("wizard: review shows every answer", /Rice sold short/.test(review) && /2,250 ETB/.test(review) && /Akaki Kality/.test(review) && /White rice/.test(review));
   await b.clickText("Send the complaint", "button[type=submit]");
-  check("wizard: cannot send without the declaration", (await b.url()).endsWith("step=6"));
+  check("wizard: cannot send without the declaration", (await stepNow()) === "6");
 
   await b.click("input[type=checkbox][required]");
   await b.clickText("Send the complaint", "button[type=submit]");
@@ -149,24 +151,21 @@ try {
   await b.go("/track?kind=tip");
   check("track: ?kind=tip opens the tip tab", await b.ev("return document.querySelector('#tab-tip').getAttribute('aria-selected')==='true'"));
 
-  // ---- Register -----------------------------------------------------------------------------------
+  // ---- Register (the real sign-up with a code is in auth.mjs) ---------------------------------------
   await b.go("/register");
-  await b.set("#r-name", "Hirut Alemu"); await b.set("#r-phone", "0911 234 567"); await b.set("#r-sub", "Bole"); await b.set("#r-wo", "7");
+  await b.set("#r-name", "Hirut Alemu"); await b.set("#r-phone", "0911 234 567");
   await b.set("#r-pw", "longpassword1"); await b.set("#r-pw2", "different-pass");
   await b.click("input[name=consent]");
-  await b.clickText("Create the account", "button[type=submit]");
+  await b.clickText("Send me a code", "button[type=submit]");
   check("register: mismatched passwords are caught", /not the same/.test(await b.text("main")));
-  await b.set("#r-pw2", "longpassword1");
-  await b.clickText("Create the account", "button[type=submit]");
-  await b.waitFor("location.pathname==='/verify'");
-  check("register: valid form continues to the identity check", (await b.url()) === "/verify");
+  check("register: no Sub-City or Woreda fields (the API does not store them; the complaint form asks)", await b.ev("return !document.querySelector('#r-sub') && !document.querySelector('#r-wo')"));
 
   // ---- Filters ------------------------------------------------------------------------------------
   await b.go("/help");
-  const before = await b.ev("return document.querySelectorAll('details').length");
+  const before = await b.ev("return document.querySelectorAll('main details').length");
   await b.set("#faq-q", "receipt");
   await b.sleep(250);
-  const after = await b.ev("return document.querySelectorAll('details').length");
+  const after = await b.ev("return document.querySelectorAll('main details').length");
   check("help: search narrows the questions", before === 8 && after === 1, `${before} -> ${after}`);
   await b.set("#office-area", "Bole");
   await b.sleep(250);
@@ -203,18 +202,30 @@ try {
   await b.clickText("Send the offer", "dialog[open] button[type=submit]");
   check("messages: making an offer adds an offer card", /2250 ETB/.test(await b.text(".chat-feed")) || /Refund: 2250 ETB/.test(await b.text(".chat-feed")));
 
-  // ---- Sign-in -------------------------------------------------------------------------------------
-  await b.go("/sign-in?next=/complaint/new");
-  check("sign-in: consumer form returns to ?next", await b.ev("return document.querySelector('#pg-consumer-id').form.getAttribute('action')==='/complaint/new'"));
-  await b.go("/sign-in?next=//evil.example");
-  check("sign-in: external ?next is ignored", await b.ev("return document.querySelector('#pg-consumer-id').form.getAttribute('action')==='/my-cases'"));
-  await b.go("/");
-  await b.ev("location.hash='#signin'; return 1"); await b.sleep(300);
-  await b.click("label[for=md-r-woreda]");
-  check("sign-in dialog: role tabs switch panels", await b.ev("return getComputedStyle(document.querySelector('.p-woreda')).display!=='none'"));
+  // ---- Forms open as dialogs over the page the person was on ----------------------------------------
+  // A fresh browser: history after a long run of page changes is not what a person starts with.
+  const d = await launch();
+  await d.device(1280, 900, false);
+  await d.login("consumer");
+  const dlg = () => d.ev("return !!document.querySelector('dialog.dlg[open]')");
+  await d.go("/help"); await d.go("/");
+  await d.clickText("Track a case", "a.btn"); await d.sleep(600);
+  check("dialog: Track a case opens over the home page", (await dlg()) && (await d.url()) === "/track" && /Bought something/.test(await d.text("main")));
+  await d.ev("document.querySelector('dialog.dlg[open]').close(); return 1"); await d.waitFor("location.pathname==='/'"); await d.sleep(300);
+  check("dialog: closing returns to the page underneath", !(await dlg()) && (await d.url()) === "/", String(await dlg()) + " " + await d.url());
+  await d.clickText("Make a complaint", "a.btn"); await d.sleep(600);
+  check("dialog: the complaint chooser opens", await dlg());
+  await d.clickText("Make a complaint", "dialog a"); await d.sleep(800);
+  check("dialog: the complaint form replaces the chooser (one dialog)", (await d.ev("return document.querySelectorAll('dialog.dlg[open]').length")) === 1 && (await d.url()) === "/complaint/new");
+  check("dialog: the problem kinds are in a dropdown, not a list", await d.ev("return !!document.querySelector('dialog select#dd-category') && !document.querySelector('dialog input[name=category]')"));
+  await d.click("dialog.dlg[open] > .modal__box > .modal__close"); await d.waitFor("location.pathname==='/'"); await d.sleep(300);
+  check("dialog: closing the form goes back to the home page", !(await dlg()) && (await d.url()) === "/");
+  await d.go("/register");
+  check("dialog: a typed-in address is still a normal page", !(await dlg()) && /Create an account/.test(await d.text("h1")));
+  errorsFromDialogs.push(...d.errors); await d.close();
 
   // ---- Console cleanliness -------------------------------------------------------------------------
-  check("no console errors or exceptions during the whole run", b.errors.length === 0, b.errors.slice(0, 6).join(" | "));
+  check("no console errors or exceptions during the whole run", b.errors.length + errorsFromDialogs.length === 0, [...b.errors, ...errorsFromDialogs].slice(0, 6).join(" | "));
 
   // ---- Screenshots at three widths ------------------------------------------------------------------
   for (const [w, h, mobile] of [[1280, 900, false], [768, 1000, false], [360, 800, true]]) {

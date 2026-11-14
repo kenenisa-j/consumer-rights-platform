@@ -17,7 +17,7 @@ export const metadata = {
 export default function WorkspaceRootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="ws">{children}</body>
+      <body className="ws" suppressHydrationWarning>{children}</body>
     </html>
   );
 }

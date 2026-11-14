@@ -6,6 +6,7 @@ import { CATEGORY_TEXT } from "@/content/common";
 import { CallBox } from "@/components/ui/Display";
 import { Am } from "@/components/ui/Bi";
 import { Icon } from "@/components/ui/Icon";
+import { CloseOrLink } from "@/components/ui/RouteModal";
 import { STEP_COUNT, STEP_NAMES, summary, type Draft } from "./draft";
 
 interface Props {
@@ -26,7 +27,7 @@ export function WizardShell({ step, draft, freeCall, onGo, children }: Props) {
           <span className="kicker">New complaint · step {step} of {STEP_COUNT}</span>
           <h1 id="wz-title" tabIndex={-1}>Make a complaint<Am text="ቅሬታ ያቅርቡ" /></h1>
         </div>
-        <Link className="modal__close" href="/my-cases" aria-label="Close. Your answers are kept until you close this tab">×</Link>
+        <CloseOrLink className="modal__close" href="/my-cases">×<span className="visually-hidden">Close. Your answers are kept until you close this tab</span></CloseOrLink>
       </div>
       <ol className="steps" aria-label={`Steps of the complaint form, step ${step} of ${STEP_COUNT}`}>
         {STEP_NAMES.map((name, i) => {

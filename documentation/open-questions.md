@@ -25,7 +25,7 @@ Do not decide these silently. Implement the configurable/placeholder form, ask, 
     add the complaints and messages sections)?
 13. **SRS source.** Where is the consumer-portal SRS v2.0 (CR-FR-xxx / NFR-xxx IDs)? The prototype cites it but it
     is not in this repository. Needed for traceability.
-14. **Styling approach.** Bootstrap 5.3 base with prototype tokens, or port the prototype CSS as the system?
+14. ~~Styling approach~~: answered, see Answered below.
     ([ADR-0003](decisions/0003-frontend-styling.md))
 15. **Real-time messaging.** Polling/refresh in v1, or live updates?
 16. **Retention.** How long are complaints, evidence, messages and tips kept? Deletion/anonymisation policy.
@@ -56,6 +56,11 @@ Do not decide these silently. Implement the configurable/placeholder form, ask, 
 24. **Route B: business not responding.** If the business never responds, how many days before the consumer
     may escalate? Is there a system reminder to the business? Who sets this limit?
 
+25. **Administration rules I assumed** (built in the demo, please confirm): an office keeps at least one active administrator;
+    the catch-all category ("Other", "Something else") cannot be removed; a removed category is retired, not deleted.
+26. **Public content approval.** Does a Woreda notice need the Sub-City's approval every time it is edited, or only the
+    first time? The demo sends every edit back for approval.
+
 ## Answered
 
 - **Route A office selection (resolved 12 Nov 2026).** Decided: For Route A, consumers always select
@@ -63,3 +68,4 @@ Do not decide these silently. Implement the configurable/placeholder form, ask, 
   listed must belong to that level; a Woreda office is not valid for a Sub-City or Bureau selection and
   vice versa. This rule applies equally to all three government levels and is enforced by
   `officeBelongsToLevel` in `lib/contracts` and by backend service logic.
+- 2026-11-12, frontend developer: styling = prototype CSS ported verbatim, no Bootstrap ([ADR-0003](decisions/0003-frontend-styling.md)).

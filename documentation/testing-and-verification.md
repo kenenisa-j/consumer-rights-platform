@@ -25,6 +25,16 @@ Integration tests never touch a shared or production database. Use a disposable 
 (`consumer_rights_test`), synthetic users, and fixtures that clean up after themselves. Suites that hit sign-in
 limits run sequentially with a pause between them (carry over the AddisB2B practice).
 
+## Browser check (public site)
+
+`npm run test:browser` drives a real Chromium-based browser (Edge, Chrome or Chromium; set `BROWSER_PATH` if it is
+not found) through the public site: the complaint wizard end to end, case actions and dialogs, tips, tracking, form
+validation, every search and filter, messages, `?next` handling, console errors, and sideways scroll at 1280, 768 and
+360 px with device emulation. It needs the site running first (`npm run build`, then `npm run start -w web`, or
+`npm run dev -w web`). Set `SHOT_DIR=some/folder` to also save screenshots. It uses `scripts/browser/driver.mjs`
+(Node's built-in WebSocket, no dependencies). Extend it when you add a screen; it does not replace the keyboard and
+screen-reader pass below.
+
 ## Mandatory test cases for permissions
 
 For each protected capability test at least: allowed role, wrong role, wrong portal, wrong office/jurisdiction,

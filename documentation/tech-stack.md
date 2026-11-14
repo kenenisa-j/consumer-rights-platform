@@ -11,7 +11,7 @@ advisories (`npm audit`) and bump deliberately, noting it in the changelog.
 | Language | TypeScript | 5.7.3 | `strict: true` everywhere |
 | Frontend | Next.js (App Router) | 16.4.3 | AddisB2B bumped from 16.3.8 for advisories |
 | UI | React | 19.2.8 | |
-| Styling | Bootstrap + prototype tokens | 5.3.8 (+ bootstrap-icons 1.13.1) | [ADR-0003](decisions/0003-frontend-styling.md), proposed |
+| Styling | Prototype CSS, ported verbatim (no framework) | n/a | [ADR-0003](decisions/0003-frontend-styling.md), accepted |
 | Backend | NestJS | 11.2.6 (`common`, `core`, `platform-express`) | Express 5.2.1 |
 | Rate limiting | @nestjs/throttler | 6.5.0 | |
 | Validation | class-validator / class-transformer | 0.15.1 / 0.5.1 | DTOs at every boundary |

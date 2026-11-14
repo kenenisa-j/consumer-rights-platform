@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { SUB_CITIES } from "@/content/common";
@@ -10,6 +9,7 @@ import { Alert } from "@/components/ui/Display";
 import { ChoiceGroup, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
 import { FilePicker, useFilePicker } from "@/components/ui/FileList";
 import { Am } from "@/components/ui/Bi";
+import { CloseOrLink } from "@/components/ui/RouteModal";
 
 const KINDS = ["Prices above the official list", "Goods hidden or held back", "Expired or unsafe goods on sale",
   "False scales or short weight", "Misleading advertising", "Something else"].map(v => ({ value: v, title: v }));
@@ -36,7 +36,7 @@ export function TipForm() {
   return (
     <form className="card form-card" onSubmit={submit}>
       {failed && <div className="field-error-summary"><Alert tone="bad" icon="flag" role="alert" title="Your tip was not sent.">Check your connection and try again. Your answers are still here.</Alert></div>}
-      <ChoiceGroup name="kind" legend="What did you see?" options={KINDS} value={KINDS[0].value} />
+      <ChoiceGroup name="kind" dropdown placeholder="Choose what you saw" legend="What did you see?" options={KINDS} value={KINDS[0].value} />
       <div className="form-grid">
         <SelectField id="t-sub" name="subcity" label="Sub-City" required options={SUB_CITIES} placeholder="Choose a Sub-City" invalid="Choose a Sub-City." />
         <TextField id="t-wo" name="woreda" label="Woreda (if known)" optional type="number" min={1} max={30} inputMode="numeric" />
@@ -68,7 +68,7 @@ export function TipForm() {
       </fieldset>
 
       <div className="form-foot">
-        <Link className="btn btn--secondary" href="/">Cancel</Link>
+        <CloseOrLink className="btn btn--secondary" href="/">Cancel</CloseOrLink>
         <button className="btn btn--stack" type="submit" disabled={busy}><span>{busy ? "Sending…" : "Send the tip"}</span><Am text="ጥቆማውን ላክ" /></button>
       </div>
     </form>

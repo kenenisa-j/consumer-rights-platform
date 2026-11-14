@@ -1,6 +1,12 @@
 export default {
   transpilePackages: ["@consumer-rights/contracts"],
   poweredByHeader: false,
+  agentRules: false, // Next would otherwise rewrite web/AGENTS.md on every start
+  // The API is reached through the site's own address, so the session cookie is first-party and never readable by scripts.
+  async rewrites() {
+    const api = process.env.API_INTERNAL_URL || "http://127.0.0.1:4300";
+    return [{ source: "/api/:path*", destination: `${api}/api/:path*` }];
+  },
   async headers() {
     return [{
       source: "/:path*",

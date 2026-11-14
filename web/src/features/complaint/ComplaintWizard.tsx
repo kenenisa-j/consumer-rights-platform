@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ME } from "@/mocks/cases";
 import { submitComplaint } from "@/mocks/misc";
 import { saveHandoff } from "@/lib/handoff";
 import { useFilePicker } from "@/components/ui/FileList";
@@ -12,20 +11,21 @@ import { Step4, Step5, Step6 } from "./StepsB";
 import { WizardShell } from "./WizardShell";
 
 /**
- * Six steps on ONE route: /complaint/new?step=n. Answers live in the draft (sessionStorage) so Back, refresh and
- * the step links never lose typing. A step can only be opened once the earlier ones are completed.
+ * Six steps on ONE route. The step lives in state, not in the address, so the form works the same as a page and as a
+ * dialog. Answers live in the draft (sessionStorage), so a refresh never loses typing. A step can only be opened once the
+ * earlier ones are completed.
  */
-export function ComplaintWizard({ freeCall }: { freeCall: string }) {
+export function ComplaintWizard({ freeCall, contact }: { freeCall: string; contact: { first: string; phone: string; email: string } }) {
   const router = useRouter();
-  const requested = Number(useSearchParams().get("step")) || 1;
-  const [draft, setDraft] = useState<Draft>(() => emptyDraft(ME.phone, ME.email));
+  const [requested, setRequested] = useState(1);
+  const [draft, setDraft] = useState<Draft>(() => emptyDraft(contact.phone, contact.email));
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const picker = useFilePicker(8, 10);
   const first = useRef(true);
 
-  useEffect(() => { setDraft(loadDraft(emptyDraft(ME.phone, ME.email))); setReady(true); }, []);
+  useEffect(() => { setDraft(loadDraft(emptyDraft(contact.phone, contact.email))); setReady(true); }, []);
   useEffect(() => { if (ready) saveDraft(draft); }, [draft, ready]);
   useEffect(() => {
     setDraft(d => ({ ...d, fileNames: picker.files.map(f => ({ name: f.file.name, size: f.file.size, shared: !!f.shared })) }));
@@ -34,14 +34,13 @@ export function ComplaintWizard({ freeCall }: { freeCall: string }) {
   const step = Math.min(Math.max(1, requested), STEP_COUNT, draft.reached);
   useEffect(() => {
     if (!ready) return;
-    if (step !== requested) router.replace(`/complaint/new?step=${step}`, { scroll: false });
     if (first.current) { first.current = false; return; }
     document.getElementById("wz-title")?.focus();
-    window.scrollTo({ top: 0 });
-  }, [step, requested, ready, router]);
+    document.getElementById("wz-title")?.scrollIntoView({ block: "start" });
+  }, [step, ready]);
 
   const set = useCallback((patch: Partial<Draft>) => setDraft(d => ({ ...d, ...patch })), []);
-  const go = (n: number) => router.push(`/complaint/new?step=${n}`, { scroll: false });
+  const go = (n: number) => setRequested(n);
   const next = () => { set({ reached: Math.max(draft.reached, step + 1) }); go(step + 1); };
   const back = () => go(step - 1);
 
@@ -49,7 +48,7 @@ export function ComplaintWizard({ freeCall }: { freeCall: string }) {
     setBusy(true); setError(null);
     try {
       const receipt = await submitComplaint(); // the backend stores the complaint; evidence uploads follow
-      saveHandoff("complaint-receipt", { ...receipt, first: ME.first, email: draft.outcome.email,
+      saveHandoff("complaint-receipt", { ...receipt, first: contact.first, email: draft.outcome.email,
         toBusiness: draft.business.mode === "registered", business: draft.business.name });
       clearDraft();
       router.push("/complaint/sent");

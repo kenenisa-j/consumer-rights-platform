@@ -33,7 +33,7 @@ export function StepForm({ title, am, onSubmit, back, children, nextLabel = "Nex
 export function Step1({ draft, set, next }: StepProps) {
   return (
     <StepForm title="What happened?" am="ምን ሆነ?" onSubmit={next}>
-      <ChoiceGroup name="category" legend="What kind of problem is it?" options={CATEGORY_OPTIONS.map(o => ({ value: o.value, title: o.title, text: o.text }))}
+      <ChoiceGroup name="category" dropdown placeholder="Choose the kind of problem" legend="What kind of problem is it?" options={CATEGORY_OPTIONS.map(o => ({ value: o.value, title: o.title, text: o.text }))}
         value={draft.category} onChange={v => set({ category: v as Draft["category"] })} />
       <TextField id="c-subject" label="A short title" required maxLength={120} value={draft.subject} onChange={e => set({ subject: e.target.value })}
         hint={'For example: "Kettle stopped working after three days".'} invalid="Write a short title." />

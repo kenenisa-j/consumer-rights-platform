@@ -1,6 +1,7 @@
+import { requirePortal } from "@/lib/session";
 import Link from "next/link";
 import { bi } from "@/content/types";
-import { listCases, ME } from "@/mocks/cases";
+import { listCases } from "@/mocks/cases";
 import { PageHead } from "@/components/ui/PageHead";
 import { Alert, KeyValue, StatusPill, EmptyState } from "@/components/ui/Display";
 import { Am } from "@/components/ui/Bi";
@@ -10,11 +11,12 @@ export const metadata = { title: "My cases" };
 
 // Prototype: public/my-cases.html. Needs-your-answer list first, then every complaint, then the account.
 export default async function MyCasesPage() {
+  const me = await requirePortal("consumer", "/my-cases");
   const { cases, attention } = await listCases();
   return (
     <>
       <PageHead crumbs={[{ label: "My cases" }]} title={bi("My cases", "የእኔ ጉዳዮች")}
-        lead={`Hello, ${ME.first}. Here are your complaints and what is happening with them.`}>
+        lead={`Hello, ${me.fullName.split(" ")[0]}. Here are your complaints and what is happening with them.`}>
         <div className="btn-row mt-4">
           <Link className="btn btn--accent btn--stack" href="/complaint/new"><span>Make a new complaint</span><Am text="አዲስ ቅሬታ" /></Link>
           <Link className="btn btn--secondary" href="/notifications">Notifications</Link>
@@ -47,8 +49,8 @@ export default async function MyCasesPage() {
         )}
         <div className="grid-2">
           <div className="card card--flat"><h2 style={{ fontSize: "1.1rem" }}><Icon name="user" /> My account</h2>
-            <KeyValue rows={[["Name", ME.name], ["Phone", ME.phone], ["Email", ME.email], ["Lives in", ME.lives],
-              ["Identity", <StatusPill key="id" tone="ok">{ME.identity}</StatusPill>]]} /></div>
+            <KeyValue rows={[["Name", me.fullName], ["Phone", me.phoneNumber], ["Email", me.email ?? "Not given"],
+              ["Identity", <StatusPill key="id" tone="grey">Not confirmed yet</StatusPill>]]} /></div>
           <div className="card card--flat"><h2 style={{ fontSize: "1.1rem" }}><Icon name="flag" /> Tips</h2>
             <p className="small">Tips are not linked to your account, so they do not appear here. Check a tip with its private code.</p>
             <Link className="btn btn--secondary btn--sm" href="/track?kind=tip">Check a tip</Link></div>

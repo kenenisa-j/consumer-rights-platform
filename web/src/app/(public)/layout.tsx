@@ -6,6 +6,7 @@ import "@/styles/patterns.css";
 import "@/styles/print.css";
 import "@/styles/public.css";
 import "@/styles/app.css";
+import "@/styles/site.css";
 import { PublicShell } from "@/components/layout/PublicShell";
 
 // Each route group has its own root layout, so the public (green) and workspace (navy) stylesheets never mix.
@@ -14,10 +15,10 @@ export const metadata = {
   description: "Make a complaint or report a problem to the Addis Ababa consumer protection offices."
 };
 
-export default function PublicLayout({ children }: { children: ReactNode }) {
+export default function PublicLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   return (
     <html lang="en">
-      <body><PublicShell>{children}</PublicShell></body>
+      <body suppressHydrationWarning><PublicShell>{children}</PublicShell>{modal}</body>
     </html>
   );
 }

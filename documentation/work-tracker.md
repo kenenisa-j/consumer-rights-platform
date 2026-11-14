@@ -17,6 +17,48 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: dialog and portal-redirect fixes, 14 November 2026
+
+- Reported: "Make a complaint", "Report unfair trade" and "Track a case" did nothing, and portals showed "page not found".
+- Cause 1: the `@modal/[...catchAll]` route made the public layout match every address, so Next's strict route matching
+  (on by default in Next 16) dropped all workspace pages. Removed it; `RouteModal` now steps aside when the address leaves its route.
+- Cause 2 (development only): React StrictMode closes and reopens the dialog on mount, and the late `close` event sent the page
+  straight back. The handler now ignores a `close` that arrives while the dialog is open again.
+- Also: the hero's "Report unfair trade" opens the real tip form (the old quick form posted nowhere); the "Who are you?" doors open
+  sign-in on their own tab and end in that portal; `agentRules: false` stops Next rewriting `web/AGENTS.md`; `suppressHydrationWarning`
+  on `<body>` silences browser-extension attribute warnings.
+- Lesson: browser-test against `next dev` as well as a production build; the first bug only showed in dev.
+
+## Completed: first real integration (sign-in, sign-up, session, portal guard), 14 November 2026
+
+- Owner: frontend, with small additions in `backend/` that need the backend owner's review: `GET /api/me`
+  (`backend/src/modules/me`), `backend/prisma/seed.mjs`, `backend/scripts/dev-otp.mjs`.
+- Web now reaches the API through its own address (`next.config.mjs` rewrite), signs in and out for real, registers with a real
+  code, guards every consumer, business and government page, and shows the signed-in person. Test accounts for all five portals
+  are in a dropdown in every sign-in form (development only; `lib/contracts/test-accounts.js`).
+- Verified: new `tests/browser/auth.mjs` 62/62 (guards, wrong password, wrong tab, all 8 accounts in and out, return address,
+  sign-up with a real code and sign-in again); public-site 56, portals 55, menu 40, admin 44, business 37 now run signed in;
+  80 unit tests.
+- Everything else is still demo data. See [integration-status.md](integration-status.md) for the list and the order the API needs.
+- Found: the API limits sign-ins to a few every 10 seconds (Better Auth default), so the test driver now keeps session cookies.
+  The status enums in the database and in `lib/contracts` differ (16 against 13).
+- Not verified: keyboard-only and screen-reader pass; the production build with `DEV_TEST_ACCOUNTS` off was not browsed.
+
+## Completed: public site redesign and dialog forms, 14 November 2026
+
+- Owner: frontend. New design layer `web/src/styles/site.css`, loaded only by the public layout (workspace look untouched):
+  warm paper background, larger type, pill buttons, one-row header, new home hero with a "check on a case" card, connected
+  "how it works" steps, and a new footer (call-to-action band, brand, link columns, contact with icons).
+- Dropdowns: `ChoiceGroup dropdown` collapses long lists into one select with the chosen option's description underneath
+  (problem kind, what you want, tip kind).
+- Dialog forms: sign-in, register, identity check, tip, track, the complaint-or-tip chooser and the six-step complaint form now
+  open as dialogs over the current page (`app/(public)/@modal` intercepting routes, `RouteModal`). The same addresses still open
+  as normal pages when typed in or refreshed. On phones they are bottom sheets.
+- The wizard step now lives in state, not in `?step=`: a changing address re-triggered the interception.
+- Tests: public-site 59/59 (new dialog checks run in a fresh browser), portals 55, menu 40, admin 44, business 37; 77 unit tests.
+- Not verified: keyboard-only and screen-reader pass of the dialogs; the cases, messages and notifications pages were only
+  restyled through shared CSS, not redesigned one by one.
+
 ## Completed: government administration pages, 13 November 2026
 
 - Owner: frontend. Slice 10 of [frontend-plan.md](frontend-plan.md): the last unbuilt part of the prototype. The

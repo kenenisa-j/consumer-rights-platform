@@ -17,6 +17,23 @@ Local configuration lives in a private root `.env` (never committed, excluded fr
 | `SMTP_*` | Email placeholders; no delivery yet. Leave empty locally |
 | `BOOTSTRAP_ADMIN_*` | First-run administrator, used once |
 | `DEV_OPEN_WORKSPACES` | Development only. Never on a shared installation |
+| `DEV_TEST_ACCOUNTS` | Development only. `true`/`false`. Shows the "Test account" dropdown in every sign-in form. On by default outside production, never on a live installation |
+
+## Run it locally (web + API + database)
+
+```
+npm install
+cp .env.example .env        # then replace every REPLACE_* value
+npm run db:up               # PostgreSQL in Docker
+npm run db:migrate          # apply the migrations
+npm run db:seed             # roles, a small office tree and 8 fictional test accounts
+npm run build -w backend && npm run dev:api     # API on 4300
+npm run dev -w web                              # web on 3300, forwards /api/* to the API
+```
+
+The API's `PUBLIC_URL` must equal the address you open the site on (it checks the Origin of sign-in requests).
+No SMS is sent yet: after asking for a sign-up code, run `npm run dev:otp -- 0911234567` to read it.
+All test accounts use the password in `lib/contracts/test-accounts.js`.
 
 ## Ports
 

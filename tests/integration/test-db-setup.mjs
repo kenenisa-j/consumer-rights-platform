@@ -110,12 +110,14 @@ export async function setupTestDatabase() {
       ON CONFLICT (code) DO NOTHING;
 
       INSERT INTO permissions (id, code, module, action, scope, description)
-      VALUES ('perm-complaints-read-test-id', 'complaints:read:own', 'complaints', 'read', 'OWN', 'Read own complaints')
+      VALUES
+        ('perm-complaints-read-test-id', 'complaints:read:own', 'complaints', 'read', 'OWN', 'Read own complaints'),
+        ('perm-complaints-create-test-id', 'complaints:create:own', 'complaints', 'create', 'OWN', 'Create own complaints')
       ON CONFLICT (code) DO NOTHING;
 
       INSERT INTO role_permissions (role_id, permission_id)
       SELECT r.id, p.id FROM roles r, permissions p
-      WHERE r.code = 'CONSUMER' AND p.code = 'complaints:read:own'
+      WHERE r.code = 'CONSUMER' AND p.code IN ('complaints:read:own', 'complaints:create:own')
       ON CONFLICT (role_id, permission_id) DO NOTHING;
     `);
 

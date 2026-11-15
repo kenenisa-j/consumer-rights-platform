@@ -10,7 +10,7 @@ const REPLY = new Set(["SUBMITTED_TO_BUSINESS", "BUSINESS_OFFER_PENDING"]);
 export default async function BusinessLayout({ children }: { children: ReactNode }) {
   const me = await requirePortal("business", "/business/overview");
   // The number on "Consumer complaints" is the complaints that wait for this business's reply, from the database.
-  const cases = await serverGet<{ status: string }[]>("/business/cases");
+  const cases = await serverGet<{ status: string }[]>("/business/complaints");
   const waiting = (cases ?? []).filter(c => REPLY.has(c.status)).length;
   const groups = BIZ_MENU.map(g => ({
     title: g.title,

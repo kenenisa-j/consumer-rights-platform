@@ -1,4 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { COMPLAINT_CATEGORIES } from '@consumer-rights/contracts';
 import { PrismaService } from '../../lib/database/prisma.service';
 import { Public } from '../../lib/common/decorators/public.decorator';
 
@@ -12,7 +13,7 @@ export class ReferenceController {
   async all() {
     const [categories, offices] = await Promise.all([
       this.prisma.complaintCategory.findMany({
-        where: { isActive: true }, orderBy: { code: 'asc' },
+        where: { isActive: true, code: { in: [...COMPLAINT_CATEGORIES] } }, orderBy: { code: 'asc' },
         select: { code: true, nameEn: true, nameAm: true, defaultSlaDays: true },
       }),
       this.prisma.administrativeOffice.findMany({

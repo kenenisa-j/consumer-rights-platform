@@ -38,3 +38,4 @@ Thumbs.db
 
 # Agent tooling: share team commands/settings, keep personal overrides local
 .claude/settings.local.json
+web/.next-test/

@@ -74,7 +74,7 @@ export class WorkspaceController {
   }
 
   /** A business sees only the pseudonym "Consumer 00123": never a name, phone or address. */
-  @Get('business/cases')
+  @Get('business/complaints')
   @RequirePermission('cases.read.business')
   async businessCases(@Req() req: Authed) {
     const mine = await this.prisma.merchantUser.findMany({ where: { userId: req.user.id }, select: { merchantId: true } });
@@ -88,7 +88,7 @@ export class WorkspaceController {
     }));
   }
 
-  @Get('business/cases/:reference')
+  @Get('business/complaints/:reference')
   @RequirePermission('cases.read.business')
   async businessCase(@Req() req: Authed, @Param('reference') reference: string) {
     const mine = await this.prisma.merchantUser.findMany({ where: { userId: req.user.id }, select: { merchantId: true } });

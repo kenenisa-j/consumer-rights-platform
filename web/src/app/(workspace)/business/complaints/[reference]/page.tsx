@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function BizCasePage({ params }: Props) {
   const { reference } = await params;
   if (!REFERENCE_PATTERNS.complaint.test(reference)) notFound();
-  const c = await serverGet<BizCaseDetail>(`/business/cases/${reference}`);
+  const c = await serverGet<BizCaseDetail>(`/business/complaints/${reference}`);
   if (!c) notFound();
   const st = statusOf(c.status);
   return (

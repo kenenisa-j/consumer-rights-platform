@@ -7,6 +7,7 @@ import { signIn } from "@/lib/auth-client";
 import { LANDING_PATHS } from "@/lib/landing";
 import { Am } from "@/components/ui/Bi";
 import type { UiTestAccount } from "@/lib/test-accounts";
+export { safeNext } from "@/lib/safe-next";
 
 // The five sign-ins. Radio + :checked CSS (public.css) switches the panels. The fields have no `name`, so nothing
 // typed (above all the password) is ever put in the address or the browser history; the form posts with JavaScript.

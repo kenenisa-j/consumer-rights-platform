@@ -13,7 +13,7 @@ const REPLY = new Set(["SUBMITTED_TO_BUSINESS", "BUSINESS_OFFER_PENDING"]);
 // The business's front page: what waits for a reply, then the latest complaints. Everything comes from the database.
 export default async function BusinessOverviewPage() {
   const me = await requirePortal("business", "/business/overview");
-  const cases = await serverGet<BizCase[]>("/business/cases");
+  const cases = await serverGet<BizCase[]>("/business/complaints");
   const all = cases ?? [];
   const waiting = all.filter(c => REPLY.has(c.status));
   const withOfficer = all.filter(c => !REPLY.has(c.status) && statusOf(c.status).stage !== "resolved");

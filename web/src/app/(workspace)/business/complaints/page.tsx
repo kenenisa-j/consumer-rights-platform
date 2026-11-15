@@ -14,7 +14,7 @@ const REPLY = new Set(["SUBMITTED_TO_BUSINESS", "BUSINESS_OFFER_PENDING"]);
 
 // Prototype: merchant/complaints.html. Only complaints about this business, read from the database, with the consumer as a number.
 export default async function BizComplaintsPage() {
-  const [cases, me] = await Promise.all([serverGet<BizCase[]>("/business/cases"), getMe()]);
+  const [cases, me] = await Promise.all([serverGet<BizCase[]>("/business/complaints"), getMe()]);
   const rows: BizSummary[] = (cases ?? []).map(c => {
     const st = statusOf(c.status);
     const reply = REPLY.has(c.status);

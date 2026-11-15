@@ -20,17 +20,31 @@ const ROLE_NAMES = {
 };
 
 async function main() {
-  const permission = await db.permission.upsert({
-    where: { code: "profile.read.own" }, update: {},
-    create: { code: "profile.read.own", module: "profile", action: "read", scope: "OWN", description: "Read my own profile and role" }
-  });
+  const permDefs = [
+    { code: "profile.read.own", module: "profile", action: "read", scope: "OWN", description: "Read my own profile and role", forRoles: Object.keys(ROLE_NAMES) },
+    { code: "complaints:create:own", module: "complaints", action: "create", scope: "OWN", description: "Submit complaint as consumer", forRoles: ["CONSUMER"] },
+    { code: "complaints:read:own", module: "complaints", action: "read", scope: "OWN", description: "Read own complaints", forRoles: ["CONSUMER"] },
+    { code: "complaints:read:all", module: "complaints", action: "read", scope: "ALL", description: "Read complaints in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN"] }
+  ];
+
   const roles = {};
   for (const [code, name] of Object.entries(ROLE_NAMES)) {
     roles[code] = await db.role.upsert({ where: { code }, update: { name }, create: { code, name } });
-    await db.rolePermission.upsert({
-      where: { roleId_permissionId: { roleId: roles[code].id, permissionId: permission.id } }, update: {},
-      create: { roleId: roles[code].id, permissionId: permission.id }
+  }
+
+  for (const p of permDefs) {
+    const perm = await db.permission.upsert({
+      where: { code: p.code }, update: {},
+      create: { code: p.code, module: p.module, action: p.action, scope: p.scope, description: p.description }
     });
+    for (const roleCode of p.forRoles) {
+      if (roles[roleCode]) {
+        await db.rolePermission.upsert({
+          where: { roleId_permissionId: { roleId: roles[roleCode].id, permissionId: perm.id } }, update: {},
+          create: { roleId: roles[roleCode].id, permissionId: perm.id }
+        });
+      }
+    }
   }
 
   const office = (code, data) => db.administrativeOffice.upsert({ where: { code }, update: {}, create: { code, ...data } });

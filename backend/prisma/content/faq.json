@@ -1,0 +1,10 @@
+[
+  { "id": "who", "q": { "en": "Who can make a complaint?", "am": "ቅሬታ ማቅረብ የሚችለው ማነው?" }, "a": "Anyone who bought goods or a service from a business in Addis Ababa. You need an account with your phone number." },
+  { "id": "cost", "home": true, "q": { "en": "Does it cost anything?", "am": "ክፍያ አለው?" }, "a": "No. Making a complaint or a tip is free." },
+  { "id": "business-sees", "home": true, "q": { "en": "Will the business know it was me?", "am": "ድርጅቱ እኔ መሆኔን ያውቃል?" }, "a": "The business sees the case number and the facts it needs to reply. It does not see your name, phone, email or address. If you meet to agree a solution, you meet in person at the office." },
+  { "id": "no-receipt", "home": true, "q": { "en": "I have no receipt. Can I still complain?", "am": "ደረሰኝ የለኝም። ቅሬታ ማቅረብ እችላለሁ?" }, "a": "Yes. Add photos, messages or anything else that shows the purchase. The officer may ask for more." },
+  { "id": "which-office", "home": true, "q": { "en": "Which office will handle my complaint?", "am": "ቅሬታዬን የትኛው ቢሮ ያያል?" }, "a": "You choose where to send it: the business, your Woreda trade office, your Sub-City or the City Bureau. If it is not resolved, the office can move it up one level at a time." },
+  { "id": "tip-refund", "q": { "en": "Can I get my money back through a tip?", "am": "በጥቆማ ገንዘቤ ይመለሳል?" }, "a": "No. A tip helps officers act in the market. To get something put right for you, make a complaint." },
+  { "id": "privacy", "q": { "en": "How is my data used?", "am": "መረጃዬ እንዴት ይያዛል?" }, "a": "Only consumer protection officers who handle your case can see your details. Businesses never see them." },
+  { "id": "account", "q": { "en": "I forgot my password", "am": "የይለፍ ቃሌን ረሳሁ" }, "a": "Use \"Forgot your password?\" on the sign-in page to get a reset link by email or SMS, or call free on {call}." }
+]

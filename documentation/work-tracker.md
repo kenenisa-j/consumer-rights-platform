@@ -17,6 +17,26 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: evidence upload and office dropdowns, 16 November 2026
+
+- Evidence: a calm drop area (the raw browser file control is hidden), drag and drop, a tidy list with a state per file, and real storage (new `evidence` API module). Files appear on the consumer, office and business case pages with links; the consumer can add more later.
+- Destination step: "A Sub-City office" shows all 11 Sub-Cities in a dropdown; "A Woreda office" asks for the Sub-City first, then shows only that Sub-City's Woredas. The place of purchase only pre-fills it. The tip form's Woreda is a dropdown that follows the Sub-City; the tip form no longer offers file upload (tips store no files).
+- Test: `npm run test:browser:evidence` (22 checks).
+
+## Completed: messenger with voice messages, business desk, 16 November 2026
+
+- New migration `voice_messages`. New API module `messages` (list, thread, text, voice, audio) with permission `messages.use`; `GET /api/business/profile`. The microphone is allowed for the site itself in the Permissions-Policy header.
+- One Telegram-style messenger (`features/chat`) replaces the three mock message screens: conversation list, bubbles with time and ticks, day separators, one round button that sends text or records a voice message, playback with a waveform, 4-second refresh, full-screen chat on a phone.
+- Business desk: the profile picture opens a menu (profile, complaints, messages, sign out); Overview and Business profile read the database; the fake sidebar counts are gone; complaint pages link to the messenger. Stock and Orders stay AddisB2B-owned placeholders.
+- Tests: `npm run test:browser:chat` (29 checks, with a fake microphone). Mock-only sections of `portals`, `portals-menu` and `business` were removed; `business.mjs` is deleted.
+
+## Completed: real complaints, tips and content from the database, 15 November 2026
+
+- New migration `complaints_tips_content` (case subject and story, tip reference and details, `content_items`). New API modules: reference, content, complaints (consumer, public tracking, office and business views), tips. New permissions seeded per role.
+- Web: the complaint form sends to the API and ends with a "where to send it" choice (City Bureau by default); the tip form, My cases (redesigned landing page), the case page, tracking (redesigned), the Woreda/Sub-City/Bureau dashboards, cases and tips, the business complaints list and case, news, laws, help and home read the database.
+- "Make a complaint" opens the form directly (the chooser dialog is gone); the Report unfair trade dialog is as wide as the complaint one; the header keeps four links and a "More" menu so it fits laptop screens.
+- Test: `npm run test:browser:data` (30 checks, real database). `public-site` lost its mock-only sections. Gaps are listed in integration-status.md.
+
 ## Completed: complaint and tip always in a dialog, 15 November 2026
 
 - The tip and complaint receipts (`/tip/sent`, `/complaint/sent`) were plain stacked pages. They now open as dialogs (new `@modal/(.)tip/sent` and `@modal/(.)complaint/sent`).

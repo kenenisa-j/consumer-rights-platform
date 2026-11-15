@@ -1,0 +1,67 @@
+[
+  {
+    "slug": "check-before-you-buy",
+    "tag": "Campaign",
+    "icon": "calendar",
+    "iso": "2026-11-03",
+    "date": "3 November 2026",
+    "title": "Check before you buy: expiry dates at Sunday Markets",
+    "am": "ከመግዛትዎ በፊት ያረጋግጡ",
+    "excerpt": "Officers will be at 40 Sunday Markets this month showing shoppers how to read labels.",
+    "body": [
+      "This month, consumer protection officers will be at 40 Sunday Markets to show shoppers how to read food labels and check weights.",
+      "Many complaints about food could be avoided with a quick check before paying. Officers will hand out a one-page leaflet and answer questions at the market information desk."
+    ],
+    "checks": [
+      "The expiry date. Look for \"Best before\" or \"Use by\". Do not buy food past the date.",
+      "The package. Do not buy swollen tins or torn packets.",
+      "The weight. Ask the seller to weigh in front of you, and compare with the price list."
+    ],
+    "where": "Akaki Kality, Bole, Kolfe Keranio and Yeka Sub-Cities first, then the others. The list for each Sunday is posted at the Woreda trade office."
+  },
+  {
+    "slug": "scales-checked",
+    "tag": "Notice",
+    "icon": "scale",
+    "iso": "2026-10-30",
+    "date": "30 October 2026",
+    "title": "Scales at all 282 Sunday Markets will be checked this month",
+    "excerpt": "Weights and measures teams start in Akaki Kality and Bole."
+  },
+  {
+    "slug": "complaints-online",
+    "tag": "Announcement",
+    "icon": "chat",
+    "iso": "2026-10-27",
+    "date": "27 October 2026",
+    "title": "Complaints can now be made online",
+    "excerpt": "Make a complaint and follow it without visiting an office."
+  },
+  {
+    "slug": "returned-to-consumers",
+    "tag": "Result",
+    "icon": "refresh",
+    "iso": "2026-10-20",
+    "date": "20 October 2026",
+    "title": "1.24 million ETB returned to consumers this quarter",
+    "excerpt": "Most cases were settled by agreement between the consumer and the business."
+  },
+  {
+    "slug": "sugar-and-oil",
+    "tag": "Notice",
+    "icon": "flag",
+    "iso": "2026-10-15",
+    "date": "15 October 2026",
+    "title": "Sugar and edible oil: report prices above the list",
+    "excerpt": "Use the tip form or the QR code on the stall's price sheet."
+  },
+  {
+    "slug": "ask-for-a-receipt",
+    "tag": "Campaign",
+    "icon": "file",
+    "iso": "2026-10-08",
+    "date": "8 October 2026",
+    "title": "Always ask for a receipt",
+    "excerpt": "A receipt is the best proof when something goes wrong."
+  }
+]

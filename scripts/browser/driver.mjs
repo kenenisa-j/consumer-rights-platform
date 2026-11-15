@@ -29,7 +29,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 export async function launch() {
   const port = 9300 + Math.floor(Math.random() * 600);
   const profile = mkdtempSync(path.join(tmpdir(), "cr-browser-"));
-  const proc = spawn(findBrowser(), ["--headless=new", "--disable-gpu", `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
+  const proc = spawn(findBrowser(), ["--headless=new", "--disable-gpu", "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
     "--no-first-run", "about:blank"], { stdio: "ignore" });
 
   // However the run ends (a crash, a timeout, process.exit), stop this browser and delete its profile folder.

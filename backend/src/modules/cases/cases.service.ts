@@ -2,11 +2,14 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { ComplaintRoute, CaseStatus, OfficeLevel, Prisma } from '@prisma/client';
 import { officeBelongsToLevel, consumerAlias } from '@consumer-rights/contracts';
 import { PrismaService } from '../../lib/database/prisma.service';
 import { CreateCaseDto } from './dto/create-case.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notifications.types';
 
 /**
  * CasesService queries and manages complaints for authenticated users.
@@ -14,11 +17,14 @@ import { CreateCaseDto } from './dto/create-case.dto';
  */
 @Injectable()
 export class CasesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly notificationsService?: NotificationsService,
+  ) {}
 
   /** Create a new complaint via validated Route A or Route B intake. */
   async createCase(userId: string, dto: CreateCaseDto) {
-    return this.prisma.$transaction(async (tx) => {
+    const createdCase = await this.prisma.$transaction(async (tx) => {
       // 1. Verify category exists and is active
       const category = await tx.complaintCategory.findUnique({ where: { id: dto.categoryId } });
       if (!category) {
@@ -201,6 +207,22 @@ export class CasesService {
 
       return createdCase;
     });
+
+    if (this.notificationsService) {
+      this.notificationsService.dispatchCaseEvent({
+        type: createdCase.route === ComplaintRoute.REGISTERED_BUSINESS
+          ? NotificationType.NEW_COMPLAINT_FILED
+          : NotificationType.COMPLAINT_SUBMITTED,
+        caseId: createdCase.id,
+        referenceNumber: createdCase.referenceNumber,
+        complainantId: userId,
+        complainantAlias: createdCase.complainantAlias,
+        merchantId: createdCase.merchantId || undefined,
+        officeId: createdCase.currentOfficeId || undefined,
+      }).catch(() => {});
+    }
+
+    return createdCase;
   }
 
   /**
@@ -329,27 +351,11 @@ export class CasesService {
       counterpart: c.merchant?.tradeName ?? c.currentOffice?.nameEn ?? 'the officer',
       thread: [],
       evidence: [],
-      updates: c.history.length > 0 ? c.history.map((h) => ({
+      updates: (c.history.length > 0 ? c.history : [{ toStatus: 'Case received', createdAt: c.createdAt } as any]).map((h) => ({
         title: h.toStatus.replace(/_/g, ' ').toLowerCase(),
-        when: h.createdAt.toLocaleDateString('en-GB', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        }),
+        when: h.createdAt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
         iso: h.createdAt.toISOString(),
-      })) : [
-        {
-          title: 'Case received',
-          when: c.createdAt.toLocaleDateString('en-GB', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          }),
-          iso: c.createdAt.toISOString(),
-        }
-      ],
+      })),
       closed: c.status === 'RESOLVED_MUTUALLY' || c.status === 'RESOLVED_ADMINISTRATIVE_ORDER' || c.status.startsWith('CLOSED'),
     };
   }
@@ -370,22 +376,14 @@ export class CasesService {
 
   private mapStatus(status: string): { label: string; tone: "info" | "ok" | "warn" | "bad" | "grey" } {
     const map: Record<string, { label: string; tone: "info" | "ok" | "warn" | "bad" | "grey" }> = {
-      SUBMITTED_TO_BUSINESS: { label: 'Sent to business', tone: 'info' },
-      BUSINESS_OFFER_PENDING: { label: 'The business made you an offer', tone: 'warn' },
-      ESCALATED_TO_GOVERNMENT: { label: 'Moved to government office', tone: 'info' },
-      RECEIVED_BY_OFFICE: { label: 'Received by office', tone: 'info' },
-      UNDER_INITIAL_REVIEW: { label: 'Being checked', tone: 'info' },
-      OFFICER_ASSIGNED: { label: 'Officer assigned', tone: 'info' },
-      INSPECTION_PENDING: { label: 'Inspection planned', tone: 'info' },
-      INSPECTION_ACTIVE: { label: 'Inspection in progress', tone: 'info' },
-      INSPECTION_COMPLETED: { label: 'Inspection completed', tone: 'ok' },
-      CONCILIATION_SCHEDULED: { label: 'Meeting to agree a solution', tone: 'info' },
-      SETTLEMENT_OFFERED: { label: 'Solution proposed', tone: 'warn' },
-      RESOLVED_MUTUALLY: { label: 'Resolved', tone: 'ok' },
-      RESOLVED_ADMINISTRATIVE_ORDER: { label: 'Resolved by order', tone: 'ok' },
-      COURT_REFERRAL_ISSUED: { label: 'Referred to court', tone: 'bad' },
-      CLOSED_OUTSIDE_JURISDICTION: { label: 'Not handled by this office', tone: 'grey' },
-      CLOSED_WITHDRAWN: { label: 'Withdrawn', tone: 'grey' },
+      SUBMITTED_TO_BUSINESS: { label: 'Sent to business', tone: 'info' }, BUSINESS_OFFER_PENDING: { label: 'The business made you an offer', tone: 'warn' },
+      ESCALATED_TO_GOVERNMENT: { label: 'Moved to government office', tone: 'info' }, RECEIVED_BY_OFFICE: { label: 'Received by office', tone: 'info' },
+      UNDER_INITIAL_REVIEW: { label: 'Being checked', tone: 'info' }, OFFICER_ASSIGNED: { label: 'Officer assigned', tone: 'info' },
+      INSPECTION_PENDING: { label: 'Inspection planned', tone: 'info' }, INSPECTION_ACTIVE: { label: 'Inspection in progress', tone: 'info' },
+      INSPECTION_COMPLETED: { label: 'Inspection completed', tone: 'ok' }, CONCILIATION_SCHEDULED: { label: 'Meeting to agree a solution', tone: 'info' },
+      SETTLEMENT_OFFERED: { label: 'Solution proposed', tone: 'warn' }, RESOLVED_MUTUALLY: { label: 'Resolved', tone: 'ok' },
+      RESOLVED_ADMINISTRATIVE_ORDER: { label: 'Resolved by order', tone: 'ok' }, COURT_REFERRAL_ISSUED: { label: 'Referred to court', tone: 'bad' },
+      CLOSED_OUTSIDE_JURISDICTION: { label: 'Not handled by this office', tone: 'grey' }, CLOSED_WITHDRAWN: { label: 'Withdrawn', tone: 'grey' },
     };
     return map[status] ?? { label: status.replace(/_/g, ' ').toLowerCase(), tone: 'grey' };
   }

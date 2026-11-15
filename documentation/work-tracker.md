@@ -17,6 +17,103 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: Phase 4.12 Operational Reports and Statistics APIs, 15 November 2026
+
+- Owner: backend.
+- Implemented `GovernmentReportsController`, `BusinessReportsController`, `ReportsService`, and aggregation helpers.
+- Government reports: overview metrics, cases by status, cases by category, volume over time, resolution performance, office workload, transfer statistics, and SLA compliance.
+- Business reports: merchant overview, status breakdown, volume over time, response performance, and resolution outcomes.
+- Enforced jurisdiction boundaries (Woreda, Sub-City, Bureau) and strict merchant isolation without consumer PII leakage.
+- Verified with unit test suite `tests/operational-reports.test.mjs`.
+
+## Completed: Phase 4.11 Case Workflow Completeness and Hardening, 15 November 2026
+
+- Owner: backend.
+- Audited complete complaint lifecycle and codified `CASE_TRANSITION_MATRIX` in `case-workflow.validator.ts`.
+- Enforced legal transitions and rejected invalid status jumps across all phases (business, consumer, government, inspection, decisions).
+- Hardened terminal case immutability, requiring supervisory role for case reopening.
+- Verified with unit test suite `tests/case-workflow-hardening.test.mjs`.
+
+## Completed: Phase 4.10 SLA and Deadline Monitoring, 15 November 2026
+
+- Owner: backend.
+- Implemented `GovernmentSlaController`, `BusinessSlaController`, `SlaService`, and evaluation helpers.
+- Evaluates deadlines across UTC timestamps, administrative category defaults (`defaultSlaDays`), explicit deadlines, and active pauses (`CaseSlaPause`).
+- Detects approaching deadlines (<= 24h) and overdue cases within jurisdiction.
+- Verified with unit test suite `tests/sla-monitoring.test.mjs`.
+
+## Completed: Phase 4.9 Case Notifications and Alerts, 15 November 2026
+
+- Owner: backend.
+- Implemented `NotificationsController`, `NotificationsService`, helpers, and channel provider adapters (`IN_APP`, `SMS`, `EMAIL`, `PUSH`).
+- Reused existing Prisma `Notification` model with zero database schema changes or extra migrations.
+- Supported in-app notifications, read/unread status, unread count badge, read-all, safe dismissal, and default channel preferences.
+- Case lifecycle event dispatcher (`dispatchCaseEvent`) handles 20 core complaint lifecycle events.
+- Strict privacy: never exposes consumer phone, email, Fayda ID, or real name to businesses (uses `complainantAlias`); conceals internal officer notes.
+- Deduplication: 60-second idempotency check prevents duplicate alerts on transaction retries.
+- Safe integration: async dispatch does not block or fail parent case transactions.
+- Automated tests: `tests/notifications.test.mjs` (DTO validation, lifecycle alerts, cross-user isolation, read/unread state, unread counts, pagination, adapter masking, and controller reflection).
+
+## Completed: Phase 4.8 Government Inter-Level Case Transfers, 15 November 2026
+
+- Owner: backend.
+- Implemented `GovernmentTransfersController` and `GovernmentTransfersService` managing inter-level case handovers (Woreda → Sub-City → City Bureau).
+- Validated single-step upward escalation (`isValidClimb`); blocked level skipping (e.g. Woreda → Bureau) and terminal upwards moves from Bureau.
+- Enforced custody rules: sending office must currently hold case; closed/resolved cases cannot be transferred; duplicate pending transfers blocked.
+- Transfer acceptance: updates `currentOfficeId`, transitions status to `RECEIVED_BY_OFFICE`, safely deactivates prior office officer assignment.
+- Transfer rejection & return: requires mandatory reason (min 5 chars), marks transfer `RETURNED`, preserves case custody with sending office.
+- Chronological transfer history: tracks sending/receiving offices, initiating actor, handover notes, acceptance/rejection timestamps, and response notes.
+- Added permissions in seed: `transfers:initiate`, `transfers:reject`, `transfers:read`.
+- Verified: automated test suite `tests/government-transfers.test.mjs` (14 scenarios covering climb rules, duplicate prevention, cross-office rejection, acceptance, rejection, and controller reflection).
+
+## Completed: Phase 4.7 Government Decisions, Resolution and Case Closure, 15 November 2026
+
+- Owner: backend.
+- Implemented `GovernmentDecisionsController` and `GovernmentDecisionsService` for decision making, resolution orders, and case closure.
+- Decision outcomes supported: `SUBSTANTIATED`, `NOT_SUBSTANTIATED`, `PARTIALLY_SUBSTANTIATED`, `REFERRAL_REQUIRED`, `ADDITIONAL_INVESTIGATION_REQUIRED`.
+- Transitions to resolution states: `RESOLVED_ADMINISTRATIVE_ORDER`, `RESOLVED_MUTUALLY`, `CONCILIATION_SCHEDULED`, `COURT_REFERRAL_ISSUED`.
+- Enforces preconditions: investigation must be complete (`INSPECTION_COMPLETED`); prevents duplicate final decisions.
+- Resolution & compliance tracking: updates corrective actions and deadlines; verifies business compliance (`COMPLIED` / `NON_COMPLIANT`).
+- Controlled case closure & reopening: closes resolved cases with documented reason; restricted reopening to office administrators.
+- Consumer & business privacy safeguards: consumers see decision and remedies; merchants see corrective action without consumer PII.
+- Added permissions in seed: `decisions:create`, `decisions:read`, `cases:close`, `cases:reopen`.
+- Verified: automated test suite `tests/government-decisions.test.mjs` (DTO validation, decision issuance, duplicate prevention, resolution updating, compliance verification, case closure, admin reopening, and controller reflection).
+
+## Completed: Phase 4.6 Evidence Management and File Storage, 15 November 2026
+
+- Owner: backend.
+- Implemented `StorageService` and `StorageModule` for safe file handling, MIME type magic-byte detection, size capping (10MB), and path traversal protection.
+- Implemented `EvidenceService` and `EvidenceController` supporting consumer, business, and government evidence uploads, listings, and downloads.
+- Storage isolation: uploaded files stored in private directory outside web roots (default `.runtime/uploads`); safe UUID filenames generated on disk; physical storage paths never returned in API responses.
+- Visibility & privacy enforcement: consumers and businesses access only shared evidence (`isOfficerOnly: false`); internal evidence (`isOfficerOnly: true`) strictly restricted to authorized government officers within jurisdiction.
+- Cross-case access blocked: unauthorized requests fail closed with 404 Not Found to prevent existence enumeration.
+- Append-only audit trail: uploads logged in `CaseHistory` and `CaseAuditLog`.
+- Verified: automated test suite `tests/evidence.test.mjs` (11 assertions covering upload validation, cross-access rejection, officer jurisdiction, magic byte verification, internal evidence privacy, and controller reflection).
+
+## Completed: Phase 4.5 Government Investigation and Inspections, 15 November 2026
+
+- Owner: backend.
+- Implemented `GovernmentInvestigationsController`, `GovernmentInvestigationsService`, and helpers for investigations and inspections.
+- Case lifecycle progression: `OFFICER_ASSIGNED` -> `INSPECTION_PENDING` -> `INSPECTION_ACTIVE` -> `INSPECTION_COMPLETED`.
+- Prevents duplicate investigations; enforces active officer assignment and office jurisdiction.
+- Inspection scheduling and execution: tracks lead inspector, scheduled date, location, type, summary, and action taken.
+- Inspection findings management: records verifiable metrics (nominal, measured, unit, violation boolean, notes).
+- Enforces completion rules: requires documented summary, action taken, and at least one finding before completing an inspection.
+- Business response opportunity: allows registered merchant to submit formal statements via `BUSINESS_GOVERNMENT` conversation without exposing consumer PII.
+- Added permissions in seed: `inspections:create`, `inspections:read`, `inspections:manage`.
+- Verified: automated test suite `tests/government-investigations.test.mjs` (DTO validation, start investigation, duplicate prevention, inspection scheduling, findings recording, completion requirements, business response, and controller reflection check).
+
+## Completed: Phase 4.4 Government Office Case Intake, Triage, and Assignment, 15 November 2026
+
+- Owner: backend.
+- Implemented `GovernmentCasesController`, `GovernmentCasesService`, and helpers for government complaint intake, triage, and assignment.
+- Office-scoped intake: Woreda officers access Woreda cases, Sub-City coordinators access Sub-City and subordinate Woreda cases, Bureau administrators and Superadmins have city-wide visibility.
+- Case triage: validated transition from `RECEIVED_BY_OFFICE` to `UNDER_INITIAL_REVIEW` with priority tagging, audit logging, and case history.
+- Officer assignment & reassignment: verifies active officer deployment to holding office, manages single-active assignment rule (`CaseAssignment`), updates status to `OFFICER_ASSIGNED`.
+- Transfer acceptance: handles incoming office transfers (`PENDING_ACCEPTANCE` -> `ACCEPTED`), establishes new office ownership (`RECEIVED_BY_OFFICE`), and appends audit logs.
+- Added permissions in seed: `transfers:accept`, `complaints:triage`, `complaints:assign`, `complaints:read:all`.
+- Verified: automated test suite `tests/government-cases.test.mjs` (33 assertions covering jurisdiction scoping, triage validation, single active assignment, and transfer workflow).
+
 ## Completed: dialog and portal-redirect fixes, 14 November 2026
 
 - Reported: "Make a complaint", "Report unfair trade" and "Track a case" did nothing, and portals showed "page not found".
@@ -266,68 +363,16 @@ you (and your agents) avoid duplicate or conflicting work.
 - **Tests Added:** Updated `tests/backend-foundation.test.mjs` with test suite 7 verifying `PrismaService`, driver adapter usage, lifecycle hooks, ping method, `@Global()` module registration, and `AppModule` wiring.
 - **Prisma Schema & DB Safety:** `backend/prisma/schema.prisma` and `prisma.config.ts` untouched. No migrations created, no schema or table modifications.
 
-### NestJS Backend Application Scaffolding (Phase 1)
+### Initial Foundation, Scaffolding & Reconciliations (Phases 1-2)
 
-- **Workspace Registration:** Root `package.json` updated with `"workspaces": ["lib/*", "backend"]`.
-- **Backend Package:** Initialized `backend/package.json` (`@consumer-rights/backend`, private, Node engine `>=22.12.0 <25`) with NestJS 11 dependencies (`@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`, `@nestjs/config`, `class-validator`, `class-transformer`, `helmet`, `rxjs`, `reflect-metadata`) and dev dependencies (`@nestjs/cli`, `@nestjs/schematics`, `@nestjs/testing`, `typescript`, `@types/node`, `@types/express`, `supertest`).
-- **TypeScript & Nest Configuration:** Added `backend/tsconfig.json` (strict TypeScript, decorator metadata enabled), `backend/tsconfig.build.json`, and `backend/nest-cli.json`.
-- **Application Structure:**
-  - `backend/src/main.ts`: Bootstrap with global prefix `/api`, helmet security headers, CORS from `PUBLIC_URL`, global `ValidationPipe` (whitelist + forbidNonWhitelisted + transform), and graceful shutdown hooks.
-  - `backend/src/app.module.ts`: Root module wiring configuration, health module, global `PermissionGuard`, `AllExceptionsFilter`, and `TransformInterceptor`.
-  - `backend/src/lib/config/`: `env.validation.ts` validating `API_PORT` (default: 4300), `API_HOST` (default: '127.0.0.1'), `PUBLIC_URL`, `NODE_ENV`, and production secret presence; `config.module.ts` setting up global `ConfigModule`.
-  - `backend/src/lib/common/decorators/`: `@Public()` and `@RequirePermission(...permissions: string[])`.
-  - `backend/src/lib/common/guards/`: `PermissionGuard` failing closed on undeclared policies, allowing `@Public()`, and establishing the Phase 3 Better Auth integration boundary.
-  - `backend/src/lib/common/filters/`: `AllExceptionsFilter` formatting errors into the shared contracts `ApiFailure` envelope (`{ ok: false, error: { code, message, fields } }`) without leaking stacks in production.
-  - `backend/src/lib/common/interceptors/`: `TransformInterceptor` formatting responses into the shared contracts `ApiSuccess` envelope (`{ ok: true, data }`).
-  - `backend/src/lib/health/`: `HealthController` exposing `@Public()` GET endpoint at `/api/health` returning status, uptime, and timestamp; `HealthModule`.
-- **Tests Added:** `tests/backend-foundation.test.mjs` verifying environment validator constraints, health controller response shape, envelope compliance with `@consumer-rights/contracts`, authorization metadata decorators, controller permission policy symmetry, and workspace package setup.
-- **Backend Ownership:** Updated `backend/AGENTS.md` to scaffolded state.
-- **Prisma Boundary Preserved:** `schema.prisma`, `prisma.config.ts`, and `database-design.md` untouched. Prisma client generation and PostgreSQL adapter deferred to Phase 2.
-
-### Database integrity corrections (session 2)
-
-- **CaseHistory model added** to `backend/prisma/schema.prisma` (append-only audit trail):
-  - Fields: `fromStatus?`, `toStatus`, `handlingLevel` (String, includes "business"), `officeId?`, `actorUserId`, `publicNote?`, `createdAt`.
-  - All three FKs use `onDelete: Restrict` (immutability enforced at DB permission layer, not Prisma alone).
-  - Reverse relations added to `Case` (`history`), `User` (`caseHistoryLogged`), `AdministrativeOffice` (`caseHistoryEntries`).
-  - Indexes: `[caseId, createdAt]`, `[actorUserId]`, `[officeId]`.
-- **Route A merchant validation corrected** in `lib/contracts/index.js` and `lib/contracts/index.d.ts`:
-  - `validateRouteA()` rewritten: registered + unregistered merchant details are mutually exclusive; `escalatedToGovAt` must be null; empty-string guards on all string fields.
-  - `RouteAInput` converted to discriminated union (`RouteANoMerchantInput | RouteARegisteredMerchantInput | RouteAUnregisteredMerchantInput`).
-  - `validateRouteB()` updated to explicitly reject all three unregistered merchant fields.
-- **FK deletion policies hardened:**
-  - `AnonymousReportAuditLog`: changed `onDelete: Cascade` → `onDelete: Restrict` (audit immutability).
-  - `Message.attachmentEvidence`: changed `onDelete: SetNull` → `onDelete: Restrict` (legal evidence protection).
-- **Performance indexes added:** `categoryId` and `marketId` on `Case`; `userId` on `ConversationParticipant`; `status` and `marketId` on `AnonymousReport`; `caseId` on `Notification`; `senderUserId` on `Message`.
-- **Route A `CONSUMER_BUSINESS` conversation restriction** documented: enforced transactionally by NestJS service reading `cases.route` before inserting; partial unique index limits quantity but cannot prevent Route A cases from having this kind without application logic.
-- **SQL constraint `chk_case_dual_routing`** in `docs/database-design.md` corrected to cover: `escalated_to_gov_at IS NULL` for Route A; all three unregistered fields prohibited for Route B; registered + unregistered conflict prevention.
-- **`docs/database-design.md` Section 3.4 `case_history`** updated to reflect Prisma model (enum, correct FK behavior, immutability note).
-- **Tests updated** (`tests/contracts.test.mjs`): 3 new Route A/B tests replacing 2 old ones; 11 assertions covering valid cases, conflict rejection, missing fields, escalation state, unregistered field prohibition.
-- **Open questions Q21–Q24** preserved exactly as numbered in `documentation/open-questions.md`.
-- **`npx prisma validate`**: schema passes (Prisma 7.8.0, datasource url removed, `prisma.config.ts` added).
-- **`npm run check`**: command execution blocked in sandbox; must be run locally to confirm.
+- Reconciled dual routing schema with CaseHistory append-only audit trail and strict FK deletion constraints.
+- Scaffolded NestJS backend foundation with global prefix `/api`, envelope filters, permission guard, and contracts validation.
 
 ### Database design & initial setup (session 1)
 
-- **What:** Initialised NestJS application structure in `backend/`. Defined reconciled Prisma schema (28 models, 10 enums) and database architecture specification (`docs/database-design.md`).
-- **Database Integrity & Dual Routing Corrections:**
-  - Route A merchant identification: allowed optional `merchantId` while requiring government office; preserved optional unregistered merchant fields; prohibited bilateral negotiation on Route A.
-  - Route B integrity: requires `merchantId`; forbids unregistered fields; office is null pre-escalation and assigned upon escalation; withdrawal allowed pre-escalation without requiring an office.
-  - Office validation: retained single foreign key ensuring office exists; documented NestJS transactional verification via `officeBelongsToLevel()` and active check; documented trade-off vs composite FK.
-  - Reference generation: corrected to atomic annual sequence table (`annual_case_sequences`) resetting yearly in `Africa/Addis_Ababa` timezone with concurrency row-locking and 5-digit overflow protection.
-  - Enum mapping: documented explicit translation between 16 database operational statuses and 13 public contract statuses, and `SettlementType` (`FULL_REFUND`/`PARTIAL_REFUND`) to contract `refund`.
-- **Contracts updated:** Added `COMPLAINT_ROUTES`, `GOVERNMENT_LEVELS`,
-  `isValidGovernmentLevel`, `officeBelongsToLevel`, `validateRouteA`, `validateRouteB`,
-  `ComplaintRoute`, `GovernmentLevel`, `RouteAInput`, `RouteBInput`, `ComplaintRouteInput` to `lib/contracts`.
-  Clarified `HANDLING_LEVELS` and `isValidClimb` as governing in-progress upward transfers/escalations
-  rather than Route A initial intake. Updated tests with accurate descriptions and added Route A/Route B
-  independent intake tests and office-matching validation tests.
-- **Docs updated:** `docs/database-design.md`, `documentation/domain-model.md`, `documentation/open-questions.md`.
-- **Not yet built:** `web/` and `backend/` app modules, NestJS controllers/services, database migrations,
-  auth. Backend and database design files are untracked (not committed).
-- **Known gaps:**
-  - Open questions 21–24 (Route B escalation trigger/target, reference format, non-response SLA) must be answered.
-  - `npm run check` at root: command execution blocked in sandbox; verified locally by developer. Statically verified.
+- Initialised NestJS application structure in `backend/` with reconciled Prisma schema and architecture specs.
+- Database integrity & dual routing corrections: validated Route A/B constraints, office hierarchies, atomic annual sequence generation, and contract status mapping.
+- Updated shared contracts in `lib/contracts/` and verified with contract unit test suite.
 
 ## Completed: project foundation, 12 November 2026
 

@@ -22,9 +22,40 @@ const ROLE_NAMES = {
 async function main() {
   const permDefs = [
     { code: "profile.read.own", module: "profile", action: "read", scope: "OWN", description: "Read my own profile and role", forRoles: Object.keys(ROLE_NAMES) },
+    { code: "notifications:read:own", module: "notifications", action: "read", scope: "OWN", description: "Read own notifications", forRoles: Object.keys(ROLE_NAMES) },
+    { code: "notifications:manage:own", module: "notifications", action: "manage", scope: "OWN", description: "Manage and mark own notifications", forRoles: Object.keys(ROLE_NAMES) },
     { code: "complaints:create:own", module: "complaints", action: "create", scope: "OWN", description: "Submit complaint as consumer", forRoles: ["CONSUMER"] },
     { code: "complaints:read:own", module: "complaints", action: "read", scope: "OWN", description: "Read own complaints", forRoles: ["CONSUMER"] },
-    { code: "complaints:read:all", module: "complaints", action: "read", scope: "ALL", description: "Read complaints in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN"] }
+    { code: "complaints:read:all", module: "complaints", action: "read", scope: "ALL", description: "Read complaints in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "transfers:accept", module: "transfers", action: "accept", scope: "JURISDICTION", description: "Accept incoming case transfers in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "transfers:initiate", module: "transfers", action: "initiate", scope: "JURISDICTION", description: "Initiate case transfer to parent office in hierarchy", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "transfers:reject", module: "transfers", action: "reject", scope: "JURISDICTION", description: "Reject or return incoming case transfer to sending office", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "transfers:read", module: "transfers", action: "read", scope: "JURISDICTION", description: "View incoming, outgoing, and chronological case transfers", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "complaints:triage", module: "complaints", action: "triage", scope: "JURISDICTION", description: "Review and triage incoming complaints in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "complaints:assign", module: "complaints", action: "assign", scope: "JURISDICTION", description: "Assign and reassign officers to complaints", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "inspections:create", module: "inspections", action: "create", scope: "JURISDICTION", description: "Schedule inspections and start investigations in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "inspections:read", module: "inspections", action: "read", scope: "JURISDICTION", description: "Read inspection records and investigation details in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "inspections:manage", module: "inspections", action: "manage", scope: "JURISDICTION", description: "Update inspections, record findings, and submit investigations in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "decisions:create", module: "decisions", action: "create", scope: "JURISDICTION", description: "Issue decisions and verify compliance in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "decisions:read", module: "decisions", action: "read", scope: "JURISDICTION", description: "Read case decisions and resolution orders in jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "cases:close", module: "cases", action: "close", scope: "JURISDICTION", description: "Close resolved or non-actionable complaints", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "cases:reopen", module: "cases", action: "reopen", scope: "JURISDICTION", description: "Reopen closed complaints upon valid appeal", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "offices:manage", module: "offices", action: "manage", scope: "ALL", description: "Manage administrative offices", forRoles: ["BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "staff:manage", module: "staff", action: "manage", scope: "JURISDICTION", description: "Manage government staff within jurisdiction", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "staff:read", module: "staff", action: "read", scope: "JURISDICTION", description: "Read government staff details within jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "roles:manage", module: "roles", action: "manage", scope: "ALL", description: "Manage roles and permission bindings", forRoles: ["BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "roles:read", module: "roles", action: "read", scope: "ALL", description: "Read roles, assigned permissions and effective scope", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "markets:manage", module: "markets", action: "manage", scope: "JURISDICTION", description: "Manage public markets within jurisdiction", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "merchants:manage", module: "merchants", action: "manage", scope: "JURISDICTION", description: "Register, update and suspend merchants within jurisdiction", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "merchants:read", module: "merchants", action: "read", scope: "JURISDICTION", description: "Read merchant registry within jurisdiction", forRoles: ["WOREDA_OFFICER", "WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_OFFICER", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "merchants:verify", module: "merchants", action: "verify", scope: "JURISDICTION", description: "Verify or reject merchant registrations", forRoles: ["WOREDA_ADMIN", "SUBCITY_COORDINATOR", "BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] },
+    { code: "business.profile:read", module: "business", action: "read", scope: "OWN", description: "Read own business profile", forRoles: ["BUSINESS_OWNER", "BUSINESS_EMPLOYEE"] },
+    { code: "business.profile:manage", module: "business", action: "manage", scope: "OWN", description: "Update own business profile", forRoles: ["BUSINESS_OWNER"] },
+    { code: "business.staff:read", module: "business", action: "read", scope: "OWN", description: "View staff linked to own business", forRoles: ["BUSINESS_OWNER", "BUSINESS_EMPLOYEE"] },
+    { code: "business.staff:manage", module: "business", action: "manage", scope: "OWN", description: "Add, update or remove staff for own business", forRoles: ["BUSINESS_OWNER"] },
+    { code: "complaints.business:read", module: "complaints", action: "read", scope: "OWN", description: "View complaints submitted against own business", forRoles: ["BUSINESS_OWNER", "BUSINESS_EMPLOYEE"] },
+    { code: "complaints.business:respond", module: "complaints", action: "respond", scope: "OWN", description: "Respond to and propose settlement offers on complaints", forRoles: ["BUSINESS_OWNER", "BUSINESS_EMPLOYEE"] },
+    { code: "categories:manage", module: "categories", action: "manage", scope: "ALL", description: "Manage complaint categories and SLAs", forRoles: ["BUREAU_ADMIN", "SYSTEM_SUPERADMIN"] }
   ];
 
   const roles = {};
@@ -75,6 +106,24 @@ async function main() {
       });
       await db.merchantUser.upsert({ where: { merchantId_userId: { merchantId: merchant.id, userId: user.id } }, update: {}, create: { merchantId: merchant.id, userId: user.id } });
     }
+  }
+
+  const defaultCategories = [
+    { code: "OVERPRICING", nameEn: "Overpricing / Price Gouging", nameAm: "ያልተገባ የዋጋ ጭማሪ", defaultSlaDays: 3, defaultRemitLevel: "WOREDA" },
+    { code: "HOARDING", nameEn: "Hoarding / Withholding Goods", nameAm: "ሸቀጥ መደበቅ", defaultSlaDays: 2, defaultRemitLevel: "WOREDA" },
+    { code: "DEFECTIVE_GOODS", nameEn: "Defective or Damaged Goods", nameAm: "ጉድለት ያለበት ዕቃ", defaultSlaDays: 5, defaultRemitLevel: "WOREDA" },
+    { code: "EXPIRED_GOODS", nameEn: "Expired or Substandard Goods", nameAm: "ጊዜው ያለፈበት ዕቃ", defaultSlaDays: 2, defaultRemitLevel: "WOREDA" },
+    { code: "FALSE_ADVERTISING", nameEn: "Misleading or False Advertising", nameAm: "አሳሳች ማስታወቂያ", defaultSlaDays: 7, defaultRemitLevel: "SUBCITY" },
+    { code: "REFUSAL_OF_RECEIPT", nameEn: "Refusal to Issue Legal Receipt", nameAm: "ደረሰኝ አለመስጠት", defaultSlaDays: 3, defaultRemitLevel: "WOREDA" },
+    { code: "WEIGHT_MEASURE", nameEn: "Inaccurate Weights and Measures", nameAm: "የክብደት ወይም መለኪያ ማጭበርበር", defaultSlaDays: 3, defaultRemitLevel: "WOREDA" },
+    { code: "OTHER", nameEn: "Other Consumer Rights Violation", nameAm: "ሌላ የሸማቾች መብት ጥሰት", defaultSlaDays: 5, defaultRemitLevel: "WOREDA" }
+  ];
+  for (const cat of defaultCategories) {
+    await db.complaintCategory.upsert({
+      where: { code: cat.code },
+      update: {},
+      create: { ...cat, isActive: true }
+    });
   }
   console.log(`Seeded ${Object.keys(ROLE_NAMES).length} roles, 3 offices and ${DEV_TEST_ACCOUNTS.length} test accounts (password: ${DEV_TEST_PASSWORD}).`);
 }

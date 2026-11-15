@@ -1,16 +1,16 @@
 "use client";
 
 import { WANT_LABEL, needsAmount, type Draft } from "./draft";
-import { CATEGORY_TEXT } from "@/content/common";
 import { CheckField, ChoiceGroup, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
 import { FilePicker, formatSize, type useFilePicker } from "@/components/ui/FileList";
 import { Am } from "@/components/ui/Bi";
 import { StepForm, type StepProps } from "./StepsA";
+import { DestinationChoice } from "./DestinationChoice";
 
 export function Step4({ draft, set, next, back, picker }: StepProps & { picker: ReturnType<typeof useFilePicker> }) {
   return (
     <StepForm title="Evidence" am="ማስረጃ" onSubmit={next} back={back}>
-      <p>A receipt, photos of the goods, messages with the seller or any document that helps. You can add more later.</p>
+      <p>A receipt, photos of the goods, messages with the seller or any document that helps. You can add more later from your case page.</p>
       <FilePicker id="ev-files" picker={picker} note="JPG, PNG or PDF · up to 10 MB each · up to 8 files" withShare />
       <p className="small muted">Officers always see your files. The business sees only the ones you allow, and never your ID or contact details.</p>
       <p className="small muted mb-0">{picker.files.length === 0 ? "No files yet. You can continue without them." : null}</p>
@@ -56,18 +56,16 @@ function Block({ title, step, onGo, rows }: { title: string; step: number; onGo:
   );
 }
 
-export function Step6({ draft, set, back, onGo, onSend, busy, error, fileCount }: StepProps & {
-  onGo: (n: number) => void; onSend: () => void; busy: boolean; error: string | null; fileCount: number;
+export function Step6({ draft, set, back, onGo, onSend, busy, error, progress, fileCount, refData }: StepProps & {
+  onGo: (n: number) => void; onSend: () => void; busy: boolean; error: string | null; progress: string | null; fileCount: number;
 }) {
   const { business: b, purchase: p, outcome: o } = draft;
   const money = (v: string) => (v ? `${Number(v).toLocaleString("en")} ETB` : "");
   return (
     <form className="card form-card" onSubmit={e => { e.preventDefault(); onSend(); }}>
       <h2>Check and send<Am text="ያረጋግጡና ይላኩ" /></h2>
-      <p>{b.mode === "registered"
-        ? <>This complaint goes first to <b>{b.name}</b>, which is on AddisB2B. If you cannot agree, you can move it to the Woreda trade office.</>
-        : <>This business is not on AddisB2B, so your complaint goes straight to the Woreda trade office.</>}</p>
-      <Block title="What happened" step={1} onGo={onGo} rows={[["Problem", draft.category ? CATEGORY_TEXT[draft.category].title : ""], ["Title", draft.subject],
+      <DestinationChoice draft={draft} refData={refData} onChange={set} />
+      <Block title="What happened" step={1} onGo={onGo} rows={[["Problem", refData.categories.find(c => c.code === draft.category)?.nameEn ?? ""], ["Title", draft.subject],
         ["Details", draft.what.length > 160 ? `${draft.what.slice(0, 160)}…` : draft.what], ["Health or safety risk", draft.urgent ? "Yes" : "No"]]} />
       <Block title="The business" step={2} onGo={onGo} rows={[["Business", b.mode === "registered" ? `${b.name} (on AddisB2B)` : b.name], ["Where", b.mode === "registered" ? b.place : [b.address, b.subcity].filter(Boolean).join(" · ")]]} />
       <Block title="Your purchase" step={3} onGo={onGo} rows={[["Item", p.item], ["Date", p.date], ["Place", [p.place, p.subcity, p.woreda && `Woreda ${p.woreda}`].filter(Boolean).join(" · ")],
@@ -87,7 +85,7 @@ export function Step6({ draft, set, back, onGo, onSend, busy, error, fileCount }
       {error && <p className="error-text show" role="alert">{error}</p>}
       <div className="form-foot">
         <button className="btn btn--secondary" type="button" onClick={back}>Back</button>
-        <button className="btn btn--stack btn--accent" type="submit" disabled={busy}><span>{busy ? "Sending…" : "Send the complaint"}</span><Am text="ቅሬታውን ላክ" /></button>
+        <button className="btn btn--stack btn--accent" type="submit" disabled={busy}><span>{busy ? (progress ?? "Sending…") : "Send the complaint"}</span><Am text="ቅሬታውን ላክ" /></button>
       </div>
     </form>
   );

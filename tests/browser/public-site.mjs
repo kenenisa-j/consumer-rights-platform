@@ -61,95 +61,7 @@ try {
   await b.clickText("Send the complaint", "button[type=submit]");
   check("wizard: cannot send without the declaration", (await stepNow()) === "6");
 
-  await b.click("input[type=checkbox][required]");
-  await b.clickText("Send the complaint", "button[type=submit]");
-  await b.waitFor("location.pathname==='/complaint/sent'");
-  await b.sleep(500);
-  const sent = await b.text("main");
-  check("wizard: sent page shows the reference", /CC-2026-00148/.test(sent ?? ""), sent?.slice(0, 200));
-  await b.go("/complaint/new");
-  const afterSend = await b.text(".wizard-box");
-  check("wizard: draft is cleared after sending", !/Rice sold short/.test(afterSend ?? ""));
-
-  // ---- Case page: accept the offer ---------------------------------------------------------------
-  await b.go("/cases/CC-2026-00123");
-  check("case: shows the offer and the three choices", /A new 25 kg sack/.test(await b.text("main")) && /Make a counter-offer/.test(await b.text("main")));
-  await b.clickText("Accept the offer", "button");
-  const afterAccept = await b.text("main");
-  check("case: accepting resolves it", /Resolved: you accepted the offer/.test(afterAccept) && /You accepted the offer/.test(afterAccept));
-  check("case: no actions left after resolving", !/Make a counter-offer/.test(afterAccept) && !/Withdraw the complaint/.test(afterAccept));
-
-  // ---- Case page: escalate through a dialog -----------------------------------------------------
-  await b.go("/cases/CC-2026-00123");
-  await b.clickText("Move it to the Woreda", "button");
-  await b.waitFor("dialog[open]");
-  check("case: escalate dialog opens", await b.ev("return !!document.querySelector('dialog[open]')"));
-  await b.clickText("Move it to the Woreda", "dialog[open] button[type=submit]");
-  check("case: dialog needs a reason (native validation blocks)", await b.ev("return !!document.querySelector('dialog[open]')"));
-  await b.click("dialog[open] input[name=why]");
-  await b.clickText("Move it to the Woreda", "dialog[open] button[type=submit]");
-  await b.sleep(400);
-  const esc = await b.text("main");
-  check("case: escalating moves the case to the Woreda", /Waiting for the Woreda to accept/.test(esc) && /You moved it to the Woreda/.test(esc));
-  check("case: dialog closed afterwards", !(await b.ev("return !!document.querySelector('dialog[open]')")));
-
-  // Escape closes a dialog
-  await b.go("/cases/CC-2026-00123?step=meeting");
-  check("case: meeting state shows the appointment", /Friday 6 November 2026, 10:00/.test(await b.text("main")));
-  await b.clickText("Can't come?", "button");
-  await b.waitFor("dialog[open]");
-  await b.ev("document.querySelector('dialog[open]').dispatchEvent(new Event('cancel',{cancelable:true})); document.querySelector('dialog[open]').close(); return 1");
-  check("case: dialog closes", !(await b.ev("return !!document.querySelector('dialog[open]')")));
-
-  // Settlement: accept needs the checkbox
-  await b.go("/cases/CC-2026-00123?step=settlement");
-  check("case: accept button disabled until the box is ticked", await b.ev("return [...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='Accept the solution').disabled"));
-  await b.click(".card input[type=checkbox]");
-  await b.clickText("Accept the solution", "button");
-  check("case: accepting the solution is recorded", /You accepted the solution/.test(await b.text("main")));
-
-  // Info required: send information
-  await b.go("/cases/CC-2026-00140");
-  await b.set("#info-answer", "I found the receipt and attached the label photo.");
-  await b.clickText("Send the information", "button[type=submit]");
-  check("case: info request answered", /Being checked/.test(await b.text("main")) && /You sent more information/.test(await b.text("main")));
-
-  // Outside jurisdiction
-  await b.go("/cases/CC-2026-00118");
-  check("case: outside jurisdiction explains where to go", /Where you can go instead/.test(await b.text("main")) && !(await b.ev("return !!document.querySelector('.track')")));
-
-  // ---- Tip --------------------------------------------------------------------------------------
-  await b.go("/tip");
-  await b.set("#t-sub", "Bole");
-  await b.set("#t-place", "Market 097, near the sugar stalls");
-  await b.set("#t-when", "2026-11-04");
-  await b.set("#t-text", "Several shops sell sugar at 160 ETB a kilo. The list says 125.");
-  await b.clickText("Send the tip", "button[type=submit]");
-  await b.waitFor("location.pathname==='/tip/sent'"); await b.sleep(500);
-  const tipSent = await b.text("main");
-  check("tip: anonymous tip shows number and private code", /TIP-2026-00048/.test(tipSent) && /Q7MD-42KX/.test(tipSent));
-  check("tip: the private code is not in the address", !(await b.url()).includes("Q7MD"));
-  await b.go("/tip");
-  await b.click("input[name=who][type=radio]:not(:checked)");
-  check("tip: choosing to share contact reveals name and phone", await b.ev("return !!document.querySelector('#t-name') && !!document.querySelector('#t-phone')"));
-
-  // ---- Track ------------------------------------------------------------------------------------
-  await b.go("/track");
-  await b.set("#tr-ref", "CC-2026-00123"); await b.set("#tr-phone", "0412");
-  await b.clickText("Check the status", "button[type=submit]");
-  await b.waitFor("location.pathname==='/track/result'"); await b.sleep(600);
-  const tr = await b.text("main");
-  check("track: found complaint shows handler and progress", /Woreda 7 Trade Office/.test(tr) && /Under Reconciliation/.test(tr));
-  await b.go("/track");
-  await b.set("#tr-ref", "CC-2026-00123"); await b.set("#tr-phone", "9999");
-  await b.clickText("Check the status", "button[type=submit]");
-  await b.waitFor("location.pathname==='/track/result'"); await b.sleep(600);
-  const trBad = await b.text("main");
-  check("track: wrong digits and unknown number give the same message", /could not find a case/.test(trBad) && !/0412/.test(trBad));
-  await b.go("/track/result?ref=CC-2026-00123");
-  check("track: reference only (from home) asks for the digits", /Last 4 digits/.test(await b.text("main")));
-  await b.go("/track?kind=tip");
-  check("track: ?kind=tip opens the tip tab", await b.ev("return document.querySelector('#tab-tip').getAttribute('aria-selected')==='true'"));
+  // Sending, tracking, tips and the case pages are checked against the real database in data.mjs.
 
   // ---- Register (the real sign-up with a code is in auth.mjs) ---------------------------------------
   await b.go("/register");
@@ -189,18 +101,7 @@ try {
   await b.go("/notifications");
   await b.clickText("Mark all as read", "button");
   check("notifications: mark all as read", /All read/.test(await b.text("main")));
-  await b.go("/messages");
-  await b.click(".chat-item");
-  await b.set("#chat-message", "I will bring the receipt.");
-  await b.clickText("Send", ".chat-compose button[type=submit]");
-  check("messages: sending adds a bubble", /I will bring the receipt/.test(await b.text(".chat-feed")));
-  await b.clickText("Accept", ".offer-card button");
-  check("messages: accepting an offer updates it", /Accepted/.test(await b.text(".chat-feed")));
-  await b.clickText("Make an offer", "button");
-  await b.waitFor("dialog[open]");
-  await b.set("#of-amount", "2250");
-  await b.clickText("Send the offer", "dialog[open] button[type=submit]");
-  check("messages: making an offer adds an offer card", /2250 ETB/.test(await b.text(".chat-feed")) || /Refund: 2250 ETB/.test(await b.text(".chat-feed")));
+  // Messages are checked against the database in chat.mjs.
 
   // ---- Forms open as dialogs over the page the person was on ----------------------------------------
   // A fresh browser: history after a long run of page changes is not what a person starts with.
@@ -213,10 +114,8 @@ try {
   check("dialog: Track a case opens over the home page", (await dlg()) && (await d.url()) === "/track" && /Bought something/.test(await d.text("main")));
   await d.ev("document.querySelector('dialog.dlg[open]').close(); return 1"); await d.waitFor("location.pathname==='/'"); await d.sleep(300);
   check("dialog: closing returns to the page underneath", !(await dlg()) && (await d.url()) === "/", String(await dlg()) + " " + await d.url());
-  await d.clickText("Make a complaint", "a.btn"); await d.sleep(600);
-  check("dialog: the complaint chooser opens", await dlg());
-  await d.clickText("Make a complaint", "dialog a"); await d.sleep(800);
-  check("dialog: the complaint form replaces the chooser (one dialog)", (await d.ev("return document.querySelectorAll('dialog.dlg[open]').length")) === 1 && (await d.url()) === "/complaint/new");
+  await d.clickText("Make a complaint", "a.btn"); await d.sleep(900);
+  check("dialog: Make a complaint opens the form straight away (no chooser)", (await d.ev("return document.querySelectorAll('dialog.dlg[open]').length")) === 1 && (await d.url()) === "/complaint/new");
   check("dialog: the problem kinds are in a dropdown, not a list", await d.ev("return !!document.querySelector('dialog select#dd-category') && !document.querySelector('dialog input[name=category]')"));
   await d.click("dialog.dlg[open] > .modal__box > .modal__close"); await d.waitFor("location.pathname==='/'"); await d.sleep(300);
   check("dialog: closing the form goes back to the home page", !(await dlg()) && (await d.url()) === "/");

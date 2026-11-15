@@ -2,12 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { SUB_CITIES } from "@/content/common";
-import { submitTip } from "@/mocks/misc";
+import { apiPost } from "@/lib/api";
+import type { RefData } from "@/lib/reference";
 import { saveHandoff } from "@/lib/handoff";
 import { Alert } from "@/components/ui/Display";
 import { ChoiceGroup, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
-import { FilePicker, useFilePicker } from "@/components/ui/FileList";
 import { Am } from "@/components/ui/Bi";
 import { CloseOrLink } from "@/components/ui/RouteModal";
 
@@ -16,30 +15,35 @@ const KINDS = ["Prices above the official list", "Goods hidden or held back", "E
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function TipForm() {
+export function TipForm({ subcities }: { subcities: RefData["subcities"] }) {
   const router = useRouter();
-  const picker = useFilePicker(8, 10);
+  const [sub, setSub] = useState("");
   const [who, setWho] = useState<"anon" | "contact">("anon");
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setBusy(true); setFailed(false);
-    try {
-      const receipt = await submitTip(); // backend: no identity stored when anonymous
-      saveHandoff("tip-receipt", { ...receipt, anonymous: who === "anon" });
-      router.push("/tip/sent");
-    } catch { setFailed(true); setBusy(false); }
+    const f = new FormData(e.currentTarget);
+    const v = (k: string) => String(f.get(k) ?? "");
+    setBusy(true); setFailed(null);
+    const res = await apiPost<{ reference: string; code: string; receivedAt: string; anonymous: boolean }>("/api/tips", {
+      kind: v("kind"), subcity: subcities.find(s => s.name === v("subcity"))?.code, woreda: v("woreda") || null, place: v("place"),
+      business: v("business"), product: v("product"), when: v("when"), text: v("text"), anonymous: who === "anon", name: v("name"), phone: v("phone")
+    });
+    if (!res.ok) { setFailed(res.error); setBusy(false); return; }
+    saveHandoff("tip-receipt", res.data); // the private code is shown once, on the next screen
+    router.push("/tip/sent");
   };
 
   return (
     <form className="card form-card" onSubmit={submit}>
-      {failed && <div className="field-error-summary"><Alert tone="bad" icon="flag" role="alert" title="Your tip was not sent.">Check your connection and try again. Your answers are still here.</Alert></div>}
+      {failed && <div className="field-error-summary"><Alert tone="bad" icon="flag" role="alert" title="Your tip was not sent.">{failed} Your answers are still here.</Alert></div>}
       <ChoiceGroup name="kind" dropdown placeholder="Choose what you saw" legend="What did you see?" options={KINDS} value={KINDS[0].value} />
       <div className="form-grid">
-        <SelectField id="t-sub" name="subcity" label="Sub-City" required options={SUB_CITIES} placeholder="Choose a Sub-City" invalid="Choose a Sub-City." />
-        <TextField id="t-wo" name="woreda" label="Woreda (if known)" optional type="number" min={1} max={30} inputMode="numeric" />
+        <SelectField id="t-sub" name="subcity" label="Sub-City" required options={subcities.map(s => s.name)} placeholder="Choose a Sub-City" value={sub} onChange={e => setSub(e.target.value)} invalid="Choose a Sub-City." />
+        <SelectField id="t-wo" name="woreda" label="Woreda (if known)" optional key={sub} options={(subcities.find(s => s.name === sub)?.woredas ?? []).map(w => String(w.number))}
+          placeholder={sub ? "Choose a Woreda" : "Choose a Sub-City first"} disabled={!sub} />
         <TextField id="t-place" name="place" label="Market, street or landmark" full required maxLength={160}
           hint="Tell us where, so an officer can go and check." invalid="Tell us where." />
         <TextField id="t-biz" name="business" label="Business name (if known)" optional maxLength={120} />
@@ -48,8 +52,6 @@ export function TipForm() {
       </div>
       <TextAreaField id="t-text" name="text" label="Describe it" required minLength={10} maxLength={2000}
         invalid="Describe what you saw in a few words." placeholder="Example: Several shops near the market sell sugar at 160 ETB a kilo. The price list says 125." />
-      <FilePicker id="t-files" picker={picker} note="JPG, PNG or PDF · up to 10 MB each · up to 8 files" />
-      <p className="small muted">Photos can carry the place and time they were taken. Leave them out if you want to stay fully anonymous.</p>
 
       <fieldset className="field">
         <legend className="label">Your identity</legend>

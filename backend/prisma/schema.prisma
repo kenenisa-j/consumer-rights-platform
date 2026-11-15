@@ -404,6 +404,10 @@ model Case {
   paymentMethod                String?               @map("payment_method")
   receiptAvailable             Boolean               @default(true) @map("receipt_available")
   desiredRemedy                String                @map("desired_remedy")
+  subject                      String                @default("")
+  narrative                    String                @default("")
+  urgent                       Boolean               @default(false)
+  contactPhone                 String?               @map("contact_phone")
   status                       CaseStatus
   // Route A: assigned at creation (mandatory); Route B: null until escalation.
   // Foreign key guarantees existence; NestJS service transactionally verifies office is active and matches level.
@@ -615,6 +619,11 @@ model Message {
   senderUserId         String        @map("sender_user_id")
   content              String
   attachmentEvidenceId String?       @map("attachment_evidence_id")
+  /** TEXT or VOICE. A voice note keeps its recording in `audio`, up to a size limit set by the API. */
+  kind                 String        @default("TEXT")
+  audio                Bytes?
+  audioMime            String?       @map("audio_mime")
+  durationMs           Int?          @map("duration_ms")
   sentAt               DateTime      @default(now()) @map("sent_at")
 
   conversation         Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -679,6 +688,13 @@ model AnonymousReport {
   marketId            String?                   @map("market_id")
   marketLocation      String                    @map("market_location")
   targetBusinessName  String?                   @map("target_business_name")
+  referenceNumber     String?                   @unique @map("reference_number")
+  product             String?
+  seenOn              DateTime?                 @map("seen_on")
+  subcityCode         String?                   @map("subcity_code")
+  woredaCode          String?                   @map("woreda_code")
+  contactName         String?                   @map("contact_name")
+  contactPhone        String?                   @map("contact_phone")
   description         String
   destinationOfficeId String                    @map("destination_office_id")
   status              String                    @default("received")
@@ -783,4 +799,30 @@ model AnnualCaseSequence {
   lastVal Int @default(0) @map("last_val")
 
   @@map("annual_case_sequences")
+}
+
+model AnnualTipSequence {
+  year    Int @id
+  lastVal Int @default(0) @map("last_val")
+
+  @@map("annual_tip_sequences")
+}
+
+// ------------------------------------------------------------------------------
+// Domain 9: Public content (news, laws, questions and answers, rights)
+// ------------------------------------------------------------------------------
+
+model ContentItem {
+  id          String   @id @default(uuid())
+  kind        String
+  slug        String
+  sortOrder   Int      @default(0) @map("sort_order")
+  data        Json
+  isPublished Boolean  @default(true) @map("is_published")
+  publishedAt DateTime @default(now()) @map("published_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([kind, slug])
+  @@index([kind, isPublished, sortOrder])
+  @@map("content_items")
 }

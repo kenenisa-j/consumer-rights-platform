@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run validate
       # Workspaces without these scripts (web/backend before scaffolding) are skipped.
       - run: npm run typecheck

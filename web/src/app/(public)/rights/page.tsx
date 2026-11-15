@@ -34,7 +34,7 @@ export default function RightsPage() {
         <aside className="side">
           <div className="card card--tint"><h2 style={{ fontSize: "1.05rem" }}>Something went wrong?</h2>
             <p className="small">Make a complaint and an officer will look at it.</p>
-            <Link className="btn btn--accent btn--block" href="/complaint-or-tip">Make a complaint</Link></div>
+            <Link className="btn btn--accent btn--block" href="/complaint/new">Make a complaint</Link></div>
           <div className="card card--flat"><h2 style={{ fontSize: "1.05rem" }}>Read the law</h2>
             <p className="small">The proclamations and directives behind these rights.</p>
             <Link href="/laws">Laws and documents</Link></div>

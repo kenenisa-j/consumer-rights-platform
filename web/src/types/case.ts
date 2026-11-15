@@ -11,7 +11,7 @@ export type PendingAction =
 
 export interface ThreadMessage { id: string; from: "me" | "office" | "business"; who: string; when: string; text: string }
 export interface UpdateEntry { title: string; when: string; iso: string; text?: string }
-export interface EvidenceFile { name: string; note: string; size: string; shared: boolean }
+export interface EvidenceFile { id?: string; name: string; note: string; size: string; shared: boolean }
 export interface Alternative { title: string; text: string; href: string }
 
 export interface CaseData {
@@ -35,6 +35,8 @@ export interface CaseData {
   infoRequest?: { from: string; when: string; text: string; deadline: string };
   outside?: { from: string; when: string; text: string; alternatives: Alternative[] };
   closed?: boolean;
+  /** A real case from the database: messages, offers and withdrawing are not connected yet, so those controls are hidden. */
+  readOnly?: boolean;
 }
 
 export interface CaseSummary {

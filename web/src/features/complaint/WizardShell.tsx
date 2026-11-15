@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { CATEGORY_TEXT } from "@/content/common";
 import { CallBox } from "@/components/ui/Display";
 import { Am } from "@/components/ui/Bi";
 import { Icon } from "@/components/ui/Icon";
@@ -13,13 +12,14 @@ interface Props {
   step: number;
   draft: Draft;
   freeCall: string;
+  categoryTitle: (code: string) => string;
   onGo: (step: number) => void;
   children: ReactNode;
 }
 
 /** The frame around every step: progress, the live "so far" summary, privacy note and help. */
-export function WizardShell({ step, draft, freeCall, onGo, children }: Props) {
-  const rows = summary(draft, c => CATEGORY_TEXT[c].title);
+export function WizardShell({ step, draft, freeCall, categoryTitle, onGo, children }: Props) {
+  const rows = summary(draft, categoryTitle);
   return (
     <section className="wizard"><div className="wizard-box">
       <div className="wizard-head">

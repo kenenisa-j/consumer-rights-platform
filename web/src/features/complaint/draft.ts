@@ -15,7 +15,13 @@ export interface Draft {
   fileNames: { name: string; size: number; shared: boolean }[];
   outcome: { want: string; amount: string; note: string; phone: string; email: string; lang: string; byEmail: boolean; bySms: boolean };
   truth: boolean;
+  /** Where the complaint is sent. The default is the City Bureau, the last level, which can see everything. */
+  destination: Destination;
+  /** The Sub-City and Woreda chosen for "send it to this office". Chosen in the last step, not taken from where it was bought. */
+  destSubcity: string; destWoreda: string;
 }
+
+export type Destination = "business" | "woreda" | "subcity" | "bureau";
 
 export const emptyDraft = (phone = "", email = ""): Draft => ({
   reached: 1, category: "", subject: "", what: "", urgent: false,
@@ -23,7 +29,7 @@ export const emptyDraft = (phone = "", email = ""): Draft => ({
   purchase: { item: "", date: "", where: "", subcity: "", woreda: "", place: "", paid: "", loss: "", receipt: "" },
   fileNames: [],
   outcome: { want: "", amount: "", note: "", phone, email, lang: "English", byEmail: !!email, bySms: false },
-  truth: false
+  truth: false, destination: "bureau", destSubcity: "", destWoreda: ""
 });
 
 export function loadDraft(fallback: Draft): Draft {
@@ -41,7 +47,7 @@ export const WANT_LABEL: Record<string, string> = {
 /** For these outcomes the person must name an amount. */
 export const needsAmount = (want: string) => want === "refund" || want === "loss";
 
-export function summary(d: Draft, categoryTitle: (c: ComplaintCategory) => string): { label: string; value: string | null }[] {
+export function summary(d: Draft, categoryTitle: (c: string) => string): { label: string; value: string | null }[] {
   const p = d.purchase;
   return [
     { label: "What happened", value: d.category ? `${categoryTitle(d.category)}${d.subject ? ` · ${d.subject}` : ""}` : null },

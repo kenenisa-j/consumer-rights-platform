@@ -1,12 +1,9 @@
-import { requirePortal } from "@/lib/session";
-import { Suspense } from "react";
-import { freeCallNumber } from "@/lib/config";
-import { ComplaintWizard } from "@/features/complaint/ComplaintWizard";
+import HomePage from "../../page";
+import { ComplaintDialog } from "@/features/dialogs";
 
 export const metadata = { title: "Make a complaint" };
 
-// Prototype: public/complaint-1-what.html ... complaint-6-review.html. Six steps on one route.
-export default async function NewComplaintPage() {
-  const me = await requirePortal("consumer", "/complaint/new");
-  return <Suspense fallback={<p className="container muted">Loading your form…</p>}><ComplaintWizard freeCall={freeCallNumber()} contact={{ first: me.fullName.split(" ")[0], phone: me.phoneNumber, email: me.email ?? "" }} /></Suspense>;
+// Six steps on one route, always in a dialog (over the home page when opened directly).
+export default function NewComplaintPage() {
+  return <><HomePage /><ComplaintDialog direct /></>;
 }

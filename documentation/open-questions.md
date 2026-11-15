@@ -61,6 +61,11 @@ Do not decide these silently. Implement the configurable/placeholder form, ask, 
 26. **Public content approval.** Does a Woreda notice need the Sub-City's approval every time it is edited, or only the
     first time? The demo sends every edit back for approval.
 
+27. **Choosing the first office.** The complaint form's last step now lets the consumer send a complaint to the business, the Woreda,
+    the Sub-City or the City Bureau, defaulting to the Bureau (Route A allows any government level). Please confirm this is wanted
+    for every category, and whether a Bureau-held case may be passed *down* to a Woreda to visit the market (the climb rule only
+    covers moving up).
+
 ## Answered
 
 - **Route A office selection (resolved 12 Nov 2026).** Decided: For Route A, consumers always select

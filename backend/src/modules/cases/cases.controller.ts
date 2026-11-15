@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Req, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
 import { RequirePermission } from '../../lib/common/decorators/require-permission.decorator';
 import { CasesService } from './cases.service';
+import { CreateCaseDto } from './dto/create-case.dto';
 
 /**
  * Consumer-facing cases API.
@@ -26,6 +27,14 @@ export class CasesController {
     const userId = (req as any).user.id;
     const profile = await this.casesService.getProfile(userId);
     return { profile };
+  }
+
+  @RequirePermission('complaints:create:own')
+  @Post()
+  async createCase(@Req() req: Request, @Body() dto: CreateCaseDto) {
+    const userId = (req as any).user.id;
+    const created = await this.casesService.createCase(userId, dto);
+    return { case: created };
   }
 
   @RequirePermission('complaints:read:own')

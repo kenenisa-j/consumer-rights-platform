@@ -51,12 +51,22 @@ async function main() {
     update: {},
     create: { code: 'complaints:read:all', module: 'complaints', action: 'read', scope: 'ALL' },
   });
+  const complaintsCreateOwn = await prisma.permission.upsert({
+    where: { code: 'complaints:create:own' },
+    update: {},
+    create: { code: 'complaints:create:own', module: 'complaints', action: 'create', scope: 'OWN' },
+  });
 
   // Bind permissions to roles
   await prisma.rolePermission.upsert({
     where: { roleId_permissionId: { roleId: consumerRole.id, permissionId: complaintsReadOwn.id } },
     update: {},
     create: { roleId: consumerRole.id, permissionId: complaintsReadOwn.id },
+  });
+  await prisma.rolePermission.upsert({
+    where: { roleId_permissionId: { roleId: consumerRole.id, permissionId: complaintsCreateOwn.id } },
+    update: {},
+    create: { roleId: consumerRole.id, permissionId: complaintsCreateOwn.id },
   });
   await prisma.rolePermission.upsert({
     where: { roleId_permissionId: { roleId: woredaOfficerRole.id, permissionId: complaintsReadAll.id } },

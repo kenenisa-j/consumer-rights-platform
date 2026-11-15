@@ -5,7 +5,6 @@
   "type": "module",
   "description": "Unified Consumer Grievance and Rights Protection Portal for the Addis Ababa Bureau of Trade and Market Development",
   "workspaces": [
-    "web",
     "lib/*",
     "backend",
     "web"
@@ -19,11 +18,11 @@
     "backend:build": "npm run build --workspace=@consumer-rights/backend",
     "prisma:generate": "npm run prisma:generate --workspace=@consumer-rights/backend",
     "validate": "node scripts/validate.mjs",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:integration": "node --test tests/integration/better-auth.test.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "check": "npm run validate && npm run test && npm run typecheck && npm run build",
+    "check": "npm run validate && npm run backend:build && npm run test && npm run typecheck && npm run build",
     "test:browser": "node tests/browser/public-site.mjs && node tests/browser/portals.mjs && node tests/browser/portals-menu.mjs && node tests/browser/admin.mjs && node tests/browser/business.mjs",
     "test:browser:portals": "node tests/browser/portals.mjs",
     "test:browser:business": "node tests/browser/business.mjs",

@@ -14,7 +14,7 @@ export const NAV = [
 
 export const BRAND = {
   name: "AddisB2B",
-  tagline: "Consumer Protection · ",
+  tagline: "Consumer Protection",
   taglineAm: "የሸማቾች መብት ጥበቃ"
 } as const;
 

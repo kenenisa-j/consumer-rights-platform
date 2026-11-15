@@ -18,6 +18,7 @@ Start with [agent-guide.md](agent-guide.md). It tells you (and your agent) what 
 | [Environment](environment.md) | Every `.env` setting |
 | [Open questions](open-questions.md) | Undecided items from the SRS; do not decide silently |
 | [Work tracker](work-tracker.md) | Completed work and active objectives |
+| [Integration status](integration-status.md) | Which screens talk to the real API and which still use demo data |
 | [Decisions (ADRs)](decisions/README.md) | Why the architecture is the way it is |
 | [Feature spec template](templates/feature-spec.md) | Fill this in before large features |
 

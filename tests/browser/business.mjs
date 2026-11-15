@@ -17,15 +17,17 @@ const submitDialog = async label => { await b.clickText(label, "dialog[open] but
 
 try {
   // ---- Sign in as a business, from the public site -------------------------------------------------
+  b.autoLogin = false; // this first step signs in through the real form and the test-account dropdown
   await b.go("/sign-in");
   await b.click("label[for=pg-r-business]");
-  await b.set("#pg-business-id", "gebriel.grain@example.com");
-  await b.set("#pg-business-pw", "a-secret-password-1");
-  await b.ev("document.querySelector('#pg-business-pw').form.requestSubmit(); return 1");
+  await b.set("#pg-business-test", "business");
+  await b.sleep(200);
+  await b.click("main .p-business form button[type=submit]");
   await b.waitFor("location.pathname==='/business/overview'");
   const landed = await b.url();
   check("sign-in: the Business sign-in lands on the business desk", landed.startsWith("/business/overview"), landed);
   check("sign-in: nothing typed (password, email) is put in the address", landed === "/business/overview", landed);
+  b.autoLogin = true; b.portal = "business";
 
   // ---- Shell and menu ----------------------------------------------------------------------------------
   check("overview: greets the business and flags the waiting complaint", /Good morning, Gebriel/.test(await main()) && /CC-2026-00123 is waiting/.test(await main()));

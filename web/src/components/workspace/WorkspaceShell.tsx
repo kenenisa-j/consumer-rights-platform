@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { SignOutButton } from "@/components/layout/SignOutButton";
 import { RailNav, type RailGroup } from "./RailNav";
 
 interface Props {
@@ -27,7 +28,7 @@ export function WorkspaceShell({ portal, homeHref, groups, who, freeCall, childr
           <RailNav groups={groups} />
           <div className="rail__foot">
             <a href={`tel:${freeCall}`}>Free call line {freeCall}</a>
-            <Link href="/sign-in">Sign out</Link>
+            <SignOutButton className="rail__out">Sign out</SignOutButton>
           </div>
         </aside>
         <div className="ws-main">

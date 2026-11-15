@@ -13,17 +13,20 @@ function SectionTitle({ kicker, title, intro }: { kicker: string; title: React.C
   );
 }
 
+/** Each door opens the sign-in dialog on its own tab; after signing in the person lands in that portal. */
+const DOOR_ROLE: Record<string, string> = { Consumer: "consumer", Business: "business", Woreda: "woreda", "Sub-City": "subcity", "City Bureau": "bureau" };
+
 export function DoorsSection() {
   return (
     <section className="section"><div className="container">
       <SectionTitle kicker={DOORS.kicker} title={DOORS.title} intro={DOORS.intro} />
       <div className="doors">
         {DOORS.items.map(d => (
-          <a key={d.title} className="card door" href="#signin">
+          <Link key={d.title} className="card door" href={`/sign-in?role=${DOOR_ROLE[d.title] ?? "consumer"}`}>
             <span className="icon-bubble"><Icon name={d.icon} /></span>
             <h3>{d.title}</h3><p>{d.text}</p>
             <span className="go">Sign in <Icon name="arrow" /></span>
-          </a>
+          </Link>
         ))}
       </div>
     </div></section>

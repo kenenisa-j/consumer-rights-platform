@@ -1,7 +1,8 @@
+import { requirePortal } from "@/lib/session";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { bi } from "@/content/types";
-import { listCases as listMockCases, ME as MOCK_ME } from "@/mocks/cases";
+import { listCases } from "@/mocks/cases";
 import { PageHead } from "@/components/ui/PageHead";
 import { Alert, KeyValue, StatusPill, EmptyState } from "@/components/ui/Display";
 import { Am } from "@/components/ui/Bi";
@@ -26,49 +27,26 @@ async function fetchApi(path: string, cookieHeader: string) {
 }
 
 export default async function MyCasesPage() {
+  const me = await requirePortal("consumer", "/my-cases");
   const jar = await cookies();
-  const cookieHeader = jar.getAll().map(c => `${c.name}=${c.value}`).join("; ");
-  const hasSession = jar.getAll().some(c => c.name.includes("session"));
+  const cookieHeader = jar.toString();
 
   let cases: any[] = [];
   let attention: any[] = [];
-  let firstName = "there";
-  let profile: any = null;
 
-  if (hasSession) {
-    const [casesRes, profileRes] = await Promise.all([
-      fetchApi("/api/cases", cookieHeader),
-      fetchApi("/api/cases/profile", cookieHeader),
-    ]);
-
-    if (casesRes?.data?.cases) {
-      cases = casesRes.data.cases;
-      profile = profileRes?.data?.profile ?? null;
-      firstName = profile?.fullName?.split(" ")[0] ?? "there";
-      attention = cases
-        .filter((c: any) => c.status?.tone === "warn")
-        .map((c: any) => ({ reference: c.reference, text: c.status.label }));
-    } else {
-      // Session invalid or backend down — fall back to mocks
-      const mock = await listMockCases();
-      cases = mock.cases;
-      attention = mock.attention;
-      firstName = MOCK_ME.first;
-      profile = MOCK_ME;
-    }
+  const casesRes = await fetchApi("/api/cases", cookieHeader);
+  if (casesRes?.data?.cases) {
+    cases = casesRes.data.cases;
+    attention = cases
+      .filter((c: any) => c.status?.tone === "warn")
+      .map((c: any) => ({ reference: c.reference, text: c.status.label }));
   } else {
-    // No session — show mocks
-    const mock = await listMockCases();
+    const mock = await listCases();
     cases = mock.cases;
     attention = mock.attention;
-    firstName = MOCK_ME.first;
-    profile = MOCK_ME;
   }
 
-  const me = profile
-    ? { name: profile.fullName ?? MOCK_ME.name, phone: profile.phoneNumber ?? MOCK_ME.phone,
-        email: profile.email ?? MOCK_ME.email, identity: profile.phoneNumberVerified ? "Confirmed" : "Pending" }
-    : MOCK_ME;
+  const firstName = me.fullName ? me.fullName.split(" ")[0] : "there";
 
   return (
     <>
@@ -81,11 +59,6 @@ export default async function MyCasesPage() {
         </div>
       </PageHead>
       <section className="section"><div className="container stack">
-        {!hasSession && (
-          <Alert tone="info" title="You are viewing demo data">
-            <p className="mb-0"><Link href="/#signin">Sign in</Link> to see your real complaints from the database.</p>
-          </Alert>
-        )}
         {attention.length > 0 && (
           <Alert tone="warn" title={`${attention.length} ${attention.length === 1 ? "thing needs" : "things need"} your answer`}>
             <ul className="mb-0">{attention.map((a: any) => (
@@ -111,8 +84,12 @@ export default async function MyCasesPage() {
         )}
         <div className="grid-2">
           <div className="card card--flat"><h2 style={{ fontSize: "1.1rem" }}><Icon name="user" /> My account</h2>
-            <KeyValue rows={[["Name", me.name], ["Phone", me.phone], ["Email", me.email],
-              ["Identity", <StatusPill key="id" tone="ok">{me.identity}</StatusPill>]]} /></div>
+            <KeyValue rows={[
+              ["Name", me.fullName],
+              ["Phone", me.phoneNumber],
+              ["Email", me.email ?? "Not given"],
+              ["Identity", <StatusPill key="id" tone="grey">Not confirmed yet</StatusPill>]
+            ]} /></div>
           <div className="card card--flat"><h2 style={{ fontSize: "1.1rem" }}><Icon name="flag" /> Tips</h2>
             <p className="small">Tips are not linked to your account, so they do not appear here. Check a tip with its private code.</p>
             <Link className="btn btn--secondary btn--sm" href="/track?kind=tip">Check a tip</Link></div>

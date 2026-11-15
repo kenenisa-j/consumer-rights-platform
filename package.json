@@ -23,10 +23,16 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "check": "npm run validate && npm run backend:build && npm run test && npm run typecheck && npm run build",
-    "test:browser": "node tests/browser/public-site.mjs && node tests/browser/portals.mjs && node tests/browser/portals-menu.mjs && node tests/browser/admin.mjs && node tests/browser/business.mjs",
+    "test:browser": "node tests/browser/auth.mjs && node tests/browser/public-site.mjs && node tests/browser/portals.mjs && node tests/browser/portals-menu.mjs && node tests/browser/admin.mjs && node tests/browser/business.mjs",
     "test:browser:portals": "node tests/browser/portals.mjs",
     "test:browser:business": "node tests/browser/business.mjs",
     "test:browser:menu": "node tests/browser/portals-menu.mjs",
-    "test:browser:admin": "node tests/browser/admin.mjs"
+    "test:browser:admin": "node tests/browser/admin.mjs",
+    "db:up": "docker compose up -d db",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "node backend/prisma/seed.mjs",
+    "dev:otp": "node backend/scripts/dev-otp.mjs",
+    "dev:api": "node --env-file=.env backend/dist/main.js",
+    "test:browser:auth": "node tests/browser/auth.mjs"
   }
 }

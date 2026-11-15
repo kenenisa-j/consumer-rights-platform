@@ -23,7 +23,7 @@ export function Step5({ draft, set, next, back }: StepProps) {
   const patch = (x: Partial<Draft["outcome"]>) => set({ outcome: { ...o, ...x } });
   return (
     <StepForm title="What would put it right?" am="ምን ቢደረግ ይፈታል?" onSubmit={next} back={back}>
-      <ChoiceGroup name="want" legend="What do you want? (choose one)" value={o.want} onChange={v => patch({ want: v })} columns={1} options={[
+      <ChoiceGroup name="want" dropdown placeholder="Choose what you want" legend="What do you want? (choose one)" value={o.want} onChange={v => patch({ want: v })} options={[
         { value: "refund", title: "My money back", text: "A refund" }, { value: "replacement", title: "A replacement", text: "The same item, in good condition" },
         { value: "repair", title: "A repair", text: "Fixed at no cost to me" }, { value: "loss", title: "Payment for my loss", text: "Part of the price, or a loss I had" },
         { value: "other", title: "Something else", text: "Tell us below" }]} />

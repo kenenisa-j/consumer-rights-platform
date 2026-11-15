@@ -1,7 +1,7 @@
 import { freeCallNumber } from "@/lib/config";
 import { HeroSection } from "@/features/home/HeroSection";
 import { DoorsSection, HowSection, RightsSection, FiguresSection } from "@/features/home/InfoSections";
-import { NewsSection, FaqSection, TalkSection, HomeDialogs } from "@/features/home/ClosingSections";
+import { NewsSection, FaqSection, HomeDialogs } from "@/features/home/ClosingSections";
 
 export const metadata = { title: "Home" };
 
@@ -17,7 +17,6 @@ export default function HomePage() {
       <FiguresSection />
       <NewsSection />
       <FaqSection />
-      <TalkSection freeCall={freeCall} />
       <HomeDialogs />
     </>
   );

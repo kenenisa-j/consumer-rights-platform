@@ -7,6 +7,7 @@ import "@/styles/print.css";
 import "@/styles/office.css";
 import "@/styles/merchant.css";
 import "@/styles/app.css";
+import "@/styles/chat.css";
 
 // The staff and business workspace look: navy and orange, `body.ws` redefines the colour tokens (office.css).
 export const metadata = {

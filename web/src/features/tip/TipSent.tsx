@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { readHandoff } from "@/lib/handoff";
 import { Alert, Timeline } from "@/components/ui/Display";
 import { Am } from "@/components/ui/Bi";
+import { niceDate } from "@/lib/case-status";
 
 interface Receipt { reference: string; code: string; receivedAt: string; anonymous: boolean }
 
@@ -41,7 +42,7 @@ export function TipSent() {
       </div>
       <div className="card"><h2>What happens to a tip<Am text="ጥቆማው ምን ይሆናል" /></h2>
         <Timeline items={[
-          { title: "Received", when: receipt.receivedAt, state: "done" },
+          { title: "Received", when: niceDate(receipt.receivedAt, true), state: "done" },
           { title: "Under review", text: "An officer reads it and decides whether to follow it up.", state: "todo" },
           { title: "Follow-up", text: "For example a visit to the market. Serious findings can become an official case.", state: "todo" },
           { title: "Closed", text: "With action taken, or with no action needed.", state: "todo" }]} /></div>

@@ -19,7 +19,7 @@ export default async function GovLayout({ children, params }: { children: ReactN
     items: g.items.map(i => ({ href: `/${level}/${i.slug}`, label: i.label, icon: i.icon, count: i.count ? cfg.counts[i.count] : undefined }))
   }));
   return (
-    <WorkspaceShell portal={cfg.portal} homeHref={`/${level}/dashboard`} groups={groups} who={{ name: me.fullName, role: me.office?.nameEn ?? cfg.person.role, initials: initialsOf(me.fullName) }} freeCall={freeCallNumber()}>
+    <WorkspaceShell portal={cfg.portal} homeHref={`/${level}/dashboard`} groups={groups} who={{ name: me.fullName, role: me.office?.nameEn ?? cfg.person.role, initials: initialsOf(me.fullName) }} freeCall={freeCallNumber()} menu={[{ href: `/${level}/messages`, label: "Messages" }]}>
       {children}
     </WorkspaceShell>
   );

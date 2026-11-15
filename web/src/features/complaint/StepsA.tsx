@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { SUB_CITIES } from "@/content/common";
-import { CATEGORY_OPTIONS, findBusinesses, type BusinessHit } from "@/mocks/misc";
+import { CATEGORY_TEXT } from "@/content/common";
+import { apiGet } from "@/lib/api";
+import type { RefData } from "@/lib/reference";
 import { CheckField, ChoiceGroup, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
 import { Am } from "@/components/ui/Bi";
 import { Icon } from "@/components/ui/Icon";
 import type { Draft } from "./draft";
 
+export interface BusinessHit { id: string; name: string; kind: string; place: string }
+
 export interface StepProps {
+  refData: RefData;
   draft: Draft;
   set: (patch: Partial<Draft>) => void;
   next: () => void;
@@ -30,10 +34,11 @@ export function StepForm({ title, am, onSubmit, back, children, nextLabel = "Nex
   );
 }
 
-export function Step1({ draft, set, next }: StepProps) {
+export function Step1({ draft, set, next, refData }: StepProps) {
+  const options = refData.categories.map(c => ({ value: c.code, title: c.nameEn, text: CATEGORY_TEXT[c.code as keyof typeof CATEGORY_TEXT]?.text }));
   return (
     <StepForm title="What happened?" am="ምን ሆነ?" onSubmit={next}>
-      <ChoiceGroup name="category" dropdown placeholder="Choose the kind of problem" legend="What kind of problem is it?" options={CATEGORY_OPTIONS.map(o => ({ value: o.value, title: o.title, text: o.text }))}
+      <ChoiceGroup name="category" dropdown placeholder="Choose the kind of problem" legend="What kind of problem is it?" options={options}
         value={draft.category} onChange={v => set({ category: v as Draft["category"] })} />
       <TextField id="c-subject" label="A short title" required maxLength={120} value={draft.subject} onChange={e => set({ subject: e.target.value })}
         hint={'For example: "Kettle stopped working after three days".'} invalid="Write a short title." />
@@ -45,7 +50,7 @@ export function Step1({ draft, set, next }: StepProps) {
   );
 }
 
-export function Step2({ draft, set, next, back }: StepProps) {
+export function Step2({ draft, set, next, back, refData }: StepProps) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<BusinessHit[]>([]);
   const [busy, setBusy] = useState(false);
@@ -57,7 +62,7 @@ export function Step2({ draft, set, next, back }: StepProps) {
   useEffect(() => {
     let live = true;
     setBusy(true);
-    const t = setTimeout(() => findBusinesses(q).then(r => { if (live) { setHits(r); setBusy(false); } }), 250);
+    const t = setTimeout(() => apiGet<BusinessHit[]>(`/api/reference/businesses?q=${encodeURIComponent(q)}`).then(r => { if (live) { setHits(r.ok ? r.data : []); setBusy(false); } }), 250);
     return () => { live = false; clearTimeout(t); };
   }, [q]);
 
@@ -85,8 +90,8 @@ export function Step2({ draft, set, next, back }: StepProps) {
         <div className="form-grid">
           <TextField id="biz-name" label="Name of the business or seller" full required maxLength={120} value={b.name} onChange={e => patch({ name: e.target.value })}
             placeholder="For example: Kality Mini Market" invalid="Write the name of the business or seller." />
-          <SelectField id="biz-sub" label="Sub-City" options={SUB_CITIES} placeholder="Choose a Sub-City" value={b.subcity} onChange={e => patch({ subcity: e.target.value })} />
-          <TextField id="biz-wo" label="Woreda (if known)" optional type="number" min={1} max={30} value={b.woreda} onChange={e => patch({ woreda: e.target.value })} />
+          <SelectField id="biz-sub" label="Sub-City" options={refData.subcities.map(s => s.name)} placeholder="Choose a Sub-City" value={b.subcity} onChange={e => patch({ subcity: e.target.value, woreda: "" })} />
+          <SelectField id="biz-wo" label="Woreda (if known)" optional options={woredasOf(refData, b.subcity)} placeholder={b.subcity ? "Choose a Woreda" : "Choose a Sub-City first"} disabled={!b.subcity} value={b.woreda} onChange={e => patch({ woreda: e.target.value })} />
           <TextField id="biz-addr" label="Street, building or landmark" full value={b.address} onChange={e => patch({ address: e.target.value })} />
           <TextField id="biz-phone" label="Phone of the business (if known)" optional type="tel" full value={b.phone} onChange={e => patch({ phone: e.target.value })} />
         </div>
@@ -99,7 +104,7 @@ export function Step2({ draft, set, next, back }: StepProps) {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function Step3({ draft, set, next, back }: StepProps) {
+export function Step3({ draft, set, next, back, refData }: StepProps) {
   const p = draft.purchase;
   const patch = (x: Partial<Draft["purchase"]>) => set({ purchase: { ...p, ...x } });
   return (
@@ -110,9 +115,9 @@ export function Step3({ draft, set, next, back }: StepProps) {
           invalid="Choose a date that is not in the future." />
         <div className="full"><ChoiceGroup name="where" legend="Where did you buy it?" value={p.where} onChange={v => patch({ where: v })} options={[
           { value: "market", title: "At a Sunday Market or Market Center" }, { value: "shop", title: "In a shop" }, { value: "online", title: "Online or by phone" }]} /></div>
-        <SelectField id="p-sub" label="Sub-City" required options={SUB_CITIES} placeholder="Choose a Sub-City" value={p.subcity} onChange={e => patch({ subcity: e.target.value })}
-          hint="The office of this Sub-City handles the case." invalid="Choose a Sub-City." />
-        <TextField id="p-wo" label="Woreda" type="number" min={1} max={30} required value={p.woreda} onChange={e => patch({ woreda: e.target.value })} invalid="Write the Woreda number." />
+        <SelectField id="p-sub" label="Sub-City" required options={refData.subcities.map(s => s.name)} placeholder="Choose a Sub-City" value={p.subcity} onChange={e => patch({ subcity: e.target.value, woreda: "" })}
+          hint="You can send the complaint to this Sub-City or Woreda office in the last step." invalid="Choose a Sub-City." />
+        <SelectField id="p-wo" label="Woreda" required options={woredasOf(refData, p.subcity)} placeholder={p.subcity ? "Choose a Woreda" : "Choose a Sub-City first"} disabled={!p.subcity} value={p.woreda} onChange={e => patch({ woreda: e.target.value })} invalid="Choose the Woreda." />
         <TextField id="p-place" label="Market, shop address or website" full value={p.place} onChange={e => patch({ place: e.target.value })} />
         <TextField id="p-paid" label="Amount you paid (ETB)" type="number" min={0} inputMode="decimal" required value={p.paid} onChange={e => patch({ paid: e.target.value })}
           invalid="Write the amount, or 0 if you paid nothing." />
@@ -124,3 +129,7 @@ export function Step3({ draft, set, next, back }: StepProps) {
     </StepForm>
   );
 }
+
+/** Woreda numbers of one Sub-City, as the strings a select shows. */
+export const woredasOf = (ref: RefData, subcityName: string): string[] =>
+  (ref.subcities.find(x => x.name === subcityName)?.woredas ?? []).map(w => String(w.number));

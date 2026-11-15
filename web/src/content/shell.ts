@@ -2,14 +2,15 @@ import { bi } from "./types";
 
 // Public site chrome: header navigation, sign-in roles, footer. Source: prototype/public/index.html.
 export const NAV = [
-  { href: "/", label: bi("Home", "መነሻ") },
-  { href: "/complaint-or-tip", label: bi("Make a complaint", "ቅሬታ ያቅርቡ") },
-  { href: "/tip", label: bi("Report unfair trade", "ኢፍትሃዊ ንግድ ጥቆማ") },
-  { href: "/track", label: bi("Track a case", "ጉዳይ ይከታተሉ") },
-  { href: "/rights", label: bi("Your rights", "መብትዎ") },
-  { href: "/laws", label: bi("Laws and documents", "ሕጎችና ሰነዶች") },
-  { href: "/news", label: bi("News", "ዜና") },
-  { href: "/help", label: bi("Help", "እገዛ") }
+  { href: "/", label: bi("Home", "መነሻ"), more: false },
+  { href: "/complaint/new", label: bi("Make a complaint", "ቅሬታ ያቅርቡ"), more: false },
+  { href: "/tip", label: bi("Report unfair trade", "ኢፍትሃዊ ንግድ ጥቆማ"), more: false },
+  { href: "/track", label: bi("Track a case", "ጉዳይ ይከታተሉ"), more: false },
+  // Reading pages sit under "More" so the bar fits on a laptop screen.
+  { href: "/rights", label: bi("Your rights", "መብትዎ"), more: true },
+  { href: "/laws", label: bi("Laws and documents", "ሕጎችና ሰነዶች"), more: true },
+  { href: "/news", label: bi("News", "ዜና"), more: true },
+  { href: "/help", label: bi("Help", "እገዛ"), more: true }
 ] as const;
 
 export const BRAND = {
@@ -39,7 +40,7 @@ export const FOOTER = {
     am: "የሸማቾች መብት ጥበቃ ዳይሬክቶሬት"
   },
   help: { title: "Get help", links: [
-    ["/complaint-or-tip", "Make a complaint"], ["/tip", "Report unfair trade"],
+    ["/complaint/new", "Make a complaint"], ["/tip", "Report unfair trade"],
     ["/track", "Track a case"], ["/help", "Questions and answers"]] },
   learn: { title: "Learn", links: [
     ["/rights", "Your rights"], ["/how-to-complain", "How a complaint works"],

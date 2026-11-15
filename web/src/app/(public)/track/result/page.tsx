@@ -13,7 +13,7 @@ export default function TrackResultPage() {
       <PageHead crumbs={[{ label: "Track a case", href: "/track" }, { label: "Status" }]} title={bi("Case status", "የጉዳዩ ሁኔታ")} />
       <section className="section"><div className="container narrow stack">
         <Suspense fallback={<p className="muted">Loading…</p>}><TrackResult /></Suspense>
-        <p><Link href="/track">Check another case</Link></p>
+        <p><Link className="btn btn--secondary" href="/track">Check another case</Link></p>
       </div></section>
     </>
   );

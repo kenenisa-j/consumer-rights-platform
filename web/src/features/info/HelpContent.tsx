@@ -2,25 +2,27 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { FAQ_ITEMS, OFFICES, OFFICE_HOURS } from "@/content/help";
-import { SUB_CITIES } from "@/content/common";
+import { OFFICE_HOURS } from "@/content/help";
+import type { FaqItem } from "@/lib/content";
 import { Accordion, CallBox } from "@/components/ui/Display";
 import { Am } from "@/components/ui/Bi";
 
 /** Searchable questions and an office finder. `?subcity=` (from the home page dialog) pre-selects an office. */
-export function HelpContent({ freeCall }: { freeCall: string }) {
+export function HelpContent({ freeCall, faq, subcities }: { freeCall: string; faq: FaqItem[]; subcities: string[] }) {
   const params = useSearchParams();
   const initial = params.get("subcity") ?? "";
   const [query, setQuery] = useState("");
-  const [area, setArea] = useState(SUB_CITIES.includes(initial as never) ? initial : "");
+  const [area, setArea] = useState(subcities.includes(initial) ? initial : "");
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return FAQ_ITEMS.filter(i => !q || `${i.q.en} ${i.a}`.toLowerCase().includes(q))
-      .map(i => ({ id: i.id, q: i.q, a: i.a.replace("{call}", freeCall) }));
-  }, [query, freeCall]);
+    return faq.filter(i => !q || `${i.q.en} ${i.a}`.toLowerCase().includes(q))
+      .map(i => ({ id: i.slug, q: i.q, a: i.a.replace("{call}", freeCall) }));
+  }, [faq, query, freeCall]);
 
-  const offices = OFFICES.filter(o => !area || o.area === area || o.area === "Bureau");
+  const offices = [{ area: "Bureau", name: "Customer Rights Protection Directorate, Bureau of Trade, central office" },
+    ...subcities.map(s => ({ area: s, name: `${s} Sub-City Trade Office, consumer protection desk` }))]
+    .filter(o => !area || o.area === area || o.area === "Bureau");
 
   return (
     <div className="stack">
@@ -35,7 +37,7 @@ export function HelpContent({ freeCall }: { freeCall: string }) {
               placeholder="For example: receipt, cost, password" />
           </div>
         </div>
-        <p className="result-count" role="status">{items.length} of {FAQ_ITEMS.length} questions</p>
+        <p className="result-count" role="status">{items.length} of {faq.length} questions</p>
         {items.length ? <Accordion items={items} /> : (
           <div className="card center"><p className="mb-0">No question matches. Try another word, or call free on {freeCall}.</p></div>
         )}
@@ -49,7 +51,7 @@ export function HelpContent({ freeCall }: { freeCall: string }) {
             <label htmlFor="office-area">Show the office for</label>
             <select id="office-area" className="select" value={area} onChange={e => setArea(e.target.value)}>
               <option value="">All Sub-Cities</option>
-              {SUB_CITIES.map(s => <option key={s}>{s}</option>)}
+              {subcities.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
         </div>

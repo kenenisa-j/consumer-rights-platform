@@ -10,7 +10,7 @@ const ASSURE: [IconName, string][] = [
 ];
 
 const QUICK: { href: string; icon: IconName; orange?: boolean; title: string; text: string }[] = [
-  { href: "/complaint-or-tip", icon: "chat", orange: true, title: "Make a complaint", text: "Get a refund, replacement or repair" },
+  { href: "/complaint/new", icon: "chat", orange: true, title: "Make a complaint", text: "Get a refund, replacement or repair" },
   { href: "/tip", icon: "flag", title: "Report unfair trade", text: "No account needed, stay anonymous" },
   { href: "#find-office", icon: "pin", title: "Find an office", text: "The trade office near you" }
 ];
@@ -24,7 +24,7 @@ export function HeroSection({ freeCall }: { freeCall: string }) {
           <h1><Bi t={HERO.title} /></h1>
           <p className="lead">{HERO.leadBefore}<b>{freeCall}</b>.</p>
           <div className="btn-row">
-            <Link className="btn btn--accent btn--lg btn--stack" href="/complaint-or-tip"><span>{HERO.complaint.en}</span><Am text={HERO.complaint.am} /></Link>
+            <Link className="btn btn--accent btn--lg btn--stack" href="/complaint/new"><span>{HERO.complaint.en}</span><Am text={HERO.complaint.am} /></Link>
             <Link className="btn btn--secondary btn--lg btn--stack" href="/track"><span>{HERO.track.en}</span><Am text={HERO.track.am} /></Link>
           </div>
           <ul className="assure">{ASSURE.map(([icon, text]) => <li key={text}><Icon name={icon} />{text}</li>)}</ul>

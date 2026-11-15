@@ -15,7 +15,7 @@ export function SiteFooter({ freeCall }: { freeCall: string }) {
           </div>
           <div className="btn-row">
             <a className="btn btn--accent btn--lg" href={`tel:${freeCall}`}><Icon name="phone" /> Call {freeCall}</a>
-            <Link className="btn btn--secondary btn--lg" href="/complaint-or-tip">Make a complaint</Link>
+            <Link className="btn btn--secondary btn--lg" href="/complaint/new">Make a complaint</Link>
           </div>
         </div>
       </div>

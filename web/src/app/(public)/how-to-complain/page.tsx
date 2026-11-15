@@ -31,7 +31,7 @@ export default function HowToComplainPage() {
             <p className="small muted mb-0"><span className="badge badge--proposed">Proposed</span> Targets are not approved yet.</p></div>
           <div className="card card--flat"><h2 style={{ fontSize: "1.05rem" }}>What to have ready</h2>
             <ul className="small mb-0">{HAVE_READY.map(t => <li key={t}>{t}</li>)}</ul></div>
-          <Link className="btn btn--accent btn--block" href="/complaint-or-tip">Make a complaint</Link>
+          <Link className="btn btn--accent btn--block" href="/complaint/new">Make a complaint</Link>
         </aside>
       </div></div></section>
     </>

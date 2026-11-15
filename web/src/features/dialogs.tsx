@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { freeCallNumber } from "@/lib/config";
 import { requirePortal } from "@/lib/session";
+import { getReference } from "@/lib/reference";
 import { ModalHead, RouteModal } from "@/components/ui/RouteModal";
 import { TipForm } from "@/features/tip/TipForm";
 import { TipSent } from "@/features/tip/TipSent";
 import { ComplaintWizard } from "@/features/complaint/ComplaintWizard";
 import { ComplaintSent } from "@/features/complaint/ComplaintSent";
-import { ComplaintOrTipPicker } from "@/features/complaint/ComplaintOrTipPicker";
 
 /**
  * The complaint and tip screens are always dialogs. The `@modal` intercepting routes show them over the page the person
@@ -15,12 +15,13 @@ import { ComplaintOrTipPicker } from "@/features/complaint/ComplaintOrTipPicker"
  */
 const home = (direct?: boolean) => (direct ? "/" : undefined);
 
-export function TipDialog({ direct }: { direct?: boolean }) {
+export async function TipDialog({ direct }: { direct?: boolean }) {
+  const { subcities } = await getReference();
   return (
-    <RouteModal title="Report unfair trade" size="lg" closeTo={home(direct)}>
+    <RouteModal title="Report unfair trade" size="wide" closeTo={home(direct)}>
       <ModalHead title="Report unfair trade" am="ጥቆማ ይስጡ"
         lead="No account is needed and you can stay anonymous. A tip is never shown to a business." />
-      <TipForm />
+      <TipForm subcities={subcities} />
     </RouteModal>
   );
 }
@@ -31,10 +32,11 @@ export function TipSentDialog() {
 
 export async function ComplaintDialog({ direct }: { direct?: boolean }) {
   const me = await requirePortal("consumer", "/complaint/new");
+  const refData = await getReference();
   return (
     <RouteModal title="Make a complaint" size="wide" closeTo={home(direct)}>
       <Suspense fallback={<p className="muted" role="status">Loading your form…</p>}>
-        <ComplaintWizard freeCall={freeCallNumber()} contact={{ first: me.fullName.split(" ")[0], phone: me.phoneNumber, email: me.email ?? "" }} />
+        <ComplaintWizard freeCall={freeCallNumber()} contact={{ first: me.fullName.split(" ")[0], phone: me.phoneNumber, email: me.email ?? "" }} refData={refData} />
       </Suspense>
     </RouteModal>
   );
@@ -42,13 +44,4 @@ export async function ComplaintDialog({ direct }: { direct?: boolean }) {
 
 export function ComplaintSentDialog() {
   return <RouteModal title="Complaint sent" size="lg" closeTo="/my-cases"><ComplaintSent freeCall={freeCallNumber()} /></RouteModal>;
-}
-
-export function PickerDialog({ direct }: { direct?: boolean }) {
-  return (
-    <RouteModal title="What would you like to do?" size="md" closeTo={home(direct)}>
-      <ModalHead title="What would you like to do?" am="ምን ማድረግ ይፈልጋሉ?" />
-      <ComplaintOrTipPicker />
-    </RouteModal>
-  );
 }

@@ -17,6 +17,12 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: complaint and tip always in a dialog, 15 November 2026
+
+- The tip and complaint receipts (`/tip/sent`, `/complaint/sent`) were plain stacked pages. They now open as dialogs (new `@modal/(.)tip/sent` and `@modal/(.)complaint/sent`).
+- Typing or refreshing `/tip`, `/complaint/new` or a receipt address shows the same dialog over the home page. Shared in `web/src/features/dialogs.tsx`; `RouteModal` has a `closeTo` for pages with no earlier page to go back to.
+- Browser check: tip receipt has no sideways scroll at 360, 768 and 1280 px. `public-site` 55/57; the two help checks still fail on the dev server.
+
 ## Completed: dialog and portal-redirect fixes, 14 November 2026
 
 - Reported: "Make a complaint", "Report unfair trade" and "Track a case" did nothing, and portals showed "page not found".

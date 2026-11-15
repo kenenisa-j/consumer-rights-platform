@@ -65,7 +65,7 @@ try {
   await b.clickText("Send the complaint", "button[type=submit]");
   await b.waitFor("location.pathname==='/complaint/sent'");
   await b.sleep(500);
-  const sent = await b.text("main");
+  const sent = await b.text("dialog[open]");
   check("wizard: sent page shows the reference", /CC-2026-00148/.test(sent ?? ""), sent?.slice(0, 200));
   await b.go("/complaint/new");
   const afterSend = await b.text(".wizard-box");
@@ -126,7 +126,8 @@ try {
   await b.set("#t-text", "Several shops sell sugar at 160 ETB a kilo. The list says 125.");
   await b.clickText("Send the tip", "button[type=submit]");
   await b.waitFor("location.pathname==='/tip/sent'"); await b.sleep(500);
-  const tipSent = await b.text("main");
+  const tipSent = await b.text("dialog[open]");
+  check("tip: the receipt is shown in a dialog, not a stacked page", await b.ev("return document.querySelectorAll('dialog.dlg[open]').length === 1"));
   check("tip: anonymous tip shows number and private code", /TIP-2026-00048/.test(tipSent) && /Q7MD-42KX/.test(tipSent));
   check("tip: the private code is not in the address", !(await b.url()).includes("Q7MD"));
   await b.go("/tip");

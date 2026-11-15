@@ -1,11 +1,3 @@
-import { ModalHead, RouteModal } from "@/components/ui/RouteModal";
-import { ComplaintOrTipPicker } from "@/features/complaint/ComplaintOrTipPicker";
+import { PickerDialog } from "@/features/dialogs";
 
-export default function ComplaintOrTipModal() {
-  return (
-    <RouteModal title="What would you like to do?" size="md">
-      <ModalHead title="What would you like to do?" am="ምን ማድረግ ይፈልጋሉ?" />
-      <ComplaintOrTipPicker />
-    </RouteModal>
-  );
-}
+export default function ComplaintOrTipModal() { return <PickerDialog />; }

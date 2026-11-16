@@ -54,5 +54,5 @@ button.modal__close { border: 0; background: transparent; cursor: pointer; }
 .side .file-list li .badge { align-self: flex-start; }
 
 /* Sign out inside the workspace rail looks like the other footer links. */
-.rail__out { padding: 6px 0; border: 0; background: none; color: #cfdbe8; font: inherit; font-size: .8rem; cursor: pointer; text-align: left; }
+.rail__out { padding: 6px 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: .8rem; cursor: pointer; text-align: left; }
 .rail__out:hover { color: #fff; text-decoration: underline; }

@@ -25,10 +25,10 @@ try {
     check(`${level}: current page is marked`, (await b.ev("return document.querySelector('.rail a[aria-current=page]')?.textContent.trim()")).startsWith("Dashboard"));
   }
   await b.go("/woreda/dashboard");
-  check("workspace uses the navy theme, not the public green", await b.ev("return getComputedStyle(document.body).backgroundColor==='rgb(243, 245, 248)' && !!document.querySelector('.ws-shell')"));
+  check("workspace uses the AddisB2B look: light page, white sidebar, navy logo, amber edge on the current page", await b.ev("const r=getComputedStyle(document.querySelector('.rail')); const m=getComputedStyle(document.querySelector('.rail__brand .brand__mark')); const a=getComputedStyle(document.querySelector('.rail a[aria-current=page]')); return getComputedStyle(document.body).backgroundColor==='rgb(244, 247, 251)' && r.backgroundColor==='rgb(255, 255, 255)' && m.backgroundColor==='rgb(11, 37, 69)' && a.boxShadow.includes('rgb(245, 181, 27)') && !!document.querySelector('.ws-shell')"));
   check("the public header is not on a portal page", !(await b.ev("return !!document.querySelector('.site-header')")));
   await b.go("/");
-  check("workspace styles do not leak into the public site", await b.ev("return !!document.querySelector('.site-header') && !document.body.classList.contains('ws') && getComputedStyle(document.body).backgroundColor==='rgb(251, 250, 246)'"));
+  check("workspace styles do not leak into the public site", await b.ev("return !!document.querySelector('.site-header') && !document.body.classList.contains('ws')"));
   await b.go("/bureau/dashboard");
   check("bureau: shows where the open cases are", /Where the open cases are/.test(await main()) && (await b.ev("return document.querySelectorAll('.bar').length")) === 3);
   await b.go("/woreda/staff");

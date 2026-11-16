@@ -23,12 +23,12 @@ export interface Draft {
 
 export type Destination = "business" | "woreda" | "subcity" | "bureau";
 
-export const emptyDraft = (phone = "", email = ""): Draft => ({
+export const emptyDraft = (phone = "", email = "", lang = "en"): Draft => ({
   reached: 1, category: "", subject: "", what: "", urgent: false,
   business: { mode: "", id: "", name: "", place: "", subcity: "", woreda: "", address: "", phone: "" },
   purchase: { item: "", date: "", where: "", subcity: "", woreda: "", place: "", paid: "", loss: "", receipt: "" },
   fileNames: [],
-  outcome: { want: "", amount: "", note: "", phone, email, lang: "English", byEmail: !!email, bySms: false },
+  outcome: { want: "", amount: "", note: "", phone, email, lang, byEmail: false, bySms: false },
   truth: false, destination: "bureau", destSubcity: "", destWoreda: ""
 });
 

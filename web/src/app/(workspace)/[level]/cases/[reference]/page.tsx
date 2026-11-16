@@ -7,6 +7,7 @@ import { wantText } from "@/lib/case-data";
 import { Alert, KeyValue, StatusPill, Timeline } from "@/components/ui/Display";
 import { formatSize } from "@/lib/format";
 import { isGovLevel } from "@/features/gov/levels";
+import { RedirectCase } from "@/features/gov/RedirectCase";
 
 type Props = { params: Promise<{ level: string; reference: string }> };
 
@@ -33,7 +34,7 @@ export default async function GovCasePage({ params }: Props) {
     <>
       <div className="ws-title">
         <div><span className="kicker">Complaint</span><h1>{c.reference}</h1><p>{c.title}</p></div>
-        <div className="btn-row"><Link className="btn btn--accent" href={`/${level}/messages?case=${c.reference}`}>Message the consumer</Link><Link className="btn btn--secondary" href={`/${level}/cases`}>Back to cases</Link></div>
+        <div className="btn-row"><Link className="btn btn--accent" href={`/${level}/messages?case=${c.reference}`}>Message the consumer</Link>{st.stage !== "resolved" && <RedirectCase reference={c.reference} level={level} />}<Link className="btn btn--secondary" href={`/${level}/cases`}>Back to cases</Link></div>
       </div>
       <p><StatusPill tone={st.tone}>{st.label}</StatusPill> {c.urgent && <span className="urgent">Health or safety risk</span>}
         <span className="small muted"> Official status: {st.official}</span></p>
@@ -59,7 +60,7 @@ export default async function GovCasePage({ params }: Props) {
             <p className="small muted mt-4 mb-0">Only officers see these details. The business sees &ldquo;{c.alias}&rdquo;.</p></div>
           <div className="card card--flat"><h2 style={{ fontSize: "1.05rem" }}>Held by</h2>
             <KeyValue single rows={[["Office", c.handledBy?.name ?? "—"], ["Received", niceDate(c.createdAt, true)], ["Answer due", c.dueBy ? niceDate(c.dueBy) : "—"]]} /></div>
-          <Alert tone="info" icon="bell" title="Actions are coming">Accepting, assigning an officer, meetings and passing a case up one level are added in the next step.</Alert>
+          <Alert tone="info" icon="bell" title="More actions are coming">You can send the case to another office and write to the consumer. Accepting, assigning an officer and meetings are added in the next step.</Alert>
         </aside>
       </div>
     </>

@@ -11,7 +11,7 @@ import { Am } from "@/components/ui/Bi";
 export function HelpContent({ freeCall, faq, subcities }: { freeCall: string; faq: FaqItem[]; subcities: string[] }) {
   const params = useSearchParams();
   const initial = params.get("subcity") ?? "";
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(params.get("q") ?? ""); // the header search sends ?q=
   const [area, setArea] = useState(subcities.includes(initial) ? initial : "");
 
   const items = useMemo(() => {

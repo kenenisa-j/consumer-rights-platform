@@ -31,10 +31,9 @@ try {
   await b.set("#p-item", "White rice, one 25 kg sack");
   await b.set("#p-date", "2026-11-01");
   await b.click("input[name=where][value=market]");
-  await b.set("#p-sub", "Akaki Kality");
-  await b.waitFor("document.querySelectorAll('#p-wo option').length > 5");
-  check("wizard: the Woreda list follows the Sub-City", (await b.ev("return document.querySelectorAll('#p-wo option').length")) === 14);
-  await b.set("#p-wo", "7");
+  await b.pick("#p-sub", "Akaki Kality");
+  check("wizard: the Woreda list follows the Sub-City", (await b.options("#p-wo")) === 13);
+  await b.pick("#p-wo", "Woreda 7");
   await b.set("#p-paid", "2250");
   await b.clickText("Next", "button[type=submit]");
   await b.waitFor("document.querySelector('#ev-files')");
@@ -107,7 +106,7 @@ try {
   // ---- A tip is stored and reaches the office ------------------------------------------------------
   b.autoLogin = false;
   await b.go("/tip");
-  await b.set("#t-sub", "Bole"); await b.set("#t-place", `Market 097 ${stamp}`); await b.set("#t-when", "2026-11-04");
+  await b.pick("#t-sub", "Bole"); await b.set("#t-place", `Market 097 ${stamp}`); await b.set("#t-when", "2026-11-04");
   await b.set("#t-text", "Several shops sell sugar at 160 ETB a kilo. The list says 125.");
   await b.clickText("Send the tip", "button[type=submit]");
   await b.waitFor("location.pathname==='/tip/sent'", 15000); await b.sleep(600);

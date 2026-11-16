@@ -1,16 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { MB, formatSize } from "@/lib/format";
+import { clearFiles, loadFiles, saveFiles } from "@/lib/file-store";
 
 export type UploadState = "waiting" | "uploading" | "done" | "failed";
 export interface PickedFile { id: string; file: File; shared?: boolean; status?: UploadState; message?: string }
 export { MB, formatSize };
 
 /** Keeps a validated list of chosen files: type, size and count limits with clear messages. `existing` counts files already stored. */
-export function useFilePicker(max: number, maxMb: number, existing = 0) {
+export function useFilePicker(max: number, maxMb: number, existing = 0, persistKey?: string) {
   const [files, setFiles] = useState<PickedFile[]>([]);
+  const restored = useRef(!persistKey);
   const [error, setError] = useState<string | null>(null);
   const seq = useRef(0);
 
@@ -31,7 +33,26 @@ export function useFilePicker(max: number, maxMb: number, existing = 0) {
   const remove = (id: string) => { setFiles(f => f.filter(x => x.id !== id)); setError(null); };
   const toggleShared = (id: string) => setFiles(f => f.map(x => (x.id === id ? { ...x, shared: !x.shared } : x)));
   const mark = (id: string, status: UploadState, message?: string) => setFiles(f => f.map(x => (x.id === id ? { ...x, status, message } : x)));
-  return { files, error, add, remove, toggleShared, mark, setFiles, clear: () => setFiles([]) };
+  // With a key, the chosen files are kept on this device until they are sent, so a refresh does not lose them.
+  useEffect(() => {
+    if (!persistKey) return;
+    let live = true;
+    // Files from an earlier visit are dropped: they are kept only for the tab the complaint is being written in (a refresh keeps them).
+    let sameTab = false;
+    try { sameTab = sessionStorage.getItem(`cr:files:${persistKey}`) === "1"; sessionStorage.setItem(`cr:files:${persistKey}`, "1"); } catch { /* private mode */ }
+    void (sameTab ? loadFiles(persistKey) : clearFiles(persistKey).then(() => [])).then(saved => {
+      if (!live) return;
+      seq.current = saved.length;
+      if (saved.length) setFiles(saved.map((f, i) => ({ id: `r${i + 1}`, file: f.file, shared: f.shared, status: "waiting" as const })));
+      restored.current = true;
+    });
+    return () => { live = false; };
+  }, [persistKey]);
+  useEffect(() => {
+    if (!persistKey || !restored.current) return;
+    void saveFiles(persistKey, files.map(f => ({ id: f.id, file: f.file, shared: f.shared })));
+  }, [files, persistKey]);
+  return { files, error, add, remove, toggleShared, mark, setFiles, clear: () => { setFiles([]); if (persistKey) void clearFiles(persistKey); } };
 }
 
 const STATUS_TEXT: Record<UploadState, string> = { waiting: "", uploading: "Uploading…", done: "Uploaded", failed: "Not uploaded" };

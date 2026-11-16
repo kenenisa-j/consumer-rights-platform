@@ -3,6 +3,7 @@ import { consumerAlias, officeBelongsToLevel, validateRouteA, validateRouteB } f
 import type { GovernmentLevel } from '@consumer-rights/contracts';
 import { PrismaService } from '../../lib/database/prisma.service';
 import { readComplaint, type ComplaintInput } from './complaint-input';
+import { businessUserIds, notify, officeStaffIds } from '../../lib/common/notify';
 
 const LEVEL_OF = { CITY_BUREAU: 'bureau', SUBCITY: 'subcity', WOREDA: 'woreda' } as const;
 const OFFICE_LEVEL = { woreda: 'WOREDA', subcity: 'SUBCITY', bureau: 'CITY_BUREAU' } as const;
@@ -77,7 +78,7 @@ export class ComplaintsService {
           categoryId: category.id, incidentDate: input.purchasedOn, itemDescription: input.item, disputedAmount: input.loss ?? input.paid,
           paymentMethod: input.paymentMethod, receiptAvailable: input.receipt,
           desiredRemedy: input.wantAmount ? `${input.want}:${input.wantAmount}` : input.want,
-          subject: input.subject, narrative: input.narrative, urgent: input.urgent, contactPhone: input.contactPhone,
+          subject: input.subject, narrative: input.narrative, urgent: input.urgent, contactPhone: input.contactPhone, contactEmail: input.contactEmail, contactLanguage: input.language, notifyEmail: input.notifyEmail, notifySms: input.notifySms,
           status, currentOfficeId: office?.id ?? null, escalatedToGovAt: null, // Route A keeps this empty by database rule; it is set only when a business case is escalated
           slaDeadline: new Date(Date.now() + category.defaultSlaDays * 86_400_000),
         } as never,
@@ -87,7 +88,11 @@ export class ComplaintsService {
       await tx.case.update({ where: { id: made.id }, data: { complainantAlias: consumerAlias(sequence) } });
       await tx.caseHistory.create({ data: { caseId: made.id, toStatus: status, handlingLevel, officeId: office?.id ?? null, actorUserId: userId, publicNote: note } });
       await tx.conversation.create({ data: { caseId: made.id, kind: toBusiness ? 'CONSUMER_BUSINESS' : 'CONSUMER_GOVERNMENT', participants: { create: { userId, role: 'CONSUMER' } } } });
-      await tx.notification.create({ data: { recipientUserId: userId, caseId: made.id, type: 'COMPLAINT_RECEIVED', title: `Complaint ${made.referenceNumber} received`, messageBody: note } });
+      const last4 = input.contactPhone.slice(-4);
+      await notify(tx, [userId], { caseId: made.id, type: 'COMPLAINT_RECEIVED', title: `Complaint ${made.referenceNumber} received`,
+        body: `${note} Keep this number: ${made.referenceNumber}. To check it without signing in, use the number and the last 4 digits of your phone (${last4}) on the Track a case page. You can also find it any time in My cases.` });
+      if (office) await notify(tx, await officeStaffIds(tx, office.id), { caseId: made.id, type: 'NEW_CASE_FOR_OFFICE', title: `New complaint ${made.referenceNumber}`, body: `${input.subject}. It was sent to ${office.nameEn}.` });
+      if (merchant) await notify(tx, await businessUserIds(tx, merchant.id), { caseId: made.id, type: 'NEW_COMPLAINT_FOR_BUSINESS', title: `A consumer complained about your business: ${made.referenceNumber}`, body: `${input.subject}. Please reply in Messages.` });
       return {
         reference: made.referenceNumber, sentAt: made.createdAt.toISOString(), toBusiness,
         handledBy: toBusiness ? 'the business' : (office?.nameEn ?? ''), status,

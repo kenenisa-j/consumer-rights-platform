@@ -1,0 +1,35 @@
+// Translations, part 4: the longer sentences of the home page and the main information pages' headings.
+import type { Row } from "./master-core";
+
+export const HOME: readonly Row[] = [
+  ["Tell the business first. If you cannot agree, your Woreda trade office steps in, then the Sub-City, then the City Bureau, until it is put right. Prefer to talk? Call free on", "መጀመሪያ ለንግድ ድርጅቱ ይንገሩ። ካልተስማሙ የወረዳዎ ንግድ ጽሕፈት ቤት፣ ከዚያ ክፍለ ከተማ፣ ከዚያ ከተማ ቢሮ እስኪስተካከል ድረስ ጣልቃ ይገባሉ። ማውራት ይመርጣሉ? በነፃ ይደውሉ፡", "Duraan dhaabbata daldalaatti himi. Yoo walii hin galin, waajjirri daldalaa aanaa kee, achiin kutaa magaalaa, achiin Biiroon Magaalaa hanga sirreeffamutti seenu. Haasa'uu fedhaa? Bilisaan bilbili:", "ቅድም ንንግዲ ንገሮ። እንተ ዘይተሰማሚዕኩም ቤት ጽሕፈት ንግዲ ወረዳኻ፡ ድሕሪኡ ክፍለ ከተማ፡ ድሕሪኡ ቢሮ ከተማ ክሳብ ዝስተኻኸል ኣብ ጉዳይ ይኣትዉ። ክትዛረብ ትመርጽ? ብነጻ ደውል፡", "Marka hore u sheeg ganacsiga. Haddii aydaan heshiin, xafiiska ganacsiga ee woredadaadu wuu soo faragelinayaa, kadibna hoos-magaalada, kadibna Xafiiska Magaalada, ilaa la saxo. Ma doorbidaysaa hadal? Wac bilaash:"],
+  ["New:", "አዲስ፡", "Haaraa:", "ሓድሽ፡", "Cusub:"],
+  ["talk to the business first. If you cannot agree, move it to the Woreda.", "መጀመሪያ ከንግድ ድርጅቱ ጋር ይነጋገሩ። ካልተስማሙ ወደ ወረዳው ያዛውሩት።", "duraan dhaabbata daldalaa wajjin haasa'i. Yoo walii hin galin aanaatti darbi.", "ቅድም ምስ ንግዲ ተዘራረብ። እንተ ዘይተሰማሚዕኩም ናብ ወረዳ ስግሮ።", "marka hore la hadal ganacsiga. Haddii aydaan heshiin, u gudbi woreda."],
+  ["A receipt shows what you paid and where. It is the best proof if something goes wrong.", "ደረሰኝ የከፈሉትንና የት እንደሆነ ያሳያል። አንድ ነገር ቢበላሽ ምርጡ ማስረጃ ነው።", "Rasiidiin waan kaffalte fi eessa akka ta'e agarsiisa. Wanti yoo dogoggore ragaa gaarii dha.", "ደረሰኝ ዝከፈልካዮን ኣበይን የርኢ። ሓደ ነገር እንተ ጌጋ ዝኾነ ዝበለጸ መርትዖ እዩ።", "Rasiidku wuxuu muujiyaa waxa aad bixisay iyo meesha. Waa caddaynta ugu fiican haddii wax qaldamaan."],
+  ["Food past its expiry date and short weights are not allowed. Check before you pay.", "ጊዜው ያለፈበት ምግብና ጉድለት ያለው ክብደት አይፈቀድም። ከመክፈልዎ በፊት ያረጋግጡ።", "Nyaanni yeroon isaa darbe fi ulfaatinni hir'ate hin eeyyamamu. Osoo hin kaffalin mirkaneeffadhu.", "ዘመኑ ዝወደአ መግቢን ዝቐነሰ ክብደትን ኣይፍቀድን። ቅድሚ ምኽፋልካ ኣረጋግጽ።", "Cuntada dhacday iyo miisaanka yar lama ogola. Hubi intaadan bixin."],
+  ["Goods that do not work as promised can be refunded, replaced or repaired.", "እንደተባለው የማይሠሩ ዕቃዎች ተመላሽ፣ ምትክ ወይም ጥገና ሊደረግላቸው ይችላል።", "Meeshaaleen akka waadaa seenanitti hin hojjenne deebi'uu, bakka bu'uu ykn suphamuu danda'u.", "ከም ዝተዋህበ ዘይሰርሑ ዕቃታት ክምለሱ፡ ክተካኡ ወይ ክጽገኑ ይኽእሉ።", "Alaabta aan u shaqayn sidii loo ballanqaaday waa la celin karaa, la beddeli karaa ama la dayactiri karaa."],
+  ["Sample figures for the prototype. The live page will show real counts.", "ለምሳሌ የተሰጡ ቁጥሮች። ቀጥታው ገጽ እውነተኛ ቁጥሮችን ያሳያል።", "Lakkoofsota fakkeenyaa. Fuulli jiraataa lakkoofsa dhugaa agarsiisa.", "ንኣብነት ዝተዋህቡ ቁጽርታት። ሓቀኛ ገጽ ሓቀኛ ቁጽርታት የርኢ።", "Tirooyin tusaale ah. Bogga tooska ahi wuxuu muujin doonaa tirooyin dhab ah."],
+  ["complaints received", "የደረሱ ቅሬታዎች", "komiiwwan fudhataman", "ዝተቐበልናዮም ጥርዓናት", "cabashooyin la helay"],
+  ["complaints resolved", "የተፈቱ ቅሬታዎች", "komiiwwan furaman", "ዝተፈትሑ ጥርዓናት", "cabashooyin la xaliyay"],
+  ["ETB returned to consumers", "ለሸማቾች የተመለሰ ብር", "ETB fayyadamtootaaf deebi'e", "ንተጠቀምቲ ዝተመልሰ ETB", "ETB loo celiyay macaamiisha"],
+  ["market tips received", "የደረሱ የገበያ ጥቆማዎች", "gabaasawwan gabaa fudhataman", "ዝተቐበልናዮም ሓበሬታታት ዕዳጋ", "warbixinno suuq oo la helay"],
+  ["Know your rights and how to use them", "መብቶችዎን እና እንዴት እንደሚጠቀሙባቸው ይወቁ", "Mirga kee fi akkamitti itti fayyadamtu beeki", "መሰላትካን ብኸመይ ከም እትጥቀመሎም ፍለጥ", "Ogow xuquuqdaada iyo sida loo isticmaalo"],
+  ["Your rights as a consumer", "እንደ ሸማች መብቶችዎ", "Mirga kee akka fayyadamaatti", "መሰላትካ ከም ተጠቃሚ", "Xuquuqdaada sida macmiil"],
+  ["Your responsibilities", "ኃላፊነቶችዎ", "Itti gaafatamummaa kee", "ሓላፍነታትካ", "Mas'uuliyaadkaaga"],
+  ["What we can and cannot help with", "ልንረዳቸው የምንችላቸውና የማንችላቸው", "Waan gargaaruu dandeenyu fi hin dandeenye", "ክንሕግዘሎም ዝኽእልን ዘይንኽእልን", "Waxa aan ku caawin karno iyo ka aan karin"],
+  ["We can help with", "ልንረዳበት የምንችለው", "Waan gargaaruu dandeenyu", "ክንሕግዘሉ ዝኽእል", "Waxa aan ku caawin karno"],
+  ["We cannot decide", "መወሰን የማንችለው", "Waan murteessuu hin dandeenye", "ክንውስኖ ዘይንኽእል", "Waxa aan go'aamin karin"],
+  ["Something went wrong?", "የሆነ ችግር ተፈጥሯል?", "Wanti tokko dogoggoree?", "ገለ ነገር ጌጋ ኮይኑዶ?", "Wax baa qaldamay?"],
+  ["Make a complaint and an officer will look at it.", "ቅሬታ ያቅርቡ ባለሙያ ይመለከተዋል።", "Komii dhiyeessi, ogeessi ni ilaala.", "ጥርዓን ኣቕርብ ሰራሕተኛ ይርእዮ።", "Gudbi cabasho shaqaale ayaa eegi doona."],
+  ["Read the law", "ሕጉን ያንብቡ", "Seera dubbisi", "ሕጊ ኣንብብ", "Akhri sharciga"],
+  ["Eight steps, from your complaint to an outcome. You get a message at each important step.", "ከቅሬታዎ እስከ ውጤት ስምንት ደረጃዎች። በእያንዳንዱ ጠቃሚ ደረጃ መልዕክት ያገኛሉ።", "Tarkaanfii saddeet, komii keessaa hanga bu'aatti. Tarkaanfii barbaachisaa hunda irratti ergaa argatta.", "ካብ ጥርዓንካ ክሳብ ውጽኢት ሸሞንተ ደረጃታት። ኣብ ነፍሲ ወከፍ ኣገዳሲ ደረጃ መልእኽቲ ትረክብ።", "Siddeed tallaabo, laga bilaabo cabashadaada ilaa natiijo. Waxaad helaysaa fariin tallaabo kasta oo muhiim ah."],
+  ["The laws, directives and guides behind consumer protection in Addis Ababa.", "በአዲስ አበባ የሸማቾች ጥበቃ ጀርባ ያሉ ሕጎች፣ መመሪያዎችና መመሪያ መጻሕፍት።", "Seerawwan, qajeelfamoota fi kitaabilee qajeelfamaa eegumsa fayyadamtootaa Finfinnee duuba jiran.", "ኣብ ኣዲስ ኣበባ ድሕሪ ሓለዋ ተጠቀምቲ ዘለዉ ሕግታት፡ መምርሒታትን ክቱባትን።", "Sharciyada, tilmaamaha iyo hagayaasha ka dambeeya ilaalinta macaamiisha ee Addis Ababa."],
+  ["Announcements, notices and awareness campaigns from the Customer Rights Protection Directorate.", "ከሸማቾች መብት ጥበቃ ዳይሬክቶሬት የሚመጡ ማስታወቂያዎች፣ ማሳሰቢያዎችና የግንዛቤ ዘመቻዎች።", "Labsiiwwan, beeksisawwan fi duulaawwan hubannoo Daayrektoreetii Eegumsa Mirga Fayyadamtootaa irraa.", "ካብ ዳይረክቶሬት ሓለዋ መሰል ተጠቀምቲ ምእዋጃትን መተሓሳሰቢታትን ዕዝሚ ርድኢትን።", "Ku dhawaaqisyo, ogeysiisyo iyo ololayaasha wacyigelinta ee Agaasimaha Ilaalinta Xuquuqda Macaamiisha."],
+  ["Plain-language summary for review", "ለግምገማ በግልጽ ቋንቋ የቀረበ ማጠቃለያ", "Cuunfaa afaan salphaa gamaaggamaaf", "ንግምገማ ብቐልሉል ቋንቋ ዝቐረበ ጠቕላል", "Soo koobid luqad fudud oo dib u eegis ah"],
+  ["Search the documents", "ሰነዶችን ይፈልጉ", "Dukumeentiiwwan barbaadi", "ሰነዳት ድለ", "Raadi dukumentiyada"],
+  ["Proclamations", "አዋጆች", "Labsiiwwan", "ኣዋጃት", "Ku dhawaaqyo"],
+  ["Directives", "መመሪያዎች", "Qajeelfamoota", "መምርሒታት", "Tilmaamo"],
+  ["Guides", "መመሪያ መጻሕፍት", "Kitaabilee qajeelfamaa", "ክቱባት", "Hagayaal"],
+  ["Rent, housing and land matters", "የኪራይ፣ የቤት እና የመሬት ጉዳዮች", "Dhimmoota kiraa, mana fi lafaa", "ጉዳያት ክራይ፡ ቤትን መሬትን", "Arrimaha kirada, guryaha iyo dhulka"],
+  ["Crimes such as theft or fraud: go to the police", "እንደ ስርቆት ወይም ማጭበርበር ያሉ ወንጀሎች፡ ወደ ፖሊስ ይሂዱ", "Yakka akka hatuu ykn gowwoomsaa: poolisii deemi", "ከም ስርቂ ወይ ምጥባር ዝኣመሰሉ ገበናት፡ ናብ ፖሊስ ኪድ", "Dembiyada sida tuugnimada ama khiyaanada: tag booliska"]
+];

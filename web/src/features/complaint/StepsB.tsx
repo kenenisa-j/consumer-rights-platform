@@ -1,7 +1,9 @@
 "use client";
 
 import { WANT_LABEL, needsAmount, type Draft } from "./draft";
-import { CheckField, ChoiceGroup, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
+import { CheckField, ChoiceGroup, TextAreaField, TextField } from "@/components/ui/Field";
+import { ComboField } from "@/components/ui/ComboField";
+import { LOCALES } from "@/lib/i18n";
 import { FilePicker, formatSize, type useFilePicker } from "@/components/ui/FileList";
 import { Am } from "@/components/ui/Bi";
 import { StepForm, type StepProps } from "./StepsA";
@@ -34,14 +36,16 @@ export function Step5({ draft, set, next, back }: StepProps) {
       <TextAreaField id="o-note" label="Anything else the officer should know?" optional maxLength={1000} value={o.note} onChange={e => patch({ note: e.target.value })} />
       <h3>How can the officer reach you?<Am text="በምን እናግኝዎ?" /></h3>
       <div className="form-grid">
-        <TextField id="o-phone" label="Phone" type="tel" required inputMode="tel" value={o.phone} onChange={e => patch({ phone: e.target.value })} invalid="A phone number is needed." />
-        <TextField id="o-email" label="Email" optional type="email" value={o.email} onChange={e => patch({ email: e.target.value })} />
-        <SelectField id="o-lang" label="Language" options={["English", "Amharic · አማርኛ"]} value={o.lang} onChange={e => patch({ lang: e.target.value })} />
+        <TextField id="o-phone" label="Phone" type="tel" required inputMode="tel" autoComplete="off" placeholder="09xx xxx xxx" value={o.phone} onChange={e => patch({ phone: e.target.value })}
+          pattern={String.raw`(\+251 ?|0)[79]( ?[0-9]){8}`} hint="The number the officer can call." invalid="Write a mobile number such as 0911 234 567." />
+        <TextField id="o-email" label="Email" optional type="email" autoComplete="off" placeholder="name@example.com" value={o.email} onChange={e => patch({ email: e.target.value, byEmail: e.target.value ? o.byEmail : false })} />
+        <ComboField id="o-lang" label="Language" am="ቋንቋ" required options={LOCALES.map(l => ({ value: l.code, label: l.code === "en" ? "English" : `${l.name} · ${l.native}` }))} value={o.lang} onChange={v => patch({ lang: v })}
+          hint="The officer will answer you in this language when they can." invalid="Choose a language from the list." />
       </div>
       <fieldset className="field"><legend className="label">Send me updates by</legend>
         <CheckField checked disabled readOnly>This website <span className="muted">(always on)</span></CheckField>
-        <CheckField checked={o.byEmail} disabled={!o.email} onChange={e => patch({ byEmail: e.target.checked })}>Email {!o.email && <span className="muted">(add an email above)</span>}</CheckField>
-        <CheckField disabled>SMS <span className="badge badge--later">Later phase</span></CheckField>
+        <CheckField checked={o.byEmail} disabled={!o.email} onChange={e => patch({ byEmail: e.target.checked })}>Email {!o.email && <span className="muted">(write your email above first)</span>}</CheckField>
+        <CheckField checked={o.bySms} disabled={!o.phone} onChange={e => patch({ bySms: e.target.checked })}>SMS to my phone {!o.phone && <span className="muted">(write your phone above first)</span>}</CheckField>
       </fieldset>
     </StepForm>
   );
@@ -72,7 +76,7 @@ export function Step6({ draft, set, back, onGo, onSend, busy, error, progress, f
         ["Paid", money(p.paid)], ["Loss", money(p.loss)], ["Receipt", { yes: "Yes", no: "No", lost: "Lost it", "": "" }[p.receipt] ?? ""]]} />
       <Block title="Evidence" step={4} onGo={onGo} rows={[["Files", fileCount ? draft.fileNames.map(f => `${f.name} (${formatSize(f.size)}${f.shared ? ", shown to the business" : ", officers only"})`).join("; ") : "None added"]]} />
       <Block title="What you want" step={5} onGo={onGo} rows={[["Outcome", `${WANT_LABEL[o.want] ?? ""}${needsAmount(o.want) && o.amount ? `: ${money(o.amount)}` : ""}`], ["Note", o.note],
-        ["Contact", [o.phone, o.email, o.lang].filter(Boolean).join(" · ")]]} />
+        ["Contact", [o.phone, o.email, LOCALES.find(l => l.code === o.lang)?.name].filter(Boolean).join(" · ")], ["Updates by", ["This website", o.byEmail && "Email", o.bySms && "SMS"].filter(Boolean).join(", ")]]} />
 
       <div className="grid-2" id="privacy">
         <div className="card card--flat"><h3>What the business will see</h3>

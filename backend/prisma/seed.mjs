@@ -31,9 +31,10 @@ const PERMISSIONS = {
   "messages.use": ["messages", "use", "OWN", "Read and write in the conversations I am allowed in"],
   "evidence.upload.own": ["evidence", "upload", "OWN", "Add evidence files to my own complaints"],
   "evidence.read": ["evidence", "read", "SCOPED", "Open evidence files I am allowed to see"],
+  "cases.redirect.office": ["cases", "redirect", "OFFICE", "Send a case my office holds to another office"],
   "business.read.own": ["business", "read", "BUSINESS", "Read my own business profile"]
 };
-const STAFF = ["profile.read.own", "cases.read.office", "tips.read.office", "messages.use", "evidence.read"];
+const STAFF = ["profile.read.own", "cases.read.office", "tips.read.office", "messages.use", "evidence.read", "cases.redirect.office"];
 const GRANTS = {
   CONSUMER: ["profile.read.own", "complaints.create.own", "complaints.read.own", "messages.use", "evidence.upload.own", "evidence.read"],
   BUSINESS_OWNER: ["profile.read.own", "cases.read.business", "messages.use", "business.read.own", "evidence.read"],

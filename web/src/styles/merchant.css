@@ -4,7 +4,7 @@
 .desk-filter:has(#f-done:checked) .row-item:not([data-state="done"]) { display: none; }
 .due { font-weight: 700; color: var(--bad); }
 .restricted { display: flex; gap: var(--s3); align-items: flex-start; padding: var(--s4); border: 1px dashed var(--line-strong); border-radius: var(--radius); background: #fff; color: var(--muted); font-size: .9rem; }
-.restricted .ico { width: 22px; height: 22px; flex: none; color: var(--navy); }
+.restricted .ico { width: 22px; height: 22px; flex: none; color: var(--green); }
 .restricted ul { margin: 6px 0 0; padding-left: 18px; }
 .offer-fields { display: none; margin-top: var(--s4); }
 form:has(#o-refund:checked) .offer-fields--refund,

@@ -38,8 +38,8 @@ try {
   await b.set("#p-item", "White rice, one 25 kg sack");
   await b.set("#p-date", "2026-11-01");
   await b.click("input[name=where][value=market]");
-  await b.set("#p-sub", "Akaki Kality");
-  await b.set("#p-wo", "7");
+  await b.pick("#p-sub", "Akaki Kality");
+  await b.pick("#p-wo", "Woreda 7");
   await b.set("#p-paid", "2250");
   await b.clickText("Next", "button[type=submit]");
   await b.waitFor("document.querySelector('.wizard-head .kicker')?.textContent.includes('step 4 of')");

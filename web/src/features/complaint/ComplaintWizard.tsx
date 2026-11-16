@@ -17,18 +17,18 @@ import { WizardShell } from "./WizardShell";
  * dialog. Answers live in the draft (sessionStorage), so a refresh never loses typing. A step can only be opened once the
  * earlier ones are completed.
  */
-export function ComplaintWizard({ freeCall, contact, refData }: { freeCall: string; contact: { first: string; phone: string; email: string }; refData: RefData }) {
+export function ComplaintWizard({ freeCall, contact, refData, locale = "en" }: { freeCall: string; contact: { first: string; phone: string; email: string }; refData: RefData; locale?: string }) {
   const router = useRouter();
   const [requested, setRequested] = useState(1);
-  const [draft, setDraft] = useState<Draft>(() => emptyDraft(contact.phone, contact.email));
+  const [draft, setDraft] = useState<Draft>(() => emptyDraft("", "", locale));
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
-  const picker = useFilePicker(8, 10);
+  const picker = useFilePicker(8, 10, 0, "complaint-evidence");
   const first = useRef(true);
 
-  useEffect(() => { setDraft(loadDraft(emptyDraft(contact.phone, contact.email))); setReady(true); }, []);
+  useEffect(() => { setDraft(loadDraft(emptyDraft("", "", locale))); setReady(true); }, []);
   useEffect(() => { if (ready) saveDraft(draft); }, [draft, ready]);
   useEffect(() => {
     setDraft(d => ({ ...d, fileNames: picker.files.map(f => ({ name: f.file.name, size: f.file.size, shared: !!f.shared })) }));
@@ -59,7 +59,8 @@ export function ComplaintWizard({ freeCall, contact, refData }: { freeCall: stri
       merchantId: registered ? b.id : null, otherBusinessName: registered ? "" : b.name,
       otherBusinessPlace: [b.address, b.subcity, b.woreda && `Woreda ${b.woreda}`].filter(Boolean).join(", "), otherBusinessPhone: b.phone,
       item: p.item, purchasedOn: p.date, paid: p.paid === "" ? null : Number(p.paid), loss: p.loss === "" ? null : Number(p.loss),
-      receipt: p.receipt === "no" || p.receipt === "lost" ? "no" : "yes", want: o.want, wantAmount: o.amount === "" ? null : Number(o.amount), contactPhone: o.phone
+      receipt: p.receipt === "no" || p.receipt === "lost" ? "no" : "yes", want: o.want, wantAmount: o.amount === "" ? null : Number(o.amount),
+      contactPhone: o.phone, contactEmail: o.email, language: o.lang, notifyEmail: o.byEmail, notifySms: o.bySms
     });
     if (!res.ok) { setError(res.error); setBusy(false); return; }
     // The complaint exists now. Files go up one by one; any that fail are reported, and can be added again from the case page.
@@ -73,8 +74,8 @@ export function ComplaintWizard({ freeCall, contact, refData }: { freeCall: stri
       if (!up.ok) failed.push(todo[i].file.name);
     }
     setProgress(null);
-    saveHandoff("complaint-receipt", { ...res.data, first: contact.first, email: draft.outcome.email, failedFiles: failed, fileCount: todo.length });
-    clearDraft();
+    saveHandoff("complaint-receipt", { ...res.data, first: contact.first, email: draft.outcome.email, phone4: draft.outcome.phone.replace(/D/g, "").slice(-4), failedFiles: failed, fileCount: todo.length });
+    clearDraft(); picker.clear();
     router.push("/complaint/sent");
   };
 

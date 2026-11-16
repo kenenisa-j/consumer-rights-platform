@@ -133,6 +133,7 @@ model User {
   evidenceUploaded           EvidenceFile[]
   conversationJoins          ConversationParticipant[]
   messagesSent               Message[]
+  conversationReads          ConversationRead[]
   auditActions               CaseAuditLog[]
   notifications              Notification[]
   courtReferralsInvestigated CourtReferral[]           @relation("InvestigatingOfficer")
@@ -408,6 +409,10 @@ model Case {
   narrative                    String                @default("")
   urgent                       Boolean               @default(false)
   contactPhone                 String?               @map("contact_phone")
+  contactEmail                 String?               @map("contact_email")
+  contactLanguage              String                @default("en") @map("contact_language")
+  notifyEmail                  Boolean               @default(false) @map("notify_email")
+  notifySms                    Boolean               @default(false) @map("notify_sms")
   status                       CaseStatus
   // Route A: assigned at creation (mandatory); Route B: null until escalation.
   // Foreign key guarantees existence; NestJS service transactionally verifies office is active and matches level.
@@ -591,6 +596,7 @@ model Conversation {
   participants ConversationParticipant[]
   messages     Message[]
   offers       SettlementOffer[]
+  reads        ConversationRead[]
 
   // Enforced at most one bilateral consumer-business negotiation conversation per case:
   // idx_case_single_merchant_negotiation ON conversations (case_id) WHERE kind = 'CONSUMER_BUSINESS'
@@ -611,6 +617,20 @@ model ConversationParticipant {
   @@unique([conversationId, userId])
   @@index([userId])
   @@map("conversation_participants")
+}
+
+/** When a person last opened a conversation. Messages from others after this time are "unread" for them. */
+model ConversationRead {
+  conversationId String       @map("conversation_id")
+  userId         String       @map("user_id")
+  readAt         DateTime     @default(now()) @map("read_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_reads")
 }
 
 model Message {

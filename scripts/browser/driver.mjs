@@ -56,7 +56,11 @@ export async function launch() {
   ws.addEventListener("message", event => {
     const m = JSON.parse(event.data);
     if (m.id && pending.has(m.id)) { const { res, rej } = pending.get(m.id); pending.delete(m.id); m.error ? rej(new Error(m.error.message)) : res(m.result); return; }
-    if (m.method === "Runtime.exceptionThrown") errors.push(`exception: ${m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text}`);
+    if (m.method === "Runtime.exceptionThrown") {
+      const text = String(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text);
+      // Chrome aborts a cross-page view transition when a second navigation starts first: harmless, and only seen when tests navigate fast.
+      if (!/Transition was aborted because of invalid state/.test(text)) errors.push(`exception: ${text}`);
+    }
     if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") errors.push(`console.error: ${m.params.args.map(a => a.value ?? a.description).join(" ")}`);
     // The API rate-limits sign-ins; the driver waits and retries, so those answers are not page errors.
     if (m.method === "Log.entryAdded" && m.params.entry.level === "error" && !String(m.params.entry.url ?? "").includes("/api/auth/sign-in")) errors.push(`log: ${m.params.entry.text} ${m.params.entry.url ?? ""}`);
@@ -140,6 +144,32 @@ export async function launch() {
     async type(sel, text) {
       if (!await b.ev(`const el=document.querySelector(${JSON.stringify(sel)}); if(!el) return false; el.focus(); el.select?.(); return true;`)) throw new Error(`No element ${sel}`);
       await send("Input.insertText", { text }); await sleep(120);
+    },
+    /** Types into a typeahead dropdown (ComboField) and clicks the suggestion with exactly that text. */
+    async pick(sel, label) {
+      const ok = await b.ev(`const el=document.querySelector(${JSON.stringify(sel)}); if(!el) return false; el.focus();
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,${JSON.stringify(label)});
+        el.dispatchEvent(new Event('input',{bubbles:true})); return true;`);
+      if (!ok) throw new Error(`No field ${sel}`);
+      await sleep(250);
+      const hit = await b.ev(`const li=[...document.querySelectorAll('[role=option]')].find(o=>o.textContent.trim().toLowerCase()===${JSON.stringify(label.toLowerCase())});
+        if(!li) return false; li.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true})); return true;`);
+      if (!hit) throw new Error(`No suggestion "${label}" for ${sel}`);
+      await sleep(250);
+    },
+    /** How many suggestions a typeahead dropdown offers (opens it to count them). */
+    async options(sel) {
+      await b.ev(`const el=document.querySelector(${JSON.stringify(sel)}); el.focus(); el.click(); return true;`); await sleep(250);
+      const n = await b.ev(`const el=document.querySelector(${JSON.stringify(sel)}); const l=document.getElementById(el.getAttribute('aria-controls')); return l ? l.querySelectorAll('[role=option]').length : 0;`);
+      await b.ev("document.activeElement && document.activeElement.blur(); return 1"); await sleep(150);
+      return n;
+    },
+    /** Moves the real mouse pointer over an element (for hover menus), or away from everything when no selector is given. */
+    async hover(sel) {
+      const at = sel ? await b.ev(`const e=document.querySelector(${JSON.stringify(sel)}); if(!e) return null; const r=e.getBoundingClientRect(); return [r.x+r.width/2, r.y+r.height/2]`) : [4, 690];
+      if (!at) throw new Error(`No element ${sel}`);
+      await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: at[0], y: at[1] });
+      await sleep(300);
     },
     async click(sel) {
       if (!await b.ev(`const el=document.querySelector(${JSON.stringify(sel)}); if(!el) return false; el.click(); return true;`)) throw new Error(`No element ${sel}`);

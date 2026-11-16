@@ -17,6 +17,14 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: navy and amber palette, office redirects, typeahead, two-sided messages, 16 November 2026
+
+- Colours: the AddisB2B Trade Bureau screenshot (navy `#0B2545`, amber `#F5B51B`, very light blue page `#F4F7FB`, icon accents orange/blue/green/purple) replaced the forest green taken earlier from the old `addisb2b-prototype` folder. Tokens in `tokens.css`; `theme.css` keeps text on amber navy. The workspaces use the same palette (white sidebar, navy logo, amber edge and count pills).
+- Redirect: an office can send a case to another office. City Bureau: any Sub-City or Woreda. Sub-City: the Bureau or a Woreda of its own Sub-City. Woreda: the Bureau or its own Sub-City. The API checks the rule; a handover note is required; one transaction writes the transfer, history, audit row and a notice to the consumer. `POST /api/office/cases/:reference/redirect`, `GET /api/office/redirect-options`, permission `cases.redirect.office`.
+- Typeahead dropdown (`ComboField`): type to filter, only real options accepted. Used for the Sub-City and Woreda in the purchase step, the destination step, the tip form and the redirect dialog. The Woreda list follows the Sub-City.
+- Messages: unread counts per conversation and on the Messages menu (new table `conversation_reads`), officer messages show the officer and office, refresh every 2.5 seconds and when the tab gets focus. The conversation follows the case to the next office with its whole history. Menu counts on the government portals are real now (cases waiting, new tips, unread messages).
+- Tests: `npm run test:browser:offices` (25 checks). Typed-suggestion checks added to `evidence`.
+
 ## Completed: evidence upload and office dropdowns, 16 November 2026
 
 - Evidence: a calm drop area (the raw browser file control is hidden), drag and drop, a tidy list with a state per file, and real storage (new `evidence` API module). Files appear on the consumer, office and business case pages with links; the consumer can add more later.

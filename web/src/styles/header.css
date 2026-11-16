@@ -1,0 +1,58 @@
+/* Public header in the style of the AddisB2B Trade Bureau site: logo and name, search, tools, then a centred menu row with hover lists. */
+.hdr { position: sticky; top: 0; z-index: 60; background: #fff; border-bottom: 1px solid var(--line); box-shadow: none; backdrop-filter: none; }
+.hdr .nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
+.hdr-top { background: #fff; }
+.hdr-top__row { display: flex; align-items: center; gap: var(--s5); min-height: 76px; max-width: 1320px; }
+.hdr-brand { display: inline-flex; align-items: center; gap: var(--s3); flex: none; text-decoration: none; color: var(--green-deep); }
+.hdr-brand img { width: 56px; height: 56px; border-radius: 50%; }
+.hdr-brand span { display: grid; line-height: 1.15; }
+.hdr-brand small { font-size: .82rem; font-weight: 700; color: var(--green); letter-spacing: .01em; }
+.hdr-brand b { font-size: 1.45rem; letter-spacing: -.01em; }
+.hdr-search { display: flex; align-items: center; gap: 10px; flex: 1; max-width: 460px; margin-left: auto; padding: 0 16px; min-height: 46px; border: 1px solid var(--line); border-radius: 999px; background: var(--alt); color: var(--muted); }
+.hdr-search:focus-within { border-color: var(--green); background: #fff; box-shadow: 0 0 0 3px rgba(11, 37, 69, .12); }
+.hdr-search .ico { width: 18px; height: 18px; flex: none; }
+.hdr-search input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; color: var(--ink); outline: none; }
+.hdr-tools { display: flex; align-items: center; gap: var(--s3); flex: none; }
+.hdr-tools .call-pill { padding: 8px 14px; }
+.hdr-signin { background: var(--green); border-color: var(--green); color: #fff; min-height: 44px; padding-inline: 18px; border-radius: 10px; font-weight: 700; }
+.hdr-signin:hover { background: var(--green-deep); color: #fff; }
+.hdr-register { min-height: 44px; border-radius: 10px; }
+.hdr-bell { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 10px; color: var(--green); }
+.hdr-bell:hover { background: var(--green-pale); }
+.hdr-bell .ico { width: 20px; height: 20px; }
+.hdr-bell__n { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; background: var(--orange); color: var(--on-amber); font-size: .7rem; font-weight: 800; border: 2px solid #fff; }
+.hdr-burger { display: none; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--green); cursor: pointer; }
+.nav-toggle:focus-visible ~ .hdr-top .hdr-burger { outline: 3px solid #b8780a; outline-offset: 2px; }
+
+.hdr-navrow { border-top: 1px solid var(--line); background: #fff; }
+.hdr-nav > ul { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; margin: 0; padding: 8px 0; list-style: none; }
+.hdr-item { position: relative; }
+.hdr-item > a, .hdr-item > button { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.hdr-item > a:hover, .hdr-item > button:hover, .hdr-item--group:focus-within > button, .hdr-item--group:hover > button { background: var(--green-pale); color: var(--green); }
+.hdr-item > a[aria-current="page"], .hdr-item > button.is-current { background: var(--green); color: #fff; font-weight: 700; }
+.hdr-home { width: 18px; height: 18px; fill: currentColor; }
+.hdr-caret { width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .15s; }
+.hdr-item--group:hover .hdr-caret, .hdr-item--group:focus-within .hdr-caret { transform: translateY(1px) rotate(225deg); }
+/* The list is there only while the pointer is over the group (or it has focus). A transparent strip joins it to the button so it does not close on the way down. */
+.hdr-menu { position: absolute; left: 50%; top: 100%; z-index: 70; display: none; min-width: 250px; margin: 0; padding: 8px; list-style: none; transform: translateX(-50%); border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: var(--shadow-lg); }
+.hdr-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; }
+.hdr-item--group:hover > .hdr-menu, .hdr-item--group:focus-within > .hdr-menu { display: block; }
+.hdr-menu a { display: block; padding: 10px 14px; border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 500; }
+.hdr-menu a:hover { background: var(--green-pale); color: var(--green); }
+.hdr-menu a[aria-current="page"] { background: var(--green-pale); color: var(--green); font-weight: 700; box-shadow: inset 3px 0 0 var(--orange); }
+
+@media (max-width: 1100px) {
+  .hdr-search { display: none; }
+  .hdr-top__row { min-height: 68px; gap: var(--s3); }
+  .hdr-tools { margin-left: auto; }
+  .hdr-burger { display: grid; }
+  .hdr-navrow { display: none; }
+  .nav-toggle:checked ~ .hdr-navrow { display: block; max-height: calc(100vh - 70px); overflow-y: auto; }
+  .hdr-nav > ul { flex-direction: column; align-items: stretch; gap: 0; padding: var(--s2) 0 var(--s3); }
+  .hdr-item > a, .hdr-item > button { width: 100%; justify-content: flex-start; min-height: 48px; }
+  .hdr-caret { display: none; }
+  .hdr-menu { position: static; display: block; min-width: 0; transform: none; border: 0; box-shadow: none; padding: 0 0 0 var(--s4); }
+  .hdr-menu::before { display: none; }
+  .hdr-register, .hdr-tools .call-pill { display: none; }
+}
+@media (max-width: 560px) { .hdr-brand small { font-size: .7rem; } .hdr-brand b { font-size: 1.15rem; } .hdr-brand img { width: 46px; height: 46px; } .lang-switch select { max-width: 112px; } }

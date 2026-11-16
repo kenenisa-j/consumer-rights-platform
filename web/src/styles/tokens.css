@@ -1,43 +1,46 @@
-/* Consumer Protection prototype: design tokens.
-   Public pages use the AddisB2B public look (forest green and orange).
-   Office and merchant pages (later parts) use the government workspace look (navy and orange). */
+/* Consumer Protection: design tokens.
+   Base colours follow the AddisB2B Trade Bureau site: navy blue, amber, white, and a very light blue page.
+   The names --green* and --orange* are kept for the primary (navy) and accent (amber) colours so every component follows.
+   The staff and business workspaces use the same palette (white sidebar, see office.css). */
 :root {
-  /* public look */
-  --green: #123d31;
-  --green-deep: #0e3027;
-  --green-mid: #1d5a48;
-  --green-pale: #edf6f2;
-  --green-line: #c9dfd3;
-  --orange: #d76512;
-  --orange-deep: #a94d0a;
-  --orange-pale: #fdf0e2;
+  /* primary: navy */
+  --green: #0b2545;
+  --green-deep: #081c36;
+  --green-mid: #1b4a7a;
+  --green-pale: #eaf0f9;
+  --green-line: #cbd8ea;
+  /* accent: amber (text on amber is navy, see theme.css) */
+  --orange: #f5b51b;
+  --orange-deep: #8a5a00;
+  --orange-pale: #fff6dd;
+  --on-amber: #0b2545;
 
-  /* office look (Parts B to D) */
-  --navy: #0e2a47;
-  --navy-rail: #0c1e32;
-  --navy-pale: #e7edf5;
-  --office-orange: #e0640f;
+  /* category accents (icons and tinted links) as on the AddisB2B home page */
+  --acc-orange: #ea580c; --acc-orange-bg: #fff1e6;
+  --acc-blue: #1d4ed8;   --acc-blue-bg: #e8efff;
+  --acc-green: #15803d;  --acc-green-bg: #e7f6ec;
+  --acc-purple: #7e22ce; --acc-purple-bg: #f3e8ff;
 
   /* text and surfaces */
-  --ink: #122421;
-  --muted: #56636b;
-  --line: #d9dde4;
-  --line-strong: #b9c2cc;
+  --ink: #0b1f3a;
+  --muted: #55657a;
+  --line: #d6dee9;
+  --line-strong: #b4c1d3;
   --surface: #ffffff;
-  --alt: #f5f7f6;
+  --alt: #f4f7fb;
 
   /* states: text colour and tinted background */
-  --ok: #17734f;      --ok-bg: #e3f4ec;
-  --warn: #7f4b00;    --warn-bg: #fff1dc;
-  --bad: #a3221b;     --bad-bg: #fbe9e7;
-  --info: #1b4a72;    --info-bg: #e8f0f8;
-  --grey: #4c5960;    --grey-bg: #eef1f3;
+  --ok: #15803d;      --ok-bg: #e7f6ec;
+  --warn: #8a5a00;    --warn-bg: #fff6dd;
+  --bad: #b3261e;     --bad-bg: #fbe9e7;
+  --info: #0b2545;    --info-bg: #eaf0f9;
+  --grey: #4c5a6b;    --grey-bg: #eef1f5;
 
   --font: Arial, Helvetica, "Noto Sans Ethiopic", Nyala, Ebrima, system-ui, sans-serif;
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
   --radius: 10px;
   --radius-sm: 6px;
-  --shadow: 0 1px 2px rgba(18, 61, 49, .06), 0 6px 20px rgba(18, 61, 49, .07);
-  --shadow-lg: 0 18px 50px rgba(14, 48, 39, .25);
+  --shadow: 0 1px 2px rgba(11, 37, 69, .06), 0 6px 20px rgba(11, 37, 69, .07);
+  --shadow-lg: 0 18px 50px rgba(8, 28, 54, .25);
   --width: 1180px;
 }

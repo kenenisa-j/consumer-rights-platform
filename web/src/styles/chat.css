@@ -1,5 +1,5 @@
 /* The messenger (Telegram-like): conversation list, chat, bubbles, voice messages, composer. Used by the consumer, the business and the offices. */
-.tg { --tg-bg: #e4ebe6; --tg-me: #e3f7d4; --tg-them: #fff; --tg-accent: #2f7d5b; --tg-line: #e5e8e6; --tg-ink: #17211c; --tg-muted: #6b7a72;
+.tg { --tg-bg: #e6edf7; --tg-me: #d9e7fb; --tg-them: #fff; --tg-accent: #0b2545; --tg-line: #e5e8e6; --tg-ink: #17211c; --tg-muted: #6b7a72;
   display: grid; grid-template-columns: 340px minmax(0, 1fr); height: clamp(480px, 76vh, 780px); border: 1px solid var(--tg-line); border-radius: 16px; overflow: hidden; background: #fff; color: var(--tg-ink); }
 .tg button, .tg textarea { font: inherit; }
 .tg-list { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--tg-line); background: #fff; }
@@ -7,9 +7,9 @@
 .tg-list__head h2 { margin: 0; font-size: 1.2rem; }
 .tg-list ul { flex: 1; margin: 0; padding: 0; list-style: none; overflow-y: auto; }
 .tg-chat { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 14px; border: 0; background: none; text-align: left; cursor: pointer; color: inherit; }
-.tg-chat:hover { background: #f3f6f4; }
+.tg-chat:hover { background: #f1f5fa; }
 .tg-chat[aria-current="true"] { background: var(--tg-accent); color: #fff; }
-.tg-chat:focus-visible { outline: 3px solid #f08a24; outline-offset: -3px; }
+.tg-chat:focus-visible { outline: 3px solid #b8780a; outline-offset: -3px; }
 .tg-avatar { display: grid; place-items: center; flex: none; border-radius: 50%; color: #fff; font-weight: 700; font-size: .95rem; letter-spacing: .02em; }
 .tg-chat__body { display: grid; gap: 1px; flex: 1; min-width: 0; }
 .tg-chat__top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
@@ -23,7 +23,7 @@
 .tg-note--center { align-self: center; text-align: center; }
 
 .tg-pane { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--tg-bg);
-  background-image: radial-gradient(rgba(47, 125, 91, .07) 1.5px, transparent 1.6px); background-size: 22px 22px; }
+  background-image: radial-gradient(rgba(11, 37, 69, .07) 1.5px, transparent 1.6px); background-size: 22px 22px; }
 .tg-empty { display: grid; place-items: center; flex: 1; }
 .tg-empty span { padding: 6px 14px; border-radius: 999px; background: rgba(23, 33, 28, .45); color: #fff; font-size: .9rem; }
 .tg-head { display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: #fff; border-bottom: 1px solid var(--tg-line); }
@@ -31,10 +31,10 @@
 .tg-head__who b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tg-head__who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tg-muted); font-size: .8rem; }
 .tg-open { flex: none; padding: 6px 12px; border: 1px solid var(--tg-line); border-radius: 999px; color: var(--tg-accent); font-size: .85rem; font-weight: 700; text-decoration: none; }
-.tg-open:hover { background: #f3f6f4; }
+.tg-open:hover { background: #f1f5fa; }
 .tg-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--tg-muted); cursor: pointer; }
 .tg-icon svg, .tg-round svg { width: 22px; height: 22px; fill: currentColor; }
-.tg-icon:hover { background: #eef2ef; }
+.tg-icon:hover { background: #e8eef7; }
 .tg-icon--danger { color: #d33f3f; }
 .tg-back { display: none; }
 
@@ -50,17 +50,17 @@
 .tg-bubble p::after { content: ""; display: inline-block; width: 4.6em; }
 .tg-bubble__who { display: block; margin-bottom: 1px; font-size: .8rem; font-weight: 700; }
 .tg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin: -14px 0 0; float: right; font-size: .7rem; color: #7d8c84; }
-.tg-msg--me .tg-meta { color: #5b8c68; }
+.tg-msg--me .tg-meta { color: #3a5f8f; }
 .tg-meta i { display: inline-flex; }
 .tg-meta i svg { width: 14px; height: 14px; fill: #b3c4ba; }
-.tg-meta i.sent svg { fill: #4aa36a; }
+.tg-meta i.sent svg { fill: #15803d; }
 .tg-bubble:has(.voice) .tg-meta { margin: 2px 0 0; float: none; }
 
 .voice { display: flex; align-items: center; gap: 10px; min-width: 210px; padding: 2px 0; }
 .voice__btn { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--tg-accent); color: #fff; cursor: pointer; }
 .voice__btn svg { width: 20px; height: 20px; fill: currentColor; }
 .voice__wave { display: flex; align-items: center; gap: 2px; flex: 1; height: 30px; }
-.voice__wave i { flex: 1; min-width: 2px; max-width: 4px; border-radius: 2px; background: #b9cfc2; }
+.voice__wave i { flex: 1; min-width: 2px; max-width: 4px; border-radius: 2px; background: #b8c8de; }
 .voice__wave i.on { background: var(--tg-accent); }
 .voice__time { flex: none; font-size: .78rem; font-variant-numeric: tabular-nums; color: var(--tg-muted); }
 
@@ -69,8 +69,8 @@
 .tg-compose textarea:focus { outline: 2px solid var(--tg-accent); outline-offset: 0; background: #fff; }
 .tg-round { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--tg-accent); color: #fff; cursor: pointer; }
 .tg-round:hover { filter: brightness(1.08); }
-.tg-round--mic { background: #eef2ef; color: var(--tg-accent); }
-.tg-round:focus-visible, .tg-icon:focus-visible, .voice__btn:focus-visible { outline: 3px solid #f08a24; outline-offset: 2px; }
+.tg-round--mic { background: #e8eef7; color: var(--tg-accent); }
+.tg-round:focus-visible, .tg-icon:focus-visible, .voice__btn:focus-visible { outline: 3px solid #b8780a; outline-offset: 2px; }
 .tg-rec { display: flex; align-items: center; flex: 1; gap: 10px; min-height: 44px; padding: 0 12px; }
 .tg-rec b { font-variant-numeric: tabular-nums; }
 .tg-rec span { color: var(--tg-muted); font-size: .88rem; }
@@ -96,7 +96,7 @@
 .ws-account { position: relative; }
 .ws-account summary { display: block; list-style: none; border-radius: 50%; cursor: pointer; }
 .ws-account summary::-webkit-details-marker { display: none; }
-.ws-account summary:focus-visible { outline: 3px solid #f08a24; outline-offset: 2px; }
+.ws-account summary:focus-visible { outline: 3px solid #b8780a; outline-offset: 2px; }
 .ws-account summary .avatar { transition: box-shadow .15s; }
 .ws-account summary:hover .avatar, .ws-account[open] summary .avatar { box-shadow: 0 0 0 3px rgba(240, 138, 36, .35); }
 .ws-account__menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; display: grid; gap: 2px; min-width: 230px; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 18px 40px -18px rgba(10, 25, 40, .45); }
@@ -106,3 +106,9 @@
 .ws-account__menu a:hover, .ws-account__out:hover { background: var(--alt); }
 .ws-account__out { color: #b3261e; }
 .ws-account__menu hr { margin: 4px 0; border: 0; border-top: 1px solid var(--line); }
+
+/* unread messages */
+.tg-chat__sub { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tg-chat__prev { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.tg-chat.has-unread .tg-chat__top b, .tg-chat.has-unread .tg-chat__prev { color: var(--tg-ink); font-weight: 700; }
+.tg-badge { display: inline-grid; place-items: center; flex: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--orange); color: var(--on-amber); font-size: .72rem; font-weight: 800; }

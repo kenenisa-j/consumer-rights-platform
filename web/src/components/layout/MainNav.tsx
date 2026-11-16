@@ -2,44 +2,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV } from "@/content/shell";
-import { Am } from "@/components/ui/Bi";
+import { NAV, type NavEntry } from "@/content/shell";
+
+const isGroup = (e: NavEntry): e is Extract<NavEntry, { items: unknown }> => "items" in e;
 
 /**
- * Four everyday links, then "More" for the reading pages, so the bar never runs out of room on a laptop screen.
- * On a phone the whole list opens flat from the Menu button (the `.nav-flat` items), and "More" is not shown.
+ * The menu row. Plain links, and groups with a small arrow that open a list while the pointer is over them or they have focus.
+ * The current page is a filled pill (its group too when the page is inside it).
  */
 export function MainNav() {
   const pathname = usePathname();
-  const here = (href: string) => (pathname === href ? "page" : undefined);
-  const main = NAV.filter(i => !i.more);
-  const more = NAV.filter(i => i.more);
-  const moreActive = more.some(i => pathname === i.href || pathname.startsWith(`${i.href}/`));
+  const here = (href: string) => href.split("#")[0] === pathname;
   return (
-    <nav className="nav-bar" aria-label="Main">
+    <nav className="hdr-nav" aria-label="Main">
       <ul>
-        {main.map(item => (
-          <li key={item.href} className={item.href === "/" ? "nav-home" : undefined}>
-            <Link href={item.href} aria-current={here(item.href)}>{item.label.en}<Am text={item.label.am} /></Link>
-          </li>
-        ))}
-        {more.map(item => (
-          <li key={item.href} className="nav-flat">
-            <Link href={item.href} aria-current={here(item.href)}>{item.label.en}<Am text={item.label.am} /></Link>
-          </li>
-        ))}
-        <li className="nav-more">
-          <details>
-            <summary className={moreActive ? "is-current" : undefined}>More<Am text="ተጨማሪ" /></summary>
-            <ul>
-              {more.map(item => (
-                <li key={item.href}>
-                  <Link href={item.href} aria-current={here(item.href)}>{item.label.en}<Am text={item.label.am} /></Link>
-                </li>
-              ))}
+        {NAV.map(e => isGroup(e) ? (
+          <li key={e.label} className="hdr-item hdr-item--group">
+            <button type="button" className={e.items.some(i => here(i.href)) ? "is-current" : undefined} aria-haspopup="true">{e.label}<i aria-hidden="true" className="hdr-caret" /></button>
+            <ul className="hdr-menu">
+              {e.items.map(i => <li key={i.href}><Link href={i.href} aria-current={here(i.href) ? "page" : undefined}>{i.label}</Link></li>)}
             </ul>
-          </details>
-        </li>
+          </li>
+        ) : (
+          <li key={e.href} className="hdr-item">
+            <Link href={e.href} aria-current={here(e.href) ? "page" : undefined}>{e.href === "/" && <svg viewBox="0 0 24 24" aria-hidden="true" className="hdr-home"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>}{e.label}</Link>
+          </li>
+        ))}
       </ul>
     </nav>
   );

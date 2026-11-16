@@ -14,6 +14,10 @@ export class MessagesController {
   @RequirePermission('messages.use')
   list(@Req() req: Authed) { return this.messages.list(req.user.id); }
 
+  @Get('unread')
+  @RequirePermission('messages.use')
+  unread(@Req() req: Authed) { return this.messages.unreadTotal(req.user.id); }
+
   @Get('conversations/:id')
   @RequirePermission('messages.use')
   thread(@Req() req: Authed, @Param('id') id: string) { return this.messages.thread(req.user.id, id); }

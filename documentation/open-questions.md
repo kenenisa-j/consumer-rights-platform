@@ -66,6 +66,8 @@ Do not decide these silently. Implement the configurable/placeholder form, ask, 
     for every category, and whether a Bureau-held case may be passed *down* to a Woreda to visit the market (the climb rule only
     covers moving up).
 
+28. **Redirecting a case between offices.** On the product owner's instruction an office can send a case up, down or across (Bureau to a Woreda, Woreda to the Bureau, and so on), not only one level up. This goes beyond the "one level at a time" climb in the domain model. Please confirm the limits used: a Sub-City reaches only the Woredas of its own Sub-City, a Woreda only its own Sub-City and the Bureau. The redirect takes effect at once (no acceptance step) and is recorded as an accepted transfer.
+
 ## Answered
 
 - **Route A office selection (resolved 12 Nov 2026).** Decided: For Route A, consumers always select

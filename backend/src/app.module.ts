@@ -7,6 +7,12 @@ import { AuthModule } from './lib/auth/auth.module';
 import { HealthModule } from './lib/health/health.module';
 import { CasesModule } from './modules/cases/cases.module';
 import { MeModule } from './modules/me/me.module';
+import { ReferenceModule } from './modules/reference/reference.module';
+import { ContentModule } from './modules/content/content.module';
+import { ComplaintsModule } from './modules/complaints/complaints.module';
+import { TipsModule } from './modules/tips/tips.module';
+import { MessagesModule } from './modules/messages/messages.module';
+import { EvidenceModule } from './modules/evidence/evidence.module';
 import { OfficesModule } from './modules/offices/offices.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { RolesPermissionsModule } from './modules/roles-permissions/roles-permissions.module';
@@ -16,7 +22,6 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SlaModule } from './modules/sla/sla.module';
 import { ReportsModule } from './modules/reports/reports.module';
-import { TipsModule } from './modules/tips/tips.module';
 import { PermissionGuard } from './lib/common/guards/permission.guard';
 import { AllExceptionsFilter } from './lib/common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './lib/common/interceptors/transform.interceptor';
@@ -30,6 +35,12 @@ import { TransformInterceptor } from './lib/common/interceptors/transform.interc
     HealthModule,
     CasesModule,
     MeModule,
+    ReferenceModule,
+    ContentModule,
+    ComplaintsModule,
+    TipsModule,
+    MessagesModule,
+    EvidenceModule,
     OfficesModule,
     StaffModule,
     RolesPermissionsModule,
@@ -39,7 +50,6 @@ import { TransformInterceptor } from './lib/common/interceptors/transform.interc
     NotificationsModule,
     SlaModule,
     ReportsModule,
-    TipsModule,
   ],
   providers: [
     {

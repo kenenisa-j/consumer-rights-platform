@@ -1,12 +1,14 @@
 import { bi } from "@/content/types";
 import { PageHead } from "@/components/ui/PageHead";
 import { Alert } from "@/components/ui/Display";
+import { getLaws } from "@/lib/content";
 import { LawsList } from "@/features/info/LawsList";
 
 export const metadata = { title: "Laws and documents" };
 
 // Prototype: public/laws.html. Improved: search plus type filter with a live result count.
-export default function LawsPage() {
+export default async function LawsPage() {
+  const items = await getLaws();
   return (
     <>
       <PageHead crumbs={[{ label: "Laws and documents" }]} title={bi("Laws and documents", "ሕጎችና ሰነዶች")}
@@ -15,7 +17,7 @@ export default function LawsPage() {
         <Alert tone="warn" icon="file" title="To be verified by the legal office">
           Titles and summaries are shown for review. Documents marked as drafts are not final.
         </Alert>
-        <LawsList />
+        <LawsList items={items} />
       </div></section>
     </>
   );

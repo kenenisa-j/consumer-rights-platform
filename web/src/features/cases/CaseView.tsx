@@ -90,7 +90,7 @@ export function CaseView({ initial, freeCall }: { initial: CaseData; freeCall: s
           {data.banner && <Alert tone={data.banner.tone} icon="bell" title={data.banner.title}>{data.banner.text && <p>{data.banner.text}</p>}</Alert>}
           <CaseActions data={data} onAction={dispatch} onOpen={setDialog} />
           <MessageThread data={data} />
-          {!data.closed && !NO_REPLY.has(data.pending) &&
+          {!data.closed && !data.readOnly && !NO_REPLY.has(data.pending) &&
             <ReplyForm counterpart={data.counterpart} onSend={text => dispatch({ type: "send_message", text })} />}
           <UpdatesCard data={data} />
           <DetailsCard data={data} />

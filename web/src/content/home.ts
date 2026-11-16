@@ -9,7 +9,7 @@ export const HERO = {
   complaint: bi("Make a complaint", "ቅሬታ ያቅርቡ"),
   track: bi("Track a case", "ጉዳይ ይከታተሉ"),
   paths: [
-    { href: "/complaint-or-tip", icon: "chat" as IconName, orange: true, title: bi("Make a complaint", "ቅሬታ ያቅርቡ"),
+    { href: "/complaint/new", icon: "chat" as IconName, orange: true, title: bi("Make a complaint", "ቅሬታ ያቅርቡ"),
       text: "You bought something and want it put right: a refund, a replacement or a repair. You get a case number and updates.",
       go: "Start a complaint" },
     { href: "#quick-tip", icon: "flag" as IconName, orange: false, title: bi("Report unfair trade in the market", "ጥቆማ ይስጡ"),

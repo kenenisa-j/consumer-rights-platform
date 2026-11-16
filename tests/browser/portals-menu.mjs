@@ -62,46 +62,7 @@ try {
   await b.go("/bureau/calls");
   check("calls (City Bureau): shows who took each call", /taken by/i.test(await main()) && /Abebech Mulugeta/.test(await main()) && (await b.ev("return document.querySelectorAll('tbody tr').length")) === 6);
 
-  // ---- Tips ------------------------------------------------------------------------------------------------------------------
-  await b.go("/woreda/tips");
-  check("tips (Woreda): list, filter and anonymity", (await b.ev("return document.querySelectorAll('tbody tr').length")) === 3);
-  await b.ev("[...document.querySelectorAll('.chips input')][2].click(); return 1"); await b.sleep(250);
-  check("tips: 'Closed' filter", (await b.ev("return document.querySelectorAll('tbody tr').length")) === 1);
-  await b.go("/woreda/tips/TIP-2026-00045");
-  const tipPage = await b.text("body");
-  check("PRIVACY: a tip shows no sender and never the private code", /Anonymous\. No name or phone was given/.test(tipPage) && !/Q7MD-42KX/.test(tipPage));
-  check("tip (Woreda): can plan a visit, make a case or close", /Plan a visit/.test(tipPage) && /Make it a case/.test(tipPage) && /Close the tip/.test(tipPage) && !/Send to a Woreda/.test(tipPage));
-  await openDialog("Plan a visit");
-  await b.set("#pv-date", "2026-11-20"); await b.type("#pv-note", "Check the sugar price at the stalls.");
-  await submitDialog("Plan the visit");
-  check("tip (Woreda): a planned visit is recorded", /The visit is planned/.test(await main()) && /Follow-up planned/.test(await main()));
-  await openDialog("Make it a case");
-  await submitDialog("Make it a case");
-  const made = await main();
-  check("tip (Woreda): making it a case records a reference and ends the actions", /became case CC-2026-\d{5}/.test(made) && !(await b.ev("return !!document.querySelector('.actions-card')")));
-  await b.go("/subcity/tips/TIP-2026-00045");
-  check("tip (Sub-City): sends to a Woreda or makes a case here, no visit", /Send to a Woreda/.test(await main()) && /Make it a case here/.test(await main()) && !/Plan a visit/.test(await main()));
-  await openDialog("Send to a Woreda");
-  await b.set("#sw-woreda", "Woreda 5");
-  await submitDialog("Send the tip");
-  check("tip (Sub-City): it is now with that Woreda", /With Woreda 5/.test(await main()) && /Held by Woreda 5/.test(await main()));
-  await b.go("/bureau/tips/TIP-2026-00045");
-  check("tip (City Bureau): makes a case that goes to the Woreda where it happened", /Make it a case/.test(await main()) && /goes to the Woreda where it happened/.test(await main()) && !/Plan a visit|Send to a Woreda/.test(await main()));
-  await openDialog("Close the tip");
-  await submitDialog("Close the tip");
-  check("tip: closing is recorded and ends the actions", /This tip is closed/.test(await main()));
-
-  // ---- Messages ---------------------------------------------------------------------------------------------------------------------
-  await b.go("/woreda/messages");
-  check("messages (Woreda): 3 conversations, staff see the consumer by name", (await b.ev("return document.querySelectorAll('.chat-item').length")) === 3 && /Hirut Alemu/.test(await b.text(".chat-list")));
-  await b.ev("[...document.querySelectorAll('.chat-item')][1].click(); return 1"); await b.sleep(250);
-  check("messages (Woreda): the case moved up, so the consumer thread is read-only with a reason", /moved up to the Sub-City/.test(await b.text(".chat-pane")) && !(await b.ev("return !!document.querySelector('#chat-message')")));
-  await b.go("/bureau/messages");
-  await b.ev("[...document.querySelectorAll('.chat-item')][1].click(); return 1"); await b.sleep(250);
-  await b.type("#chat-message", "Please come on Wednesday at 10:00.");
-  await b.clickText("Send", ".chat-compose button[type=submit]");
-  check("messages (City Bureau): holds the case, so it can write to the consumer", /Please come on Wednesday/.test(await b.text(".chat-feed")));
-  check("messages: 'Open the case' stays inside the portal", (await b.ev("return [...document.querySelectorAll('.chat-pane a')].find(a=>a.textContent.includes('Open the case')).getAttribute('href')")) === "/bureau/cases/CC-2026-00123");
+  // Tips and messages now read the database: see data.mjs and chat.mjs.
 
   // ---- Reports -------------------------------------------------------------------------------------------------------------------------
   for (const [level, heading] of [["woreda", "By market"], ["subcity", "Passed up by each Woreda"], ["bureau", "Who resolved them"]]) {

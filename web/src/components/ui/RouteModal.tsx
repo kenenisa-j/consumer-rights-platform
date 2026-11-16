@@ -21,7 +21,11 @@ export function CloseOrLink({ href, className, children }: { href: string; class
  * A form or chooser shown in a dialog over the page the person was on. The same address still opens as a normal page
  * when it is typed in or refreshed (see the `@modal` intercepting routes). Closing goes back one step in history.
  */
-export function RouteModal({ title, size = "md", children }: { title: string; size?: "sm" | "md" | "lg" | "wide"; children: ReactNode }) {
+export function RouteModal({ title, size = "md", closeTo, children }: {
+  title: string; size?: "sm" | "md" | "lg" | "wide"; children: ReactNode;
+  /** Where closing goes. Without it the dialog steps back in history; set it when the page was opened directly or by a redirect. */
+  closeTo?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const home = useRef(pathname);   // the address this dialog belongs to
@@ -37,7 +41,7 @@ export function RouteModal({ title, size = "md", children }: { title: string; si
     return () => { leaving.current = true; document.body.style.overflow = overflow; if (dialog?.open) dialog.close(); };
   }, []);
 
-  const close = () => { if (!leaving.current) router.back(); };
+  const close = () => { if (!leaving.current) { if (closeTo) router.replace(closeTo); else router.back(); } };
 
   // Next keeps the last dialog in its slot when the person moves to an ordinary page (for example after sending a
   // complaint). The dialog belongs to one address, so it steps aside as soon as the address changes.

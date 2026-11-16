@@ -1,5 +1,5 @@
 import { randomInt, createHash } from 'node:crypto';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { OfficeLevel, RoleCode } from '@prisma/client';
 import { PrismaService } from '../../lib/database/prisma.service';
 import { OfficerContext } from '../cases/government-cases.helpers';
@@ -28,41 +28,21 @@ export function verifyFollowUpToken(token: string, storedHash: string): boolean 
   return hashFollowUpToken(token) === storedHash;
 }
 
-/** Generates the next atomic reference in TIP-YYYY-NNNNN format. */
-export async function generateTipReference(prisma: PrismaService): Promise<string> {
-  const year = new Date().getFullYear();
-  const count = await prisma.anonymousReport.count();
-  const seq = count + 1;
-  return `TIP-${year}-${String(seq).padStart(5, '0')}`;
-}
-
-/** Resolves the destination government office based on subcity and optional woreda. */
+/** Resolves a valid active Sub-City or Woreda office. Never silently reroutes. */
 export async function resolveTipOffice(
   prisma: PrismaService,
   subcity: string,
   woreda?: string,
 ) {
-  const cleanSub = subcity.trim();
-  const subCode = cleanSub.toUpperCase().replace(/\s+/g, '-');
-
-  if (woreda && woreda.trim()) {
-    const rawWo = woreda.trim();
-    const woNum = parseInt(rawWo, 10);
-    const woCode = !isNaN(woNum) ? String(woNum).padStart(2, '0') : rawWo;
-
-    const woredaOffice = await prisma.administrativeOffice.findFirst({
-      where: {
-        level: OfficeLevel.WOREDA,
-        isActive: true,
-        OR: [
-          { woredaCode: woCode, subcityCode: subCode },
-          { woredaCode: rawWo, subcityCode: subCode },
-          { nameEn: { contains: `Woreda ${rawWo}`, mode: 'insensitive' } },
-        ],
-      },
+  const cleanSub = (subcity || '').trim();
+  if (!cleanSub) {
+    throw new BadRequestException({
+      code: 'SUBCITY_REQUIRED',
+      message: 'Choose a Sub-City.',
     });
-    if (woredaOffice) return woredaOffice;
   }
+
+  const subCode = cleanSub.toUpperCase().replace(/[^A-Z0-9]+/g, '-');
 
   const subcityOffice = await prisma.administrativeOffice.findFirst({
     where: {
@@ -70,20 +50,59 @@ export async function resolveTipOffice(
       isActive: true,
       OR: [
         { subcityCode: subCode },
+        { subcityCode: cleanSub.toUpperCase() },
         { nameEn: { contains: cleanSub, mode: 'insensitive' } },
       ],
     },
   });
-  if (subcityOffice) return subcityOffice;
 
-  const bureauOffice = await prisma.administrativeOffice.findFirst({
-    where: { level: OfficeLevel.CITY_BUREAU, isActive: true },
-  });
-  if (bureauOffice) return bureauOffice;
+  if (!subcityOffice) {
+    throw new BadRequestException({
+      code: 'INVALID_SUBCITY',
+      message: 'The selected Sub-City is not valid.',
+    });
+  }
 
-  const fallback = await prisma.administrativeOffice.findFirst({ where: { isActive: true } });
-  if (!fallback) throw new NotFoundException({ code: 'OFFICE_NOT_FOUND', message: 'No active government office found.' });
-  return fallback;
+  if (woreda !== undefined && woreda !== null && String(woreda).trim() !== '') {
+    const rawWoreda = String(woreda).trim();
+
+    if (!/^\d{1,2}$/.test(rawWoreda)) {
+      throw new BadRequestException({
+        code: 'INVALID_WOREDA',
+        message: 'The selected Woreda is not valid.',
+      });
+    }
+
+    const woredaCode = rawWoreda.padStart(2, '0');
+
+    const woredaOffice = await prisma.administrativeOffice.findFirst({
+      where: {
+        level: OfficeLevel.WOREDA,
+        isActive: true,
+        OR: [
+          { subcityCode: subcityOffice.subcityCode || subCode, woredaCode },
+          { subcityCode: subcityOffice.subcityCode || subCode, woredaCode: rawWoreda },
+          { parentOfficeId: subcityOffice.id, woredaCode },
+          { parentOfficeId: subcityOffice.id, woredaCode: rawWoreda },
+          {
+            parentOfficeId: subcityOffice.id,
+            nameEn: { contains: `Woreda ${rawWoreda}`, mode: 'insensitive' },
+          },
+        ],
+      },
+    });
+
+    if (!woredaOffice) {
+      throw new BadRequestException({
+        code: 'INVALID_WOREDA',
+        message: 'The selected Woreda does not belong to the selected Sub-City.',
+      });
+    }
+
+    return woredaOffice;
+  }
+
+  return subcityOffice;
 }
 
 /** Enforces that an officer can only view/act on tips within their jurisdiction; fails closed with 404 to prevent existence probing. */
@@ -140,7 +159,7 @@ export function buildOfficerTipWhere(actor: OfficerContext, query?: any): any {
 /** Formats a single government tip summary row for the officer table view. */
 export function formatGovTipSummary(r: any) {
   return {
-    reference: r.id,
+    reference: r.referenceNumber,
     title: `${r.category} at ${r.marketLocation}`,
     where: r.marketLocation,
     seen: r.createdAt.toLocaleDateString('en-GB', {
@@ -157,21 +176,42 @@ export function formatGovTipSummary(r: any) {
   };
 }
 
+/** Structured shape of a scoped tip row returned from database queries. */
+export interface ScopedTipReport {
+  id: string;
+  referenceNumber?: string | null;
+  category: string;
+  marketLocation: string;
+  targetBusinessName?: string | null;
+  product?: string | null;
+  description: string;
+  status: string;
+  createdAt: Date;
+  subcityCode?: string | null;
+  woredaCode?: string | null;
+  destinationOffice?: { nameEn?: string | null } | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+}
+
 /** Resolves an appropriate active complaint category for converting an anonymous tip. */
 export async function resolveTipCategory(prisma: PrismaService, categoryId?: string, tipCategory = '') {
   if (categoryId) {
     const found = await prisma.complaintCategory.findFirst({
-      where: { OR: [{ id: categoryId }, { code: categoryId }] },
+      where: {
+        isActive: true,
+        OR: [{ id: categoryId }, { code: categoryId }],
+      },
     });
     if (found) return found;
   }
 
   const category = await prisma.complaintCategory.findFirst({
     where: {
+      isActive: true,
       OR: [
         { code: tipCategory.toUpperCase().replace(/\s+/g, '_') },
         { nameEn: { contains: tipCategory, mode: 'insensitive' } },
-        { isActive: true },
       ],
     },
   });
@@ -179,28 +219,6 @@ export async function resolveTipCategory(prisma: PrismaService, categoryId?: str
     throw new NotFoundException({ code: 'CATEGORY_NOT_FOUND', message: 'No valid complaint category found.' });
   }
   return category;
-}
-
-/** Public tracking view: strictly excludes officer notes, officer identities, and reporter details. */
-export function formatPublicTipTracking(report: any) {
-  const isClosed = report.status === 'closed_action_taken' || report.status === 'closed_no_action';
-  return {
-    reference: report.id,
-    status: report.status,
-    label: formatTipStatusLabel(report.status),
-    category: report.category,
-    where: report.marketLocation,
-    received: report.createdAt.toLocaleDateString('en-GB', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }),
-    reviewedBy: report.destinationOffice?.nameEn || 'Addis Ababa Trade and Market Bureau',
-    meaning: formatTipStatusMeaning(report.status),
-    convertedCaseReference: report.convertedCase?.referenceNumber || null,
-    isClosed,
-  };
 }
 
 function formatTipStatusLabel(status: string): string {
@@ -227,8 +245,30 @@ function formatTipStatusMeaning(status: string): string {
   return meanings[status] || 'An officer is reviewing the report.';
 }
 
+/** Public tracking view: strictly excludes officer notes, officer identities, and reporter details. */
+export function formatPublicTipTracking(report: any) {
+  const isClosed = report.status === 'closed_action_taken' || report.status === 'closed_no_action';
+  return {
+    reference: report.referenceNumber || report.id,
+    category: report.category,
+    status: report.status,
+    label: formatTipStatusLabel(report.status),
+    meaning: formatTipStatusMeaning(report.status),
+    where: report.marketLocation,
+    isClosed,
+    seen: report.createdAt.toLocaleDateString('en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }),
+    receivedAt: report.createdAt.toISOString(),
+    caseRef: report.convertedCase?.referenceNumber || undefined,
+  };
+}
+
 /** Government officer view of a tip: includes history and office details, zero reporter identity. */
-export function formatGovTip(report: any, level: string) {
+export function formatGovTip(report: any, _level: string) {
   const isClosed = report.status === 'closed_action_taken' || report.status === 'closed_no_action';
   const holder = report.destinationOffice?.nameEn || 'Government Office';
   const history = (report.auditLogs || []).map((l: any) => ({
@@ -260,7 +300,7 @@ export function formatGovTip(report: any, level: string) {
   });
 
   return {
-    reference: report.id,
+    reference: report.referenceNumber,
     title: `${report.category} at ${report.marketLocation}`,
     where: report.marketLocation,
     seen: report.createdAt.toLocaleDateString('en-GB', {

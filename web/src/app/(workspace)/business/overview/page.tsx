@@ -1,76 +1,166 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
-import { API_URL, requirePortal } from "@/lib/session";
-import { Alert } from "@/components/ui/Display";
+import { Alert, StatusPill } from "@/components/ui/Display";
 import { Am } from "@/components/ui/Bi";
-import { BUSINESS } from "@/features/business/menu";
+import { requirePortal } from "@/lib/session";
+import { serverGet } from "@/lib/server-api";
+import { niceDate, statusOf } from "@/lib/case-status";
 
 export const metadata = { title: "Overview" };
 
-async function fetchOverviewData() {
-  try {
-    const jar = await cookies();
-    const [reportRes, casesRes] = await Promise.all([
-      fetch(`${API_URL}/api/business/reports/overview`, { headers: { cookie: jar.toString() }, cache: "no-store" }),
-      fetch(`${API_URL}/api/business/cases`, { headers: { cookie: jar.toString() }, cache: "no-store" }),
-    ]);
-
-    const report = reportRes.ok ? await reportRes.json() : null;
-    const cases = casesRes.ok ? (await casesRes.json())?.cases : null;
-
-    if (report || cases) {
-      const waiting = Array.isArray(cases) ? cases.filter((c: any) => c.status === "SUBMITTED_TO_BUSINESS") : [];
-      const withOfficer = Array.isArray(cases)
-        ? cases.filter((c: any) => ["RECEIVED_BY_OFFICE", "UNDER_INITIAL_REVIEW", "OFFICER_ASSIGNED", "ESCALATED_TO_GOVERNMENT"].includes(c.status))
-        : [];
-      const resolved = Array.isArray(cases)
-        ? cases.filter((c: any) => ["RESOLVED_MUTUALLY", "RESOLVED_ADMINISTRATIVE_ORDER"].includes(c.status))
-        : [];
-
-      return {
-        waitingCount: report?.openCount ?? waiting.length,
-        withOfficerCount: withOfficer.length,
-        resolvedCount: report?.resolvedCount ?? resolved.length,
-        firstWaiting: waiting[0] || null,
-      };
-    }
-  } catch {
-    // fallback
-  }
-
-  return {
-    waitingCount: 1,
-    withOfficerCount: 1,
-    resolvedCount: 1,
-    firstWaiting: { reference: "CC-2026-00123", slaDeadline: "Wednesday 4 November, 09:40" },
-  };
+interface BizCase {
+  reference: string;
+  title: string;
+  status: string;
+  consumer: string;
+  dueBy: string | null;
+  updatedAt: string;
 }
 
-// Prototype: merchant/overview.html. Only the complaint side belongs to this module; orders and prices are the
-// existing AddisB2B desk (open question 12).
+const REPLY = new Set(["SUBMITTED_TO_BUSINESS", "BUSINESS_OFFER_PENDING"]);
+
+// The business overview shows its own complaints and actions using database records.
 export default async function BusinessOverviewPage() {
   const me = await requirePortal("business", "/business/overview");
-  const data = await fetchOverviewData();
-  const tradeName = me.business?.tradeName || BUSINESS.name;
-  const firstName = me.fullName.split(" ")[0] || BUSINESS.first;
+  const cases = await serverGet<BizCase[]>("/business/complaints");
+
+  const all = cases ?? [];
+  const waiting = all.filter(c => REPLY.has(c.status));
+  const withOfficer = all.filter(
+    c => !REPLY.has(c.status) && statusOf(c.status).stage !== "resolved"
+  );
+  const done = all.filter(c => statusOf(c.status).stage === "resolved");
+
+  const name = me.business?.tradeName ?? "your business";
+  const firstName = me.fullName.split(" ")[0] || "there";
+
+  const hour = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "Africa/Addis_Ababa"
+    }).format(new Date())
+  );
 
   return (
     <>
-      <div className="ws-title"><div><h1>Good morning, {firstName}<Am text="እንኳን ደህና መጡ" /></h1><p>{tradeName}</p></div></div>
-      <div className="stack">
-        {data.firstWaiting && (
-          <Alert tone="warn" icon="folder" title="A consumer complaint needs your reply">
-            <p className="mb-0">{data.firstWaiting.reference} is waiting. Please reply as soon as possible. <Link href={`/business/complaints/${data.firstWaiting.reference}`}>Open it</Link></p>
-          </Alert>
-        )}
-        <div className="tiles">
-          <div className={`tile ${data.waitingCount > 0 ? "tile--alert" : ""}`}><b>{data.waitingCount}</b><span>Complaint{data.waitingCount === 1 ? "" : "s"} need{data.waitingCount === 1 ? "s" : ""} your reply</span></div>
-          <div className="tile"><b>{data.withOfficerCount}</b><span>Complaint{data.withOfficerCount === 1 ? "" : "s"} with an officer</span></div>
-          <div className="tile"><b>{data.resolvedCount}</b><span>Resolved this month</span></div>
-          <div className="tile"><b>2 days</b><span>Usual time to reply</span></div>
+      <div className="ws-title">
+        <div>
+          <h1>
+            {hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"},
+            {" "}{firstName}
+            <Am text="እንኳን ደህና መጡ" />
+          </h1>
+          <p>{niceDate(new Date().toISOString())} · {name}</p>
         </div>
-        <div className="card card--flat"><h2 style={{ fontSize: "1.05rem" }}>Orders and prices</h2>
-          <p className="mb-0 small">Your products, prices and orders are in the AddisB2B business desk. This workspace covers consumer complaints and your messages with consumers and offices.</p></div>
+      </div>
+
+      <div className="stack">
+        {cases === null ? (
+          <Alert tone="warn" icon="flag" title="We could not load your complaints.">
+            Try again in a moment.
+          </Alert>
+        ) : (
+          <>
+            {waiting.length > 0 && (
+              <Alert
+                tone="warn"
+                icon="folder"
+                title={`${waiting.length} consumer ${waiting.length === 1 ? "complaint needs" : "complaints need"} your reply`}
+              >
+                {waiting.slice(0, 3).map(w => (
+                  <p key={w.reference} className="mb-0">
+                    {w.reference}: {w.title}.{" "}
+                    <Link href={`/business/messages?case=${w.reference}`}>Reply</Link>
+                    {" · "}
+                    <Link href={`/business/complaints/${w.reference}`}>Open it</Link>
+                  </p>
+                ))}
+              </Alert>
+            )}
+
+            <div className="tiles">
+              <div className={`tile${waiting.length > 0 ? " tile--alert" : ""}`}>
+                <b>{waiting.length}</b>
+                <span>Need your reply</span>
+              </div>
+              <div className="tile">
+                <b>{withOfficer.length}</b>
+                <span>With an officer</span>
+              </div>
+              <div className="tile">
+                <b>{done.length}</b>
+                <span>Resolved</span>
+              </div>
+              <div className="tile">
+                <b>{all.length}</b>
+                <span>Complaints in all</span>
+              </div>
+            </div>
+
+            <div className="card">
+              <h2>Latest complaints</h2>
+              {all.length === 0 ? (
+                <p className="mb-0 muted">
+                  No consumer has complained about your business.
+                </p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table table--stack">
+                    <thead>
+                      <tr>
+                        <th scope="col">Complaint</th>
+                        <th scope="col">Consumer</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Updated</th>
+                        <th scope="col">
+                          <span className="visually-hidden">Open</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {all.slice(0, 5).map(c => (
+                        <tr key={c.reference}>
+                          <td>
+                            <b>{c.reference}</b>
+                            <small>{c.title}</small>
+                          </td>
+                          <td data-label="Consumer">{c.consumer}</td>
+                          <td data-label="Status">
+                            <StatusPill tone={statusOf(c.status).tone}>
+                              {statusOf(c.status).label}
+                            </StatusPill>
+                          </td>
+                          <td data-label="Updated">{niceDate(c.updatedAt)}</td>
+                          <td className="num">
+                            <Link
+                              className="btn btn--secondary btn--sm"
+                              href={`/business/complaints/${c.reference}`}
+                            >
+                              Open
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p className="mt-4 mb-0">
+                <Link href="/business/complaints">All complaints</Link>
+                {" · "}
+                <Link href="/business/messages">Messages</Link>
+              </p>
+            </div>
+          </>
+        )}
+
+        <div className="card card--flat">
+          <h2 style={{ fontSize: "1.05rem" }}>Orders and prices</h2>
+          <p className="mb-0 small">
+            Your products, prices and orders are in the AddisB2B business desk.
+            This workspace covers consumer complaints and your messages with consumers and offices.
+          </p>
+        </div>
       </div>
     </>
   );

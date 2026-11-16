@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { NEWS, NEWS_TAGS, TAG_BADGE, type NewsTag } from "@/content/library";
+import { NEWS_TAGS, TAG_BADGE } from "@/content/library";
+import type { NewsItem, NewsTag } from "@/lib/content";
+import { niceDate } from "@/lib/case-status";
 import { Icon } from "@/components/ui/Icon";
 
-export function NewsList() {
+export function NewsList({ items }: { items: NewsItem[] }) {
   const [tag, setTag] = useState<NewsTag | "All">("All");
-  const shown = NEWS.filter(n => tag === "All" || n.tag === tag);
+  const shown = items.filter(n => tag === "All" || n.tag === tag);
   return (
     <>
       <div className="chips" role="radiogroup" aria-label="Show">
@@ -23,7 +25,7 @@ export function NewsList() {
             <span className={`badge ${TAG_BADGE[n.tag]}`.trim()}>{n.tag}</span>
             <h3>{n.title}</h3>
             <p className="small muted mb-0">{n.excerpt}</p>
-            <time dateTime={n.iso}>{n.date}</time>
+            <time dateTime={n.publishedAt}>{niceDate(n.publishedAt)}</time>
           </Link>
         ))}
       </div>

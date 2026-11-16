@@ -17,9 +17,9 @@ export const BIZ_MENU: { title: string; items: BizMenuItem[] }[] = [
   { title: "Business", items: [
     { slug: "overview", label: "Overview", icon: "grid" },
     { slug: "stock", label: "Stock and prices", icon: "tag", owner: "addisb2b" },
-    { slug: "orders", label: "Orders", icon: "bag", count: 2, owner: "addisb2b" }] },
+    { slug: "orders", label: "Orders", icon: "bag", owner: "addisb2b" }] },
   { title: "Customers", items: [
-    { slug: "complaints", label: "Consumer complaints", icon: "folder", count: 1 },
-    { slug: "messages", label: "Messages", icon: "chat", count: 2 },
-    { slug: "profile", label: "Business profile", icon: "building", owner: "addisb2b" }] }
+    { slug: "complaints", label: "Consumer complaints", icon: "folder" },
+    { slug: "messages", label: "Messages", icon: "chat" },
+    { slug: "profile", label: "Business profile", icon: "building" }] }
 ];

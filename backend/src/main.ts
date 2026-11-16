@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
-import { json, urlencoded } from 'express';
+import { json, raw, urlencoded } from 'express';
 import type { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
 import { toNodeHandler } from 'better-auth/node';
 import { AppModule } from './app.module';
@@ -103,7 +103,10 @@ export async function createNestApp() {
   });
 
   // Mount body-parsing middleware after Better Auth handler
-  app.use(json());
+  // An evidence file is sent as the raw request body (up to 10 MB); every other route gets JSON.
+  app.use('/api/complaints', (req: ExpressRequest, res: ExpressResponse, next: NextFunction) =>
+    req.method === 'POST' && req.path.endsWith('/evidence') ? raw({ type: () => true, limit: '10mb' })(req, res, next) : next());
+  app.use(json({ limit: '3mb' })); // room for a voice note sent as base64 (the API caps the recording itself)
   app.use(urlencoded({ extended: true }));
 
   // Global routing prefix

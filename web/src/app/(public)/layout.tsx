@@ -7,6 +7,8 @@ import "@/styles/print.css";
 import "@/styles/public.css";
 import "@/styles/app.css";
 import "@/styles/site.css";
+import "@/styles/pages.css";
+import "@/styles/chat.css";
 import { PublicShell } from "@/components/layout/PublicShell";
 
 // Each route group has its own root layout, so the public (green) and workspace (navy) stylesheets never mix.

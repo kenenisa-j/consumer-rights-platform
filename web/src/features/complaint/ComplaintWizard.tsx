@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { submitComplaint } from "@/mocks/misc";
+import { apiPost, type ApiResult } from "@/lib/api";
+import { uploadEvidence } from "@/lib/evidence";
+import type { RefData } from "@/lib/reference";
 import { saveHandoff } from "@/lib/handoff";
 import { useFilePicker } from "@/components/ui/FileList";
 import { STEP_COUNT, clearDraft, emptyDraft, loadDraft, saveDraft, type Draft } from "./draft";
@@ -15,56 +17,210 @@ import { WizardShell } from "./WizardShell";
  * dialog. Answers live in the draft (sessionStorage), so a refresh never loses typing. A step can only be opened once the
  * earlier ones are completed.
  */
-export function ComplaintWizard({ freeCall, contact }: { freeCall: string; contact: { first: string; phone: string; email: string } }) {
+export function ComplaintWizard({
+  freeCall,
+  contact,
+  refData
+}: {
+  freeCall: string;
+  contact: { first: string; phone: string; email: string };
+  refData: RefData;
+}) {
   const router = useRouter();
   const [requested, setRequested] = useState(1);
   const [draft, setDraft] = useState<Draft>(() => emptyDraft(contact.phone, contact.email));
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
   const picker = useFilePicker(8, 10);
   const first = useRef(true);
 
-  useEffect(() => { setDraft(loadDraft(emptyDraft(contact.phone, contact.email))); setReady(true); }, []);
-  useEffect(() => { if (ready) saveDraft(draft); }, [draft, ready]);
   useEffect(() => {
-    setDraft(d => ({ ...d, fileNames: picker.files.map(f => ({ name: f.file.name, size: f.file.size, shared: !!f.shared })) }));
+    setDraft(loadDraft(emptyDraft(contact.phone, contact.email)));
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (ready) saveDraft(draft);
+  }, [draft, ready]);
+
+  useEffect(() => {
+    setDraft(d => ({
+      ...d,
+      fileNames: picker.files.map(f => ({
+        name: f.file.name,
+        size: f.file.size,
+        shared: !!f.shared
+      }))
+    }));
   }, [picker.files]);
 
   const step = Math.min(Math.max(1, requested), STEP_COUNT, draft.reached);
+
   useEffect(() => {
     if (!ready) return;
-    if (first.current) { first.current = false; return; }
+    if (first.current) {
+      first.current = false;
+      return;
+    }
     document.getElementById("wz-title")?.focus();
     document.getElementById("wz-title")?.scrollIntoView({ block: "start" });
   }, [step, ready]);
 
-  const set = useCallback((patch: Partial<Draft>) => setDraft(d => ({ ...d, ...patch })), []);
+  const set = useCallback(
+    (patch: Partial<Draft>) => setDraft(d => ({ ...d, ...patch })),
+    []
+  );
+
   const go = (n: number) => setRequested(n);
-  const next = () => { set({ reached: Math.max(draft.reached, step + 1) }); go(step + 1); };
+  const next = () => {
+    set({ reached: Math.max(draft.reached, step + 1) });
+    go(step + 1);
+  };
   const back = () => go(step - 1);
 
   const send = async () => {
-    setBusy(true); setError(null);
+    setBusy(true);
+    setError(null);
+    setProgress(null);
+
+    const { business: b, purchase: p, outcome: o } = draft;
+    const sub = (name: string) => refData.subcities.find(s => s.name === name)?.code;
+    const registered = b.mode === "registered";
+
+    let result: ApiResult<{
+      reference: string;
+      sentAt: string;
+      toBusiness: boolean;
+      handledBy: string;
+    }>;
+
     try {
-      const receipt = await submitComplaint(draft); // the backend stores the complaint; evidence uploads follow
-      saveHandoff("complaint-receipt", { ...receipt, first: contact.first, email: draft.outcome.email,
-        toBusiness: draft.business.mode === "registered", business: draft.business.name });
-      clearDraft();
-      router.push("/complaint/sent");
-    } catch { setError("Your complaint was not sent. Check your connection and try again. Your answers are still here."); setBusy(false); }
+      result = await apiPost<{
+        reference: string;
+        sentAt: string;
+        toBusiness: boolean;
+        handledBy: string;
+      }>("/api/complaints", {
+        category: draft.category,
+        subject: draft.subject,
+        narrative: draft.what,
+        urgent: draft.urgent,
+        destination: draft.destination,
+        subcityCode: sub(
+          draft.destination === "woreda" || draft.destination === "subcity"
+            ? draft.destSubcity
+            : p.subcity
+        ),
+        woreda: draft.destination === "woreda"
+          ? Number(draft.destWoreda) || null
+          : null,
+        merchantId: registered ? b.id : null,
+        otherBusinessName: registered ? "" : b.name,
+        otherBusinessPlace: [
+          b.address,
+          b.subcity,
+          b.woreda && `Woreda ${b.woreda}`
+        ].filter(Boolean).join(", "),
+        otherBusinessPhone: b.phone,
+        item: p.item,
+        purchasedOn: p.date,
+        paid: p.paid === "" ? null : Number(p.paid),
+        loss: p.loss === "" ? null : Number(p.loss),
+        receipt: p.receipt === "no" || p.receipt === "lost" ? "no" : "yes",
+        want: o.want,
+        wantAmount: o.amount === "" ? null : Number(o.amount),
+        contactPhone: o.phone
+      });
+    } catch {
+      setError("Your complaint could not be submitted. Check your connection and try again. Your answers are still here.");
+      setBusy(false);
+      return;
+    }
+
+    if (!result.ok) {
+      setError(result.error);
+      setBusy(false);
+      return;
+    }
+
+    // The complaint now exists. Evidence uploads are handled separately.
+    const failed: string[] = [];
+    const todo = picker.files;
+
+    for (let i = 0; i < todo.length; i++) {
+      setProgress(`Uploading file ${i + 1} of ${todo.length}…`);
+      picker.mark(todo[i].id, "uploading");
+
+      try {
+        const up = await uploadEvidence(
+          result.data.reference,
+          todo[i].file,
+          !!todo[i].shared
+        );
+
+        picker.mark(
+          todo[i].id,
+          up.ok ? "done" : "failed",
+          up.ok ? undefined : up.error
+        );
+
+        if (!up.ok) failed.push(todo[i].file.name);
+      } catch {
+        failed.push(todo[i].file.name);
+        picker.mark(todo[i].id, "failed", "Upload failed. You can add it again from the case page.");
+      }
+    }
+
+    setProgress(null);
+
+    saveHandoff("complaint-receipt", {
+      ...result.data,
+      first: contact.first,
+      email: draft.outcome.email,
+      toBusiness: registered,
+      business: b.name,
+      failedFiles: failed,
+      fileCount: todo.length
+    });
+
+    clearDraft();
+    router.push("/complaint/sent");
   };
 
-  if (!ready) return <p className="container muted" role="status">Loading your form…</p>;
-  const props = { draft, set, next, back };
+  if (!ready) {
+    return <p className="container muted" role="status">Loading your form…</p>;
+  }
+
+  const props = { draft, set, next, back, refData };
+
   return (
-    <WizardShell step={step} draft={draft} freeCall={freeCall} onGo={go}>
+    <WizardShell
+      step={step}
+      draft={draft}
+      freeCall={freeCall}
+      onGo={go}
+      categoryTitle={code =>
+        refData.categories.find(c => c.code === code)?.nameEn ?? code
+      }
+    >
       {step === 1 && <Step1 {...props} />}
       {step === 2 && <Step2 {...props} />}
       {step === 3 && <Step3 {...props} />}
       {step === 4 && <Step4 {...props} picker={picker} />}
       {step === 5 && <Step5 {...props} />}
-      {step === 6 && <Step6 {...props} onGo={go} onSend={send} busy={busy} error={error} fileCount={picker.files.length} />}
+      {step === 6 && (
+        <Step6
+          {...props}
+          onGo={go}
+          onSend={send}
+          busy={busy}
+          error={error}
+          progress={progress}
+          fileCount={picker.files.length}
+        />
+      )}
     </WizardShell>
   );
 }

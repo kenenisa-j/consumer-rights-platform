@@ -8,5 +8,4 @@ import { TipsService } from './tips.service';
   providers: [TipsService],
   exports: [TipsService],
 })
-export class TipsModule {}
-
+export class TipsModule { }

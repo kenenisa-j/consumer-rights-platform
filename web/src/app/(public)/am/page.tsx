@@ -25,12 +25,12 @@ export default function AmharicHomePage() {
           <h1>የተበላሸ፣ አደገኛ ወይም ፍትሃዊ ያልሆነ ዕቃ ገዝተዋል?</h1>
           <p className="lead">ለወረዳዎ ንግድ ጽ/ቤት ያሳውቁ። እውነታውን እናጣራለን፣ ከድርጅቱ ጋር እንነጋገራለን፣ ገንዘብዎ እንዲመለስ፣ ዕቃው እንዲቀየር ወይም እንዲጠገን እናግዛለን።</p>
           <div className="btn-row">
-            <Link className="btn btn--accent btn--lg" href="/complaint-or-tip">ቅሬታ ያቅርቡ</Link>
+            <Link className="btn btn--accent btn--lg" href="/complaint/new">ቅሬታ ያቅርቡ</Link>
             <Link className="btn btn--secondary btn--lg" href="/track">ጉዳይዎን ይከታተሉ</Link>
           </div>
         </div>
         <div className="paths">
-          <Link className="path" href="/complaint-or-tip">
+          <Link className="path" href="/complaint/new">
             <span className="icon-bubble icon-bubble--orange"><Icon name="chat" /></span>
             <span><b>ቅሬታ ያቅርቡ</b><p>የገዙት ዕቃ ወይም አገልግሎት እንዲስተካከል ይፈልጋሉ፦ ገንዘብ ተመላሽ፣ ምትክ ወይም ጥገና። የጉዳይ ቁጥርና መረጃ ያገኛሉ።</p>
               <span className="go">ቅሬታ ይጀምሩ <Icon name="arrow" /></span></span>

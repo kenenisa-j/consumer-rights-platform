@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { NEWS, FAQ } from "@/content/home";
-import { SUB_CITIES } from "@/content/common";
+import { TAG_BADGE } from "@/content/library";
+import type { FaqItem, NewsItem } from "@/lib/content";
+import { niceDate } from "@/lib/case-status";
 import { Icon } from "@/components/ui/Icon";
 import { Am, Bi } from "@/components/ui/Bi";
 
-export function NewsSection() {
+export function NewsSection({ items }: { items: NewsItem[] }) {
   return (
     <section className="section"><div className="container">
       <div className="card-head">
@@ -12,11 +14,11 @@ export function NewsSection() {
         <Link className="btn btn--secondary btn--sm" href="/news">{NEWS.all}</Link>
       </div>
       <div className="grid-3">
-        {NEWS.items.map(n => (
-          <Link key={n.title} className="card news-card" href={n.href}>
+        {items.slice(0, 3).map(n => (
+          <Link key={n.slug} className="card news-card" href={`/news/${n.slug}`}>
             <span className="thumb"><Icon name={n.icon} /></span>
-            <span className={`badge ${n.badge}`.trim()}>{n.tag}</span>
-            <h3>{n.title}</h3><time dateTime={n.iso}>{n.date}</time>
+            <span className={`badge ${TAG_BADGE[n.tag]}`.trim()}>{n.tag}</span>
+            <h3>{n.title}</h3><time dateTime={n.publishedAt}>{niceDate(n.publishedAt)}</time>
           </Link>
         ))}
       </div>
@@ -24,13 +26,13 @@ export function NewsSection() {
   );
 }
 
-export function FaqSection() {
+export function FaqSection({ items }: { items: FaqItem[] }) {
   return (
     <section className="section section--alt"><div className="container narrow">
       <div className="section-title"><span className="kicker">{FAQ.kicker}</span><h2><Bi t={FAQ.title} /></h2></div>
       <div className="accordion">
-        {FAQ.items.map(f => (
-          <details key={f.q.en}>
+        {items.filter(f => f.home).map(f => (
+          <details key={f.slug}>
             <summary>{f.q.en}<Am text={f.q.am} /></summary>
             <div className="body"><p>{f.a}</p></div>
           </details>
@@ -41,7 +43,7 @@ export function FaqSection() {
   );
 }
 
-export function HomeDialogs() {
+export function HomeDialogs({ subcities }: { subcities: string[] }) {
   return (
     <>
       <div className="modal" id="find-office" role="dialog" aria-modal="true" aria-labelledby="fo-title">
@@ -54,7 +56,7 @@ export function HomeDialogs() {
             <div className="field"><label htmlFor="fo-sc">Sub-City</label>
               <select className="select" id="fo-sc" name="subcity">
                 <option value="">Choose a Sub-City</option>
-                {SUB_CITIES.map(s => <option key={s}>{s}</option>)}
+                {subcities.map(s => <option key={s}>{s}</option>)}
               </select></div>
             <div className="btn-row">
               <button className="btn btn--accent" type="submit">Show offices</button>

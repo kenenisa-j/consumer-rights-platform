@@ -1,0 +1,50 @@
+[
+  {
+    "id": "proc-813",
+    "kind": "proc",
+    "kindLabel": "Proclamation",
+    "title": "Trade Competition and Consumers Protection Proclamation No. 813/2013",
+    "text": "Federal law on fair trade and consumer protection.",
+    "source": "Federal Negarit Gazeta"
+  },
+  {
+    "id": "proc-84",
+    "kind": "proc",
+    "kindLabel": "Proclamation",
+    "title": "Addis Ababa City Administration Executive Organs Reorganization Proclamation No. 84/2016",
+    "text": "Sets up the city offices, including the Bureau of Trade.",
+    "source": "Addis Negari Gazeta"
+  },
+  {
+    "id": "dir-complaints",
+    "kind": "dir",
+    "kindLabel": "Directive",
+    "title": "Consumer complaint handling procedure",
+    "text": "How offices receive, investigate, reconcile and close complaints.",
+    "source": "Draft, Customer Rights Protection Directorate"
+  },
+  {
+    "id": "dir-ceilings",
+    "kind": "dir",
+    "kindLabel": "Directive",
+    "title": "Sunday Market price ceilings",
+    "text": "The weekly official prices at Sunday Markets.",
+    "source": "Bureau of Trade, every Friday"
+  },
+  {
+    "id": "guide-settlement",
+    "kind": "guide",
+    "kindLabel": "Guide",
+    "title": "Reconciliation and settlement guideline",
+    "text": "How a refund, replacement or repair is agreed and recorded.",
+    "source": "Draft, Customer Rights Protection Directorate"
+  },
+  {
+    "id": "guide-label",
+    "kind": "guide",
+    "kindLabel": "Guide",
+    "title": "Read the label: expiry dates and weights",
+    "text": "A one-page leaflet for shoppers.",
+    "source": "Awareness campaign 2026"
+  }
+]

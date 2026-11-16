@@ -67,15 +67,15 @@ export function CaseSide({ data, freeCall, onWithdraw }: { data: CaseData; freeC
         <KeyValue single rows={data.handledBy.map(([k, v]) => [k, v] as const)} />
         {data.stage === "business" && <p className="small muted mt-4 mb-0">The business never sees your name, phone or address.</p>}</div>
       <div className="card card--flat"><h2 style={{ fontSize: "1.05rem" }}><Icon name="chat" /> Talk to them</h2>
-        <p className="small">Write, or make an offer, in Messages.</p><Link className="btn btn--secondary btn--sm" href="/messages">Open Messages</Link></div>
+        <p className="small">Write or send a voice message in Messages.</p><Link className="btn btn--secondary btn--sm" href={`/messages?case=${data.reference}`}>Open Messages</Link></div>
       <CallBox freeCall={freeCall} text="Questions about your case? Call free." />
       {data.evidence.length > 0 && (
         <div className="card card--flat"><h2 style={{ fontSize: "1.05rem" }}><Icon name="file" /> Your evidence</h2>
           <ul className="file-list link-list">{data.evidence.map(f => (
-            <li key={f.name}><span style={{ flex: 1 }}><b>{f.name}</b><br /><small className="muted">{f.note} · {f.size}</small></span>
+            <li key={f.id ?? f.name}><span style={{ flex: 1 }}><b>{f.id ? <a href={`/api/evidence/${f.id}`} target="_blank" rel="noopener">{f.name}</a> : f.name}</b><br /><small className="muted">{f.note} · {f.size}</small></span>
               <span className={`badge ${f.shared ? "badge--green" : ""}`.trim()}>{f.shared ? "Shared with the business" : "Officers only"}</span></li>))}</ul></div>
       )}
-      {!data.closed && (
+      {!data.closed && !data.readOnly && (
         <div className="card card--flat"><h2 style={{ fontSize: "1.05rem" }}>Changed your mind?</h2>
           <p className="small">If the problem was solved another way, you can withdraw the complaint.</p>
           <button className="btn btn--danger btn--sm" type="button" onClick={onWithdraw}>Withdraw the complaint</button></div>

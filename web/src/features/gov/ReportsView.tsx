@@ -2,12 +2,12 @@
 
 import type { CSSProperties } from "react";
 import type { GovLevel } from "@/types/gov";
-import { REPORTS, reportCsv } from "@/mocks/gov-reports";
+import { REPORTS, reportCsv, type Report } from "@/mocks/gov-reports";
 import { Alert } from "@/components/ui/Display";
 
 /** Figures for one level, with a CSV download so the numbers can be opened in a spreadsheet. */
-export function ReportsView({ level }: { level: GovLevel }) {
-  const report = REPORTS[level];
+export function ReportsView({ level, initialReport }: { level: GovLevel; initialReport?: Report }) {
+  const report = initialReport || REPORTS[level];
   const download = () => {
     const url = URL.createObjectURL(new Blob(["﻿" + reportCsv(report)], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");

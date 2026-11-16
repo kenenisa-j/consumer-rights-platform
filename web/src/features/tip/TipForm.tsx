@@ -27,7 +27,15 @@ export function TipForm() {
     e.preventDefault();
     setBusy(true); setFailed(false);
     try {
-      const receipt = await submitTip(); // backend: no identity stored when anonymous
+      const formData = new FormData(e.currentTarget);
+      const payload: any = {
+        category: String(formData.get("kind") || "Something else"),
+        subcity: String(formData.get("subcity") || "Bole"),
+        woreda: formData.get("woreda") ? String(formData.get("woreda")) : undefined,
+        marketLocation: String(formData.get("place") || ""),
+        description: String(formData.get("text") || ""),
+      };
+      const receipt = await submitTip(payload); // backend: no identity stored when anonymous
       saveHandoff("tip-receipt", { ...receipt, anonymous: who === "anon" });
       router.push("/tip/sent");
     } catch { setFailed(true); setBusy(false); }

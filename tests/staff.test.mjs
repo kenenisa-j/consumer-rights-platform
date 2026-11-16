@@ -29,15 +29,21 @@ function createMockPrisma({
           : Array.from(users.values()).find((x) => x.phoneNumber === where.phoneNumber);
         if (!u) return null;
         const res = { ...u };
-        if (include?.roles) res.roles = u.roles || [];
-        if (include?.offices) {
-          const userDeps = Array.from(deployments.values()).filter((d) => d.userId === u.id);
-          res.offices = include.offices.where?.isActive !== undefined
-            ? userDeps.filter((d) => d.isActive === include.offices.where.isActive)
-            : userDeps;
-          if (include.offices.include?.office) {
-            res.offices = res.offices.map((d) => ({ ...d, office: offices.get(d.officeId) }));
+        const inc = include || select;
+        if (inc?.roles) res.roles = u.roles || [];
+        if (inc?.offices) {
+          let userDeps = Array.from(deployments.values()).filter((d) => d.userId === u.id);
+          if (userDeps.length === 0 && u.offices) {
+            userDeps = u.offices.map((o) => ({ ...o, userId: u.id }));
           }
+          const whereActive = inc.offices?.where?.isActive;
+          res.offices = whereActive !== undefined
+            ? userDeps.filter((d) => d.isActive === whereActive)
+            : userDeps;
+          res.offices = res.offices.map((d) => ({
+            ...d,
+            office: d.office || offices.get(d.officeId),
+          }));
         }
         return res;
       },

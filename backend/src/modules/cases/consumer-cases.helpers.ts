@@ -102,6 +102,13 @@ export function mapConsumerCaseDetails(c: any, userId: string) {
     })),
   );
 
+  const activeOffer = offers.find((o: any) => o.isPending);
+  const offer = activeOffer ? {
+    id: activeOffer.id,
+    title: `${c.merchant?.tradeName || 'Business'} made an offer`,
+    text: activeOffer.termsDescription || (activeOffer.refundAmount ? `Refund: ${activeOffer.refundAmount} ${c.currency}` : 'Settlement offer'),
+  } : undefined;
+
   const isClosed = CLOSED_STATUSES.includes(c.status);
   const canEscalate =
     c.route === ComplaintRoute.REGISTERED_BUSINESS &&
@@ -141,6 +148,7 @@ export function mapConsumerCaseDetails(c: any, userId: string) {
       size: `${Math.round(e.fileSizeBytes / 1024)} KB`,
       shared: true,
     })),
+    offer,
     offers,
     updates: (c.history || []).map((h: any) => ({
       title: h.toStatus.replace(/_/g, ' ').toLowerCase(),
@@ -265,7 +273,7 @@ export async function executeRejectOfferTx(
   c: any,
   userId: string,
   offer: any,
-  dto: RejectOfferDto,
+  dto?: RejectOfferDto,
 ) {
   await tx.settlementOffer.update({
     where: { id: offer.id },
@@ -279,7 +287,7 @@ export async function executeRejectOfferTx(
     data: { status: nextStatus },
   });
 
-  const rejectText = dto.reason?.trim()
+  const rejectText = dto?.reason?.trim()
     ? `Consumer rejected the settlement offer. Reason: ${dto.reason.trim()}`
     : 'Consumer rejected the settlement offer.';
 

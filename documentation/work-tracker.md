@@ -17,6 +17,12 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: Phase 7 Tikoma Anonymous Reporting, 16 November 2026
+- Implemented `TipsModule`, `TipsController`, `GovernmentTipsController`, `TipsService`, DTOs, and helpers.
+- Anonymous submission stores only SHA-256 token hash; tracking verified against hash with uniform 404.
+- Scoped government management (Woreda visit planning, Sub-City forwarding, closure, case conversion).
+- Verified with unit test suite `tests/anonymous-reports.test.mjs` and connected web views.
+
 ## Completed: Phase 4.12 Operational Reports and Statistics APIs, 15 November 2026
 
 - Owner: backend.
@@ -364,12 +370,10 @@ you (and your agents) avoid duplicate or conflicting work.
 - **Prisma Schema & DB Safety:** `backend/prisma/schema.prisma` and `prisma.config.ts` untouched. No migrations created, no schema or table modifications.
 
 ### Initial Foundation, Scaffolding & Reconciliations (Phases 1-2)
-
 - Reconciled dual routing schema with CaseHistory append-only audit trail and strict FK deletion constraints.
 - Scaffolded NestJS backend foundation with global prefix `/api`, envelope filters, permission guard, and contracts validation.
 
 ### Database design & initial setup (session 1)
-
 - Initialised NestJS application structure in `backend/` with reconciled Prisma schema and architecture specs.
 - Database integrity & dual routing corrections: validated Route A/B constraints, office hierarchies, atomic annual sequence generation, and contract status mapping.
 - Updated shared contracts in `lib/contracts/` and verified with contract unit test suite.

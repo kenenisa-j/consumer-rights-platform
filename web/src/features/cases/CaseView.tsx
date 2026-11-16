@@ -24,6 +24,51 @@ export function CaseView({ initial, freeCall }: { initial: CaseData; freeCall: s
     latest.current = r.next;
     setData(r.next);
     setNotice({ text: r.notice, ok: r.ok });
+
+    if (r.ok) {
+      const ref = latest.current.reference;
+      if (action.type === "accept_offer") {
+        const offerId = latest.current.offer?.id;
+        if (offerId) {
+          fetch(`/api/cases/${ref}/offers/${offerId}/accept`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+          }).catch(() => {});
+        }
+      } else if (action.type === "counter_offer") {
+        const offerId = latest.current.offer?.id;
+        const reason = `${action.ask}. ${action.text}`.trim();
+        if (offerId) {
+          fetch(`/api/cases/${ref}/offers/${offerId}/reject`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ reason }),
+          }).catch(() => {});
+        }
+        fetch(`/api/cases/${ref}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ message: `Counter-offer: ${reason}` }),
+        }).catch(() => {});
+      } else if (action.type === "escalate") {
+        fetch(`/api/cases/${ref}/escalate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ reason: action.reason }),
+        }).catch(() => {});
+      } else if (action.type === "send_message") {
+        fetch(`/api/cases/${ref}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ message: action.text }),
+        }).catch(() => {});
+      }
+    }
   }, []);
 
   const showTrack = data.pending !== "outside";

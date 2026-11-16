@@ -47,7 +47,7 @@ export function ComplaintWizard({ freeCall, contact }: { freeCall: string; conta
   const send = async () => {
     setBusy(true); setError(null);
     try {
-      const receipt = await submitComplaint(); // the backend stores the complaint; evidence uploads follow
+      const receipt = await submitComplaint(draft); // the backend stores the complaint; evidence uploads follow
       saveHandoff("complaint-receipt", { ...receipt, first: contact.first, email: draft.outcome.email,
         toBusiness: draft.business.mode === "registered", business: draft.business.name });
       clearDraft();

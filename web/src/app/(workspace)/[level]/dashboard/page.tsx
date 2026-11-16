@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DASHBOARDS } from "@/mocks/gov-lists";
 import { isGovLevel, LEVELS } from "@/features/gov/levels";
+import type { LevelDashboard, ActionRow } from "@/types/gov";
 
 type Props = { params: Promise<{ level: string }> };
 
@@ -14,7 +15,61 @@ export async function generateMetadata({ params }: Props) {
 export default async function DashboardPage({ params }: Props) {
   const { level } = await params;
   if (!isGovLevel(level)) notFound();
-  const d = DASHBOARDS[level];
+
+  let d: LevelDashboard = DASHBOARDS[level];
+
+  try {
+    const { cookies } = await import("next/headers");
+    const { API_URL } = await import("@/lib/session");
+    const jar = await cookies();
+    if (jar.getAll().length > 0) {
+      const [overviewRes, casesRes] = await Promise.all([
+        fetch(`${API_URL}/api/government/reports/overview`, {
+          headers: { cookie: jar.toString() },
+          cache: "no-store",
+        }),
+        fetch(`${API_URL}/api/government/cases?limit=10`, {
+          headers: { cookie: jar.toString() },
+          cache: "no-store",
+        }),
+      ]);
+
+      if (overviewRes.ok) {
+        const ov = await overviewRes.json();
+        const casesBody = casesRes.ok ? await casesRes.json() : null;
+        const liveCases = Array.isArray(casesBody?.cases) ? casesBody.cases : [];
+
+        const actionRows: ActionRow[] = liveCases
+          .filter((c: any) => c.isPendingAcceptance || c.status === "RECEIVED_BY_OFFICE" || c.status === "ESCALATED_TO_GOVERNMENT")
+          .map((c: any) => ({
+            label: c.referenceNumber,
+            sub: `${c.category || "Complaint"} · ${c.merchantName || "Business"}`,
+            what: c.isPendingAcceptance ? "Pending transfer: review and accept" : "New complaint: accept and assign",
+            waiting: "Action required",
+            href: `/${level}/cases/${c.referenceNumber}`,
+            urgent: Boolean(c.slaDeadline && new Date(c.slaDeadline) < new Date()),
+          }));
+
+        const rows = actionRows.length > 0 ? actionRows : d.rows;
+
+        const tiles = [
+          { value: String(ov.openCount ?? d.tiles[0].value), label: "My open cases", alert: (ov.openCount || 0) > 0 },
+          { value: String(ov.totalComplaints ?? d.tiles[1].value), label: "Total complaints" },
+          { value: String(ov.resolvedCount ?? 0), label: "Resolved" },
+          { value: String(ov.overdueCount ?? 0), label: "Overdue", alert: (ov.overdueCount || 0) > 0 },
+        ];
+
+        d = {
+          ...d,
+          tiles,
+          rows,
+        };
+      }
+    }
+  } catch {
+    // fallback to demo mock data
+  }
+
   const max = Math.max(...(d.spread ?? []).map(s => s.value), 1);
   return (
     <>

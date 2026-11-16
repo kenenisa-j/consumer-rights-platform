@@ -12,7 +12,7 @@ export function assertBusinessCanRespond(status: CaseStatus): void {
 
   if (closedStatuses.includes(status)) {
     throw new BadRequestException({
-      code: 'CASE_ALREADY_CLOSED',
+      code: 'CASE_CLOSED',
       message: 'Cannot respond or propose offers on a closed or resolved complaint.',
     });
   }
@@ -47,31 +47,31 @@ export function mapBusinessComplaintSummary(c: any) {
     reference: c.referenceNumber,
     title: c.itemDescription,
     complainant: c.complainantAlias,
-    category: c.category.nameEn,
-    categoryCode: c.category.code,
+    category: c.category?.nameEn || c.category?.name || 'General Goods',
+    categoryCode: c.category?.code || 'GENERAL',
     disputedAmount: Number(c.disputedAmount),
     currency: c.currency,
-    incidentDate: c.incidentDate.toISOString(),
+    incidentDate: c.incidentDate ? new Date(c.incidentDate).toISOString() : null,
     desiredRemedy: c.desiredRemedy,
     status: c.status,
-    activeOffer: c.settlementOffers[0] || null,
-    submittedAt: c.createdAt.toISOString(),
-    updatedAt: c.updatedAt.toISOString(),
-    slaDeadline: c.slaDeadline?.toISOString() || null,
+    activeOffer: c.settlementOffers?.[0] || null,
+    submittedAt: c.createdAt ? new Date(c.createdAt).toISOString() : null,
+    updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
+    slaDeadline: c.slaDeadline ? new Date(c.slaDeadline).toISOString() : null,
   };
 }
 
 export function mapBusinessComplaintDetails(c: any, tradeName: string) {
   const conversation = c.conversations?.[0] || null;
   const messages = conversation
-    ? conversation.messages.map((m: any) => {
+    ? (conversation.messages || []).map((m: any) => {
         const isConsumer = m.senderUserId === c.complainantId;
         return {
           id: m.id,
           from: isConsumer ? 'consumer' : 'business',
           sender: isConsumer ? c.complainantAlias : tradeName,
           content: m.content,
-          sentAt: m.sentAt.toISOString(),
+          sentAt: m.sentAt ? new Date(m.sentAt).toISOString() : (m.createdAt ? new Date(m.createdAt).toISOString() : null),
         };
       })
     : [];
@@ -83,27 +83,33 @@ export function mapBusinessComplaintDetails(c: any, tradeName: string) {
     complainant: c.complainantAlias,
     category: c.category,
     market: c.market,
-    incidentDate: c.incidentDate.toISOString(),
+    incidentDate: c.incidentDate ? new Date(c.incidentDate).toISOString() : null,
     disputedAmount: Number(c.disputedAmount),
     currency: c.currency,
     paymentMethod: c.paymentMethod,
     receiptAvailable: c.receiptAvailable,
     desiredRemedy: c.desiredRemedy,
-    submittedAt: c.createdAt.toISOString(),
-    updatedAt: c.updatedAt.toISOString(),
-    slaDeadline: c.slaDeadline?.toISOString() || null,
+    submittedAt: c.createdAt ? new Date(c.createdAt).toISOString() : null,
+    updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
+    slaDeadline: c.slaDeadline ? new Date(c.slaDeadline).toISOString() : null,
     evidence: (c.evidenceFiles || []).map((e: any) => ({
       id: e.id,
       name: e.fileName,
       type: e.fileType,
       sizeBytes: e.fileSizeBytes,
-      uploadedAt: e.createdAt.toISOString(),
+      uploadedAt: e.createdAt
+        ? new Date(e.createdAt).toISOString()
+        : e.uploadedAt
+          ? new Date(e.uploadedAt).toISOString()
+          : c.createdAt
+            ? new Date(c.createdAt).toISOString()
+            : null,
     })),
     history: (c.history || []).map((h: any) => ({
       fromStatus: h.fromStatus,
       toStatus: h.toStatus,
       note: h.publicNote,
-      timestamp: h.createdAt.toISOString(),
+      timestamp: h.createdAt ? new Date(h.createdAt).toISOString() : null,
     })),
     thread: messages,
     offers: conversation ? conversation.offers : [],

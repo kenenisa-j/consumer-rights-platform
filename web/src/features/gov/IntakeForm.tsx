@@ -35,8 +35,21 @@ export function IntakeForm({ level, freeCall }: { level: GovLevel; freeCall: str
     const form = e.currentTarget;
     const d = new FormData(form);
     setBusy(true);
-    const { reference } = await submitIntake();
-    const business = String(d.get("business")).trim();
+    const business = String(d.get("business") || "").trim();
+    const category = String(d.get("category") || "OTHER");
+    const payload = {
+      route: registered ? "REGISTERED_BUSINESS" : "DIRECT_GOVERNMENT",
+      categoryId: category === "Other" ? "OTHER" : category,
+      incidentDate: new Date().toISOString(),
+      itemDescription: String(d.get("description") || "In-person/phone complaint"),
+      disputedAmount: Number(d.get("amount")) || 0,
+      currency: "ETB",
+      desiredRemedy: "Resolution",
+      receiptAvailable: false,
+      unregisteredMerchantName: business,
+      unregisteredMerchantLocation: String(d.get("where") || ""),
+    };
+    const { reference } = await submitIntake(payload);
     const to = registered ? `${business} is on AddisB2B, so the complaint went to the business first.`
       : level === "woreda" ? `${business} is not on AddisB2B, so the complaint went straight to ${cfg.office}.`
       : `${business} is not on AddisB2B, so the complaint went straight to Woreda ${d.get("woreda")}, ${d.get("subcity")}.`;

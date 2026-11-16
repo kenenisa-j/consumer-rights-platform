@@ -26,22 +26,22 @@ export class CasesService {
   async createCase(userId: string, dto: CreateCaseDto) {
     const createdCase = await this.prisma.$transaction(async (tx) => {
       // 1. Verify category exists and is active
-      const category = await tx.complaintCategory.findUnique({ where: { id: dto.categoryId } });
-      if (!category) {
-        throw new NotFoundException({ code: 'CATEGORY_NOT_FOUND', message: 'Complaint category not found.' });
-      }
-      if (!category.isActive) {
-        throw new BadRequestException({ code: 'CATEGORY_INACTIVE', message: 'Complaint category is inactive.' });
-      }
+      const category = await tx.complaintCategory.findFirst({
+        where: {
+          OR: [
+            { id: dto.categoryId },
+            { code: dto.categoryId },
+            { code: dto.categoryId.toUpperCase().replace(/-/g, '_') },
+          ],
+        },
+      });
+      if (!category) throw new NotFoundException({ code: 'CATEGORY_NOT_FOUND', message: 'Complaint category not found.' });
+      if (!category.isActive) throw new BadRequestException({ code: 'CATEGORY_INACTIVE', message: 'Complaint category is inactive.' });
 
       // 2. Validate incident date (not in future)
       const incidentDate = new Date(dto.incidentDate);
-      if (isNaN(incidentDate.getTime())) {
-        throw new BadRequestException({ code: 'INVALID_INCIDENT_DATE', message: 'Invalid incident date format.' });
-      }
-      if (incidentDate > new Date()) {
-        throw new BadRequestException({ code: 'FUTURE_INCIDENT_DATE', message: 'Incident date cannot be in the future.' });
-      }
+      if (isNaN(incidentDate.getTime())) throw new BadRequestException({ code: 'INVALID_INCIDENT_DATE', message: 'Invalid incident date format.' });
+      if (incidentDate > new Date()) throw new BadRequestException({ code: 'FUTURE_INCIDENT_DATE', message: 'Incident date cannot be in the future.' });
 
       if (dto.marketId) {
         const market = await tx.market.findUnique({ where: { id: dto.marketId } });
@@ -51,7 +51,9 @@ export class CasesService {
       }
 
       const verifyMerchant = async (id: string) => {
-        const m = await tx.merchant.findUnique({ where: { id } });
+        const m = await tx.merchant.findFirst({
+          where: { OR: [{ id }, { registrationNumber: id }] },
+        });
         if (!m) throw new NotFoundException({ code: 'MERCHANT_NOT_FOUND', message: 'Merchant not found.' });
         if (!m.isActive || m.verificationStatus !== 'VERIFIED') {
           throw new BadRequestException({

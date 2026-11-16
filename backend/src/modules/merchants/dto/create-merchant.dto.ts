@@ -24,12 +24,12 @@ export class CreateMerchantDto {
   @MaxLength(255)
   tradeName!: string;
 
-  @IsNotEmpty({ message: 'Legal business name is required.' })
+  @IsOptional()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @MinLength(2, { message: 'Legal name must be at least 2 characters.' })
   @MaxLength(255)
-  legalName!: string;
+  legalName?: string;
 
   @IsNotEmpty({ message: 'Business type is required.' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))

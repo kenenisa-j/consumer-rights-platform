@@ -129,7 +129,7 @@ export class ComplaintsService {
   async track(reference: string, phone4: string) {
     const c = /^CC-\d{4}-\d{5}$/i.test(reference) && /^\d{4}$/.test(phone4)
       ? await this.prisma.case.findFirst({
-        where: { referenceNumber: reference.toUpperCase(), complainant: { phoneNumber: { endsWith: phone4 } } },
+        where: { referenceNumber: reference.toUpperCase(), OR: [{ complainant: { phoneNumber: { endsWith: phone4 } } }, { contactPhone: { endsWith: phone4 } }] },
         select: { ...row, history: { orderBy: { createdAt: 'desc' }, take: 1, select: { publicNote: true, createdAt: true } } },
       })
       : null;

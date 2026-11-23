@@ -73,7 +73,7 @@ export function LangRuntime({ locale }: { locale: Locale }) {
       if (!alive) return;
       for (const [k, v] of Object.entries(mod.default)) {
         if (k.includes("{0}")) {
-          const re = new RegExp("^" + k.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{(\d)\}/g, "(.+?)") + "$");
+          const re = new RegExp("^" + k.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{(\d)\}/g, "(\\S+(?: \\S+){0,3}?)") + "$");
           patterns.push([re, v]);
         } else exact.set(norm(k), v);
       }

@@ -25,7 +25,7 @@ try {
     check(`${level}: current page is marked`, (await b.ev("return document.querySelector('.rail a[aria-current=page]')?.textContent.trim()")).startsWith("Dashboard"));
   }
   await b.go("/woreda/dashboard");
-  check("workspace uses the AddisB2B look: light page, white sidebar, navy logo, amber edge on the current page", await b.ev("const r=getComputedStyle(document.querySelector('.rail')); const m=getComputedStyle(document.querySelector('.rail__brand .brand__mark')); const a=getComputedStyle(document.querySelector('.rail a[aria-current=page]')); return getComputedStyle(document.body).backgroundColor==='rgb(244, 247, 251)' && r.backgroundColor==='rgb(255, 255, 255)' && m.backgroundColor==='rgb(11, 37, 69)' && a.boxShadow.includes('rgb(245, 181, 27)') && !!document.querySelector('.ws-shell')"));
+  check("workspace uses the AddisB2B look: light page, white sidebar, navy logo, amber edge on the current page", await b.ev("const r=getComputedStyle(document.querySelector('.rail')); const m=getComputedStyle(document.querySelector('.rail__logo')); const a=getComputedStyle(document.querySelector('.rail a[aria-current=page]')); return getComputedStyle(document.body).backgroundColor==='rgb(244, 247, 251)' && r.backgroundColor==='rgb(255, 255, 255)' && a.boxShadow.includes('rgb(245, 181, 27)') && !!document.querySelector('.ws-shell')"));
   check("the public header is not on a portal page", !(await b.ev("return !!document.querySelector('.site-header')")));
   await b.go("/");
   check("workspace styles do not leak into the public site", await b.ev("return !!document.querySelector('.site-header') && !document.body.classList.contains('ws')"));

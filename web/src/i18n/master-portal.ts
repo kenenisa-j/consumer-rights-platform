@@ -127,7 +127,6 @@ export const PORTAL: readonly Row[] = [
   ["Free call: {0}", "ነፃ ጥሪ፡ {0}", "Bilbila bilisaa: {0}", "ነጻ ጻውዒት፡ {0}", "Wicitaan bilaash: {0}"],
   ["Thank you, {0}", "እናመሰግናለን፣ {0}", "Galatoomi, {0}", "የቐንየልና፡ {0}", "Mahadsanid, {0}"],
   ["Remove {0}", "{0} አስወግድ", "{0} haqi", "{0} ኣወግድ", "Ka saar {0}"],
-  ["Check {0}", "{0} ይመልከቱ", "{0} ilaali", "{0} ርአ", "Hubi {0}"],
   ["Account menu for {0}", "የ{0} መለያ ዝርዝር", "Tarree akaawuntii {0}", "ዝርዝር ሕሳብ {0}", "Liiska akoonka {0}"],
   ["Complaint {0}", "ቅሬታ {0}", "Komii {0}", "ጥርዓን {0}", "Cabasho {0}"],
   ["{0} was sent to {1}.", "{0} ወደ {1} ተልኳል።", "{0} gara {1} ergame.", "{0} ናብ {1} ተሰዲዱ።", "{0} waxaa loo diray {1}."],

@@ -25,6 +25,9 @@ still reads in-memory sample data from `web/src/mocks/` because the API has no e
 | Public content | `GET /api/content/news`, `law`, `faq` (table `content_items`), used by home, news, laws and help |
 | Messages (text and voice) | `GET /api/messages/conversations`, `/conversations/:id`, `POST .../text`, `POST .../voice`, `GET /api/messages/audio/:id`. One conversation per complaint: with the business (Route B) or with the office (Route A). Scope is decided on the server: consumer (own), business (own business, sees "Consumer 0000N"), staff (cases held in their office scope). Voice notes are stored in `messages.audio` (up to 3 minutes / 1.5 MB). Telegram-style screen in `features/chat/` |
 | Business desk | Overview, complaints, messages and profile (`GET /api/business/profile`) read the database; the profile picture opens a menu; the sidebar count is the number of complaints waiting for a reply |
+| Notifications | `GET /api/notifications`, `/unread-count`, `PATCH /read-all`, `PATCH /:id/read`. Bell in the public header and the workspace top bar; pages `/notifications`, `/business/notifications`, `/:level/notifications`. Created for a new complaint (consumer and receiving office), a redirect and a new message. Only the in-app channel is real; email and SMS are saved as preferences and not sent |
+| Contact preferences | Phone (required), email, language and the email/SMS choices from step 5 are stored on the case (`case_contact_preferences`); officers see the phone the consumer gave; tracking accepts its last 4 digits |
+| Languages | English, Amharic, Afan Oromo, Tigrigna, Somali by dictionary (`web/src/i18n/`), cookie `cr-lang`, on every page. First-pass translations, to be reviewed |
 | Test accounts | Dropdown in every sign-in form (development only, `DEV_TEST_ACCOUNTS`). Seed: `npm run db:seed` |
 
 ## Demo (no API endpoint yet)

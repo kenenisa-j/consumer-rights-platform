@@ -17,6 +17,18 @@ you (and your agents) avoid duplicate or conflicting work.
 2. Backend implementation plan (scaffold `backend/`, auth, offices, complaints) once the contract for the first
    slice is agreed.
 
+## Completed: five languages, new header, complaint contact step, receipt, notifications, 16 November 2026
+
+- Header: Bureau logo with "Addis Ababa City Administration / Trade Bureau", search box, language list, bell with unread count, Sign in. Menus open only while the pointer is over them. The workspace top bar has the same language list and bell. Both fit 360 px.
+- Languages: English, Amharic, Afan Oromo, Tigrigna, Somali on every page (public and workspaces), kept in the `cr-lang` cookie. `LangRuntime` swaps visible text using dictionaries in `web/src/i18n/`. Anything without an entry stays English; what people type and database content are never translated. Translations are a first pass and need review by native speakers.
+- Complaint, step 5: phone and email start empty, phone is required; the website notice is always on, email and SMS are optional and unlock once an address is written; five languages. Stored on the case (`case_contact_preferences` migration). Officers see the phone the consumer gave.
+- Complaint, step 6: uses the business typed in the Business step. If it is not registered, a warning names it and the business choice is locked, so the consumer can send to the Woreda, Sub-City or City Bureau.
+- Evidence: files survive a refresh (IndexedDB) and the form returns to the furthest step; they are uploaded after the complaint is created and show on the case.
+- Receipt: large number, copy number, copy all details, print (only the receipt prints). A notice with the number and the track steps is added to the consumer's notifications.
+- Notifications: bell and a page for consumer, business and each office; new complaints, redirects and new messages create notices for the other side. Track by number now also accepts the last 4 digits of the contact phone.
+- Tests: `npm run test:browser:language` (43 checks); the other suites were updated for the required phone and new header and all pass.
+- Not done: email and SMS are saved as preferences only, in-app notices are real; long paragraphs may stay English in the other languages.
+
 ## Completed: navy and amber palette, office redirects, typeahead, two-sided messages, 16 November 2026
 
 - Colours: the AddisB2B Trade Bureau screenshot (navy `#0B2545`, amber `#F5B51B`, very light blue page `#F4F7FB`, icon accents orange/blue/green/purple) replaced the forest green taken earlier from the old `addisb2b-prototype` folder. Tokens in `tokens.css`; `theme.css` keeps text on amber navy. The workspaces use the same palette (white sidebar, navy logo, amber edge and count pills).

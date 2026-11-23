@@ -164,6 +164,8 @@ export async function launch() {
       await b.ev("document.activeElement && document.activeElement.blur(); return 1"); await sleep(150);
       return n;
     },
+    /** Shows the page as it prints ("print") or as on screen ("screen"). */
+    async media(m) { await send("Emulation.setEmulatedMedia", { media: m === "print" ? "print" : "" }); await sleep(250); },
     /** Moves the real mouse pointer over an element (for hover menus), or away from everything when no selector is given. */
     async hover(sel) {
       const at = sel ? await b.ev(`const e=document.querySelector(${JSON.stringify(sel)}); if(!e) return null; const r=e.getBoundingClientRect(); return [r.x+r.width/2, r.y+r.height/2]`) : [4, 690];

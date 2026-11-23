@@ -36,6 +36,7 @@
     "test:browser:chat": "node tests/browser/chat.mjs",
     "test:browser:offices": "node tests/browser/offices.mjs",
     "test:browser:evidence": "node tests/browser/evidence.mjs",
+    "test:browser:language": "node tests/browser/language.mjs",
     "test:browser:auth": "node tests/browser/auth.mjs"
   }
 }

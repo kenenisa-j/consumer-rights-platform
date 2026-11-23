@@ -56,3 +56,19 @@
   .hdr-register, .hdr-tools .call-pill { display: none; }
 }
 @media (max-width: 560px) { .hdr-brand small { font-size: .7rem; } .hdr-brand b { font-size: 1.15rem; } .hdr-brand img { width: 46px; height: 46px; } .lang-switch select { max-width: 112px; } }
+
+/* Phone (360 px): logo + name, language list, bell, account and menu button must all fit on one row. */
+@media (max-width: 560px) {
+  .hdr-top > .container, .hdr-top .container { gap: var(--s2); }
+  .hdr-brand { flex: 1 1 0; min-width: 0; gap: var(--s2); }
+  .hdr-brand span { min-width: 0; }
+  .hdr-brand small, .hdr-brand b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hdr-brand small { font-size: .62rem; }
+  .hdr-brand b { font-size: 1rem; }
+  .hdr-brand img { width: 38px; height: 38px; }
+  .hdr-tools { gap: 6px; }
+  .hdr-tools .lang-switch__ico { display: none; }
+  .hdr-tools .lang-switch select { max-width: 72px; padding: 0 18px 0 6px; font-size: .8rem; min-height: 38px; }
+  .hdr-tools .hdr-bell, .hdr-burger { width: 38px; height: 38px; }
+  .hdr-tools .hdr-signin { padding-inline: 10px; }
+}

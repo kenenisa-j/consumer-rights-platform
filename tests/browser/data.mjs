@@ -42,6 +42,7 @@ try {
   await b.set("#dd-want", "refund");
   await b.waitFor("document.querySelector('#o-amount')");
   await b.set("#o-amount", "2250");
+  await b.set("#o-phone", "0911234567");
   await b.clickText("Next", "button[type=submit]");
   await b.waitFor("document.querySelector('input[name=destination]')");
   const radios = await b.ev("return [...document.querySelectorAll('input[name=destination]')].map(r => ({ v: r.value, on: r.checked, off: r.disabled }))");
@@ -90,8 +91,8 @@ try {
   page = await b.text("main");
   check("bureau: it waits on the dashboard", page.includes(reference), page.slice(0, 300));
   await b.go(`/bureau/cases/${reference}`);
-  page = await b.text("main");
-  check("bureau: the officer sees the consumer's name and phone", /Hirut Alemu/.test(page) && /\+251900000412/.test(page), page.slice(0, 300));
+  page = await b.ev("return document.querySelector('main').innerText");
+  check("bureau: the officer sees the consumer name and the phone they gave", /Hirut Alemu/.test(page) && /0911234567/.test(page), page.slice(-200));
   await b.go("/woreda/cases");
   page = await b.text("main");
   check("woreda: does not see a case held by the City Bureau", !page.includes(reference), page.slice(0, 200));

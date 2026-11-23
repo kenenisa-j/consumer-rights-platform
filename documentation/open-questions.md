@@ -68,6 +68,8 @@ Do not decide these silently. Implement the configurable/placeholder form, ask, 
 
 28. **Redirecting a case between offices.** On the product owner's instruction an office can send a case up, down or across (Bureau to a Woreda, Woreda to the Bureau, and so on), not only one level up. This goes beyond the "one level at a time" climb in the domain model. Please confirm the limits used: a Sub-City reaches only the Woredas of its own Sub-City, a Woreda only its own Sub-City and the Bureau. The redirect takes effect at once (no acceptance step) and is recorded as an accepted transfer.
 
+29. **Translations and notification channels.** The Amharic, Afan Oromo, Tigrigna and Somali texts are a first pass made without native review, and long paragraphs and database content (news, laws, FAQ) stay in English. Please decide who reviews them and whether the content tables get per-language columns. Email and SMS notices are only stored as preferences: which provider sends them?
+
 ## Answered
 
 - **Route A office selection (resolved 12 Nov 2026).** Decided: For Route A, consumers always select

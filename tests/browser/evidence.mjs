@@ -47,7 +47,7 @@ try {
   await b.ev("document.querySelectorAll('.picked__main input[type=checkbox]')[0].click(); return 1"); // the first file may be shown to the business
   await b.clickText("Next", "button[type=submit]");
   await b.waitFor("document.querySelector('#dd-want')");
-  await b.set("#dd-want", "refund"); await b.waitFor("document.querySelector('#o-amount')"); await b.set("#o-amount", "2250");
+  await b.set("#dd-want", "refund"); await b.waitFor("document.querySelector('#o-amount')"); await b.set("#o-amount", "2250"); await b.set("#o-phone", "0911234567");
   await b.clickText("Next", "button[type=submit]");
   await b.waitFor("document.querySelector('input[name=destination]')");
 

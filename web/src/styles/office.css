@@ -109,3 +109,15 @@ body.ws { background: var(--alt); color: var(--ink); }
 .rail__logo { width: 40px; height: 40px; border-radius: 50%; flex: none; }
 .topbar .hdr-bell { flex: none; }
 .topbar .lang-switch select { min-height: 38px; }
+
+/* Phone: the top bar must fit 360 px, so the name shrinks (cut with …) and the language list becomes narrow. */
+@media (max-width: 600px) {
+  .topbar { gap: var(--s2); }
+  .topbar__who { min-width: 0; flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar__who b { overflow: hidden; text-overflow: ellipsis; }
+  .topbar .nav-burger { flex: none; font-size: 0; gap: 0; }
+  .topbar .lang-switch { flex: none; }
+  .topbar .lang-switch__ico { display: none; }
+  .topbar .lang-switch select { max-width: 96px; padding: 0 22px 0 8px; font-size: .85rem; }
+  .topbar .hdr-bell, .topbar .ws-account summary { flex: none; }
+}

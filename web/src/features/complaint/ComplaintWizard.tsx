@@ -28,7 +28,8 @@ export function ComplaintWizard({ freeCall, contact, refData, locale = "en" }: {
   const picker = useFilePicker(8, 10, 0, "complaint-evidence");
   const first = useRef(true);
 
-  useEffect(() => { setDraft(loadDraft(emptyDraft("", "", locale))); setReady(true); }, []);
+  // After a refresh the form comes back with the answers and at the furthest step reached, so nothing has to be re-clicked.
+  useEffect(() => { const d = loadDraft(emptyDraft("", "", locale)); setDraft(d); setRequested(Math.min(Math.max(1, d.reached), STEP_COUNT)); setReady(true); }, []);
   useEffect(() => { if (ready) saveDraft(draft); }, [draft, ready]);
   useEffect(() => {
     setDraft(d => ({ ...d, fileNames: picker.files.map(f => ({ name: f.file.name, size: f.file.size, shared: !!f.shared })) }));

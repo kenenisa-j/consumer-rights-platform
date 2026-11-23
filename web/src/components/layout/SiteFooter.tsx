@@ -23,8 +23,9 @@ export function SiteFooter({ freeCall }: { freeCall: string }) {
         <div className="foot-grid">
           <div>
             <div className="foot-brand">
-              <span className="brand__mark" aria-hidden="true">H<i>.</i></span>
-              <span><b>{BRAND.name}</b><small>Consumer Protection</small></span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={BRAND.logo} width={52} height={52} alt="" />
+              <span><small>{BRAND.org}</small><b>{BRAND.name}</b></span>
             </div>
             <h2 className="foot-title">{about.title}</h2>
             <p>{about.text}</p>

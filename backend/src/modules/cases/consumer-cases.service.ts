@@ -125,7 +125,7 @@ export class ConsumerCasesService {
     return result;
   }
 
-  async rejectOffer(userId: string, reference: string, offerId: string, dto: RejectOfferDto) {
+  async rejectOffer(userId: string, reference: string, offerId: string, dto?: RejectOfferDto) {
     const c = await this.prisma.case.findFirst({
       where: { referenceNumber: reference, complainantId: userId },
     });

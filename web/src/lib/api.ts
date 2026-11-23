@@ -5,7 +5,7 @@ export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; 
 
 export const NETWORK_ERROR = "We could not reach the service. Check your connection and try again.";
 
-async function call<T>(method: "GET" | "POST", path: string, body?: unknown, ms = 15000): Promise<ApiResult<T>> {
+async function call<T>(method: "GET" | "POST" | "PATCH", path: string, body?: unknown, ms = 15000): Promise<ApiResult<T>> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), ms);
   try {
@@ -24,3 +24,4 @@ async function call<T>(method: "GET" | "POST", path: string, body?: unknown, ms 
 
 export const apiGet = <T>(path: string) => call<T>("GET", path);
 export const apiPost = <T>(path: string, body: unknown) => call<T>("POST", path, body);
+export const apiPatch = <T>(path: string, body: unknown = {}) => call<T>("PATCH", path, body);

@@ -4,7 +4,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { CATEGORY_TEXT } from "@/content/common";
 import { apiGet } from "@/lib/api";
 import type { RefData } from "@/lib/reference";
-import { CheckField, ChoiceGroup, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
+import { CheckField, ChoiceGroup, TextAreaField, TextField } from "@/components/ui/Field";
+import { ComboField } from "@/components/ui/ComboField";
 import { Am } from "@/components/ui/Bi";
 import { Icon } from "@/components/ui/Icon";
 import type { Draft } from "./draft";
@@ -90,8 +91,8 @@ export function Step2({ draft, set, next, back, refData }: StepProps) {
         <div className="form-grid">
           <TextField id="biz-name" label="Name of the business or seller" full required maxLength={120} value={b.name} onChange={e => patch({ name: e.target.value })}
             placeholder="For example: Kality Mini Market" invalid="Write the name of the business or seller." />
-          <SelectField id="biz-sub" label="Sub-City" options={refData.subcities.map(s => s.name)} placeholder="Choose a Sub-City" value={b.subcity} onChange={e => patch({ subcity: e.target.value, woreda: "" })} />
-          <SelectField id="biz-wo" label="Woreda (if known)" optional options={woredasOf(refData, b.subcity)} placeholder={b.subcity ? "Choose a Woreda" : "Choose a Sub-City first"} disabled={!b.subcity} value={b.woreda} onChange={e => patch({ woreda: e.target.value })} />
+          <ComboField id="biz-sub" label="Sub-City" options={refData.subcities.map(s => s.name)} placeholder="Choose or type a Sub-City" value={b.subcity} onChange={v => patch({ subcity: v, woreda: "" })} />
+          <ComboField id="biz-wo" label="Woreda (if known)" optional options={woredaOptions(refData, b.subcity)} placeholder={b.subcity ? "Choose or type a Woreda" : "Choose a Sub-City first"} disabled={!b.subcity} value={b.woreda} onChange={v => patch({ woreda: v })} />
           <TextField id="biz-addr" label="Street, building or landmark" full value={b.address} onChange={e => patch({ address: e.target.value })} />
           <TextField id="biz-phone" label="Phone of the business (if known)" optional type="tel" full value={b.phone} onChange={e => patch({ phone: e.target.value })} />
         </div>
@@ -115,9 +116,9 @@ export function Step3({ draft, set, next, back, refData }: StepProps) {
           invalid="Choose a date that is not in the future." />
         <div className="full"><ChoiceGroup name="where" legend="Where did you buy it?" value={p.where} onChange={v => patch({ where: v })} options={[
           { value: "market", title: "At a Sunday Market or Market Center" }, { value: "shop", title: "In a shop" }, { value: "online", title: "Online or by phone" }]} /></div>
-        <SelectField id="p-sub" label="Sub-City" required options={refData.subcities.map(s => s.name)} placeholder="Choose a Sub-City" value={p.subcity} onChange={e => patch({ subcity: e.target.value, woreda: "" })}
-          hint="You can send the complaint to this Sub-City or Woreda office in the last step." invalid="Choose a Sub-City." />
-        <SelectField id="p-wo" label="Woreda" required options={woredasOf(refData, p.subcity)} placeholder={p.subcity ? "Choose a Woreda" : "Choose a Sub-City first"} disabled={!p.subcity} value={p.woreda} onChange={e => patch({ woreda: e.target.value })} invalid="Choose the Woreda." />
+        <ComboField id="p-sub" label="Sub-City" required options={refData.subcities.map(s => s.name)} placeholder="Choose or type a Sub-City" value={p.subcity} onChange={v => patch({ subcity: v, woreda: "" })}
+          hint="Start typing to see suggestions. You can send the complaint to this Sub-City or Woreda office in the last step." invalid="Choose a Sub-City from the list." />
+        <ComboField id="p-wo" label="Woreda" required options={woredaOptions(refData, p.subcity)} placeholder={p.subcity ? "Choose or type a Woreda" : "Choose a Sub-City first"} disabled={!p.subcity} value={p.woreda} onChange={v => patch({ woreda: v })} invalid="Choose the Woreda from the list." />
         <TextField id="p-place" label="Market, shop address or website" full value={p.place} onChange={e => patch({ place: e.target.value })} />
         <TextField id="p-paid" label="Amount you paid (ETB)" type="number" min={0} inputMode="decimal" required value={p.paid} onChange={e => patch({ paid: e.target.value })}
           invalid="Write the amount, or 0 if you paid nothing." />
@@ -133,3 +134,6 @@ export function Step3({ draft, set, next, back, refData }: StepProps) {
 /** Woreda numbers of one Sub-City, as the strings a select shows. */
 export const woredasOf = (ref: RefData, subcityName: string): string[] =>
   (ref.subcities.find(x => x.name === subcityName)?.woredas ?? []).map(w => String(w.number));
+
+/** The Woredas of one Sub-City as dropdown options ("Woreda 7"). */
+export const woredaOptions = (ref: RefData, subcityName: string) => woredasOf(ref, subcityName).map(n => ({ value: n, label: `Woreda ${n}` }));

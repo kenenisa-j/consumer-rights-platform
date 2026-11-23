@@ -6,7 +6,7 @@ import { apiGet, apiPost } from "@/lib/api";
 import { mmss, VoiceBubble } from "./VoiceBubble";
 import { useRecorder, type Recording } from "./useRecorder";
 
-interface ConvRow { id: string; caseRef: string; title: string; name: string; subtitle: string; open: boolean; preview: string; lastAt: string; lastMine: boolean }
+interface ConvRow { id: string; caseRef: string; title: string; name: string; subtitle: string; open: boolean; preview: string; lastAt: string; lastMine: boolean; unread: number }
 interface Msg { id: string; mine: boolean; who: string; kind: "text" | "voice"; text: string; durationMs: number | null; sentAt: string; sending?: boolean; localUrl?: string }
 interface Thread { id: string; caseRef: string; title: string; name: string; open: boolean; closedNote: string | null; messages: Msg[] }
 
@@ -73,11 +73,10 @@ export function ChatApp({ caseBase, focusCase }: { caseBase: string; focusCase?:
   useEffect(() => { void loadList(); }, [loadList]);
   useEffect(() => { setThread(null); if (activeId) { stick.current = true; void loadThread(activeId); } }, [activeId, loadThread]);
   useEffect(() => {
-    const t = setInterval(() => {
-      if (document.hidden) return;
-      void loadList(); if (activeId) void loadThread(activeId);
-    }, 4000);
-    return () => clearInterval(t);
+    const tick = () => { if (document.hidden) return; void loadList(); if (activeId) void loadThread(activeId); };
+    const t = setInterval(tick, 2500); // a new message shows up within a couple of seconds, on either side
+    window.addEventListener("focus", tick); document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(t); window.removeEventListener("focus", tick); document.removeEventListener("visibilitychange", tick); };
   }, [activeId, loadList, loadThread]);
   useEffect(() => { if (stick.current) feed.current?.scrollTo({ top: feed.current.scrollHeight }); }, [thread?.messages.length, activeId]);
   useEffect(() => { // grow the box with the text, like a messenger
@@ -137,11 +136,11 @@ export function ChatApp({ caseBase, focusCase }: { caseBase: string; focusCase?:
         <ul>
           {list?.map(c => (
             <li key={c.id}>
-              <button type="button" className="tg-chat" aria-current={c.id === activeId ? "true" : undefined} onClick={() => setActiveId(c.id)}>
+              <button type="button" className={`tg-chat${c.unread && c.id !== activeId ? " has-unread" : ""}`} aria-current={c.id === activeId ? "true" : undefined} onClick={() => setActiveId(c.id)}>
                 <Avatar name={c.name} />
                 <span className="tg-chat__body">
                   <span className="tg-chat__top"><b>{c.name}</b><time dateTime={c.lastAt}>{listTime(c.lastAt)}</time></span>
-                  <span className="tg-chat__sub">{c.lastMine && <em>You: </em>}{c.preview}</span>
+                  <span className="tg-chat__sub"><span className="tg-chat__prev">{c.lastMine && <em>You: </em>}{c.preview}</span>{c.unread > 0 && c.id !== activeId && <span className="tg-badge" aria-label={`${c.unread} unread`}>{c.unread}</span>}</span>
                   <span className="tg-chat__case">{c.caseRef}</span>
                 </span>
               </button>

@@ -1,22 +1,26 @@
 import { bi } from "./types";
 
 // Public site chrome: header navigation, sign-in roles, footer. Source: prototype/public/index.html.
-export const NAV = [
-  { href: "/", label: bi("Home", "መነሻ"), more: false },
-  { href: "/complaint/new", label: bi("Make a complaint", "ቅሬታ ያቅርቡ"), more: false },
-  { href: "/tip", label: bi("Report unfair trade", "ኢፍትሃዊ ንግድ ጥቆማ"), more: false },
-  { href: "/track", label: bi("Track a case", "ጉዳይ ይከታተሉ"), more: false },
-  // Reading pages sit under "More" so the bar fits on a laptop screen.
-  { href: "/rights", label: bi("Your rights", "መብትዎ"), more: true },
-  { href: "/laws", label: bi("Laws and documents", "ሕጎችና ሰነዶች"), more: true },
-  { href: "/news", label: bi("News", "ዜና"), more: true },
-  { href: "/help", label: bi("Help", "እገዛ"), more: true }
-] as const;
+export interface NavLink { href: string; label: string }
+export type NavEntry = NavLink | { label: string; items: NavLink[] };
+
+/** The header menu. A group opens its list when the pointer is over it (or it has the keyboard focus) and closes when the pointer leaves. */
+export const NAV: NavEntry[] = [
+  { href: "/", label: "Home" },
+  { href: "/complaint/new", label: "Make a complaint" },
+  { href: "/tip", label: "Report unfair trade" },
+  { href: "/track", label: "Track a case" },
+  { label: "Learn", items: [
+    { href: "/rights", label: "Your rights" }, { href: "/how-to-complain", label: "How a complaint works" }, { href: "/laws", label: "Laws and documents" }] },
+  { href: "/news", label: "News" },
+  { label: "Help", items: [
+    { href: "/help", label: "Questions and answers" }, { href: "/help#offices", label: "Find an office" }] }
+];
 
 export const BRAND = {
-  name: "AddisB2B",
-  tagline: "Consumer Protection",
-  taglineAm: "የሸማቾች መብት ጥበቃ"
+  org: "Addis Ababa City Administration",
+  name: "Trade Bureau",
+  logo: "/brand/trade-bureau-logo.png"
 } as const;
 
 /** The five sign-ins. `landing` is where each one opens (routes are built per slice). */

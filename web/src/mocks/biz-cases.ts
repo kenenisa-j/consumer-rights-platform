@@ -59,6 +59,77 @@ export function buildBizCase(step: BizStep): BizCase {
 }
 
 export async function getBizCase(reference: string, step?: string): Promise<BizCase | null> {
+  try {
+    const { cookies } = await import("next/headers");
+    const { API_URL } = await import("@/lib/session");
+    const jar = await cookies();
+    if (jar.getAll().length > 0) {
+      const res = await fetch(`${API_URL}/api/business/cases/${reference}`, {
+        headers: { cookie: jar.toString() },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const body = await res.json();
+        const c = body?.complaint;
+        if (c) {
+          const isSubmitted = c.status === "SUBMITTED_TO_BUSINESS";
+          const isPendingOffer = c.status === "BUSINESS_OFFER_PENDING";
+          const isResolved = c.status === "RESOLVED_MUTUALLY" || c.status === "RESOLVED_ADMINISTRATIVE_ORDER";
+          const isClosed = isResolved || c.status === "CLOSED_WITHDRAWN" || c.status === "CLOSED_OUTSIDE_JURISDICTION";
+          const isGov = c.status === "ESCALATED_TO_GOVERNMENT" || c.status === "RECEIVED_BY_OFFICE" || c.status === "UNDER_INITIAL_REVIEW" || c.status === "OFFICER_ASSIGNED";
+
+          const pending = isSubmitted ? "reply" : isPendingOffer ? "none" : isGov ? "gov" : "none";
+
+          const consumerSays: [string, string][] = [
+            ["Consumer", c.complainant],
+            ["Problem", c.category?.nameEn || c.categoryCode || "Problem"],
+            ["Item", c.title],
+            ["Bought", c.incidentDate ? new Date(c.incidentDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : "—"],
+            ["Paid", `${c.disputedAmount} ${c.currency || "ETB"}`],
+            ["The consumer asks for", c.desiredRemedy || "Resolution"]
+          ];
+
+          return {
+            reference: c.reference,
+            title: c.title,
+            alias: c.complainant,
+            status: {
+              label: isSubmitted ? "Reply needed" : isPendingOffer ? "Waiting for the consumer" : isResolved ? "Resolved" : c.status.replace(/_/g, " ").toLowerCase(),
+              tone: isSubmitted ? "warn" : isResolved ? "ok" : "info"
+            },
+            official: c.status.replace(/_/g, " "),
+            pending,
+            closed: isClosed,
+            deadline: c.slaDeadline ? new Date(c.slaDeadline).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : undefined,
+            consumerSays,
+            narrative: c.desiredRemedy ? `${c.title}. Remedy desired: ${c.desiredRemedy}` : c.title,
+            thread: (c.conversation?.messages || []).map((m: any) => ({
+              id: m.id,
+              from: m.from === "consumer" ? "consumer" : "me",
+              who: m.sender || (m.from === "consumer" ? c.complainant : "You"),
+              when: m.sentAt ? new Date(m.sentAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "",
+              text: m.content
+            })),
+            history: (c.history || []).map((h: any) => ({
+              title: h.toStatus ? h.toStatus.replace(/_/g, " ").toLowerCase() : "Update",
+              when: h.createdAt ? new Date(h.createdAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) : "",
+              iso: h.createdAt || new Date().toISOString(),
+              text: h.publicNote
+            })),
+            evidence: (c.evidence || []).map((e: any) => ({
+              name: e.name,
+              note: e.type,
+              size: `${Math.round((e.sizeBytes || 0) / 1024)} KB`,
+              shared: true
+            })),
+          };
+        }
+      }
+    }
+  } catch {
+    // fallback
+  }
+
   if (reference !== "CC-2026-00123") return null;
   return buildBizCase((BIZ_STEPS as readonly string[]).includes(step ?? "") ? (step as BizStep) : "reply");
 }

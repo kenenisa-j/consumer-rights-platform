@@ -9,7 +9,7 @@ export interface ComplaintInput {
   subcityCode: string | null; woredaNumber: number | null;
   merchantId: string | null; otherBusiness: { name: string; location: string | null; phone: string | null } | null;
   item: string; purchasedOn: Date; paid: number; loss: number | null; receipt: boolean; paymentMethod: string | null;
-  want: string; wantAmount: number | null; contactPhone: string | null;
+  want: string; wantAmount: number | null; contactPhone: string; contactEmail: string | null; language: string; notifyEmail: boolean; notifySms: boolean;
 }
 
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -37,6 +37,14 @@ export function readComplaint(body: Record<string, unknown>): ComplaintInput {
   const purchasedOn = new Date(str(body.purchasedOn, 10));
   need(!Number.isNaN(purchasedOn.getTime()) && purchasedOn.getTime() <= Date.now() + 86_400_000, 'purchasedOn', 'Choose the date you bought it.');
   const paid = num(body.paid); need(paid !== null && Number.isFinite(paid) && paid >= 0 && paid < 1e9, 'paid', 'Write how much you paid.');
+  const phone = str(body.contactPhone, 30).replace(/[\s-]/g, "");
+  need(/^(\+251|0)?[79]\d{8}$/.test(phone), "contactPhone", "Write the phone number the officer can call.");
+  const email = str(body.contactEmail, 120);
+  need(email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), "contactEmail", "Write a correct email address, or leave it empty.");
+  const language = str(body.language, 4) || "en";
+  need(["en", "am", "om", "ti", "so"].includes(language), "language", "Choose one of the languages in the list.");
+  const notifyEmail = body.notifyEmail === true;
+  need(!notifyEmail || email !== "", "contactEmail", "Write your email address to get updates by email.");
   const want = str(body.want, 20); need(['refund', 'replacement', 'repair', 'loss', 'other'].includes(want), 'want', 'Choose what you want.');
   const wantAmount = num(body.wantAmount);
   need(!(want === 'refund' || want === 'loss') || (wantAmount !== null && wantAmount > 0), 'wantAmount', 'Write the amount you ask for.');
@@ -52,6 +60,6 @@ export function readComplaint(body: Record<string, unknown>): ComplaintInput {
     category, subject, narrative, urgent: body.urgent === true, destination, subcityCode, woredaNumber: woredaNumber as number | null,
     merchantId, otherBusiness: merchantId ? null : { name: otherName, location: str(body.otherBusinessPlace, 200) || null, phone: str(body.otherBusinessPhone, 30) || null },
     item, purchasedOn, paid: paid as number, loss: num(body.loss), receipt: body.receipt !== 'no' && body.receipt !== false,
-    paymentMethod: str(body.paymentMethod, 40) || null, want, wantAmount, contactPhone: str(body.contactPhone, 30) || null,
+    paymentMethod: str(body.paymentMethod, 40) || null, want, wantAmount, contactPhone: phone, contactEmail: email || null, language, notifyEmail, notifySms: body.notifySms === true,
   };
 }

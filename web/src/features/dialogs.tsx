@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { freeCallNumber } from "@/lib/config";
 import { requirePortal } from "@/lib/session";
 import { getReference } from "@/lib/reference";
+import { getLocale } from "@/lib/locale";
 import { ModalHead, RouteModal } from "@/components/ui/RouteModal";
 import { TipForm } from "@/features/tip/TipForm";
 import { TipSent } from "@/features/tip/TipSent";
@@ -33,10 +34,11 @@ export function TipSentDialog() {
 export async function ComplaintDialog({ direct }: { direct?: boolean }) {
   const me = await requirePortal("consumer", "/complaint/new");
   const refData = await getReference();
+  const locale = await getLocale();
   return (
     <RouteModal title="Make a complaint" size="wide" closeTo={home(direct)}>
       <Suspense fallback={<p className="muted" role="status">Loading your form…</p>}>
-        <ComplaintWizard freeCall={freeCallNumber()} contact={{ first: me.fullName.split(" ")[0], phone: me.phoneNumber, email: me.email ?? "" }} refData={refData} />
+        <ComplaintWizard freeCall={freeCallNumber()} contact={{ first: me.fullName.split(" ")[0], phone: me.phoneNumber, email: me.email ?? "" }} refData={refData} locale={locale} />
       </Suspense>
     </RouteModal>
   );

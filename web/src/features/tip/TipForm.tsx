@@ -6,7 +6,8 @@ import { apiPost } from "@/lib/api";
 import type { RefData } from "@/lib/reference";
 import { saveHandoff } from "@/lib/handoff";
 import { Alert } from "@/components/ui/Display";
-import { ChoiceGroup, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
+import { ChoiceGroup, TextAreaField, TextField } from "@/components/ui/Field";
+import { ComboField } from "@/components/ui/ComboField";
 import { Am } from "@/components/ui/Bi";
 import { CloseOrLink } from "@/components/ui/RouteModal";
 
@@ -18,21 +19,31 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function TipForm({ subcities }: { subcities: RefData["subcities"] }) {
   const router = useRouter();
   const [sub, setSub] = useState("");
+  const [wo, setWo] = useState("");
   const [who, setWho] = useState<"anon" | "contact">("anon");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (busy) return; // a second tap must not send a second tip
     const f = new FormData(e.currentTarget);
     const v = (k: string) => String(f.get(k) ?? "");
     setBusy(true); setFailed(null);
-    const res = await apiPost<{ reference: string; code: string; receivedAt: string; anonymous: boolean }>("/api/tips", {
-      kind: v("kind"), subcity: subcities.find(s => s.name === v("subcity"))?.code, woreda: v("woreda") || null, place: v("place"),
-      business: v("business"), product: v("product"), when: v("when"), text: v("text"), anonymous: who === "anon", name: v("name"), phone: v("phone")
-    });
-    if (!res.ok) { setFailed(res.error); setBusy(false); return; }
-    saveHandoff("tip-receipt", res.data); // the private code is shown once, on the next screen
+    try {
+      // An anonymous tip never carries a name or phone, even if something was typed and then switched off.
+      const res = await apiPost<{ reference: string; code: string; receivedAt: string; anonymous: boolean }>("/api/tips", {
+        kind: v("kind"), subcity: subcities.find(s => s.name === v("subcity"))?.code, woreda: v("woreda") || null, place: v("place"),
+        business: v("business"), product: v("product"), when: v("when"), text: v("text"), anonymous: who === "anon",
+        name: who === "contact" ? v("name") : "", phone: who === "contact" ? v("phone") : ""
+      });
+      if (!res.ok) { setFailed(res.error); setBusy(false); return; }
+      saveHandoff("tip-receipt", res.data); // the private code is shown once, on the next screen
+    } catch {
+      setFailed("Your tip could not be sent. Check your connection and try again.");
+      setBusy(false);
+      return;
+    }
     router.push("/tip/sent");
   };
 
@@ -41,9 +52,9 @@ export function TipForm({ subcities }: { subcities: RefData["subcities"] }) {
       {failed && <div className="field-error-summary"><Alert tone="bad" icon="flag" role="alert" title="Your tip was not sent.">{failed} Your answers are still here.</Alert></div>}
       <ChoiceGroup name="kind" dropdown placeholder="Choose what you saw" legend="What did you see?" options={KINDS} value={KINDS[0].value} />
       <div className="form-grid">
-        <SelectField id="t-sub" name="subcity" label="Sub-City" required options={subcities.map(s => s.name)} placeholder="Choose a Sub-City" value={sub} onChange={e => setSub(e.target.value)} invalid="Choose a Sub-City." />
-        <SelectField id="t-wo" name="woreda" label="Woreda (if known)" optional key={sub} options={(subcities.find(s => s.name === sub)?.woredas ?? []).map(w => String(w.number))}
-          placeholder={sub ? "Choose a Woreda" : "Choose a Sub-City first"} disabled={!sub} />
+        <ComboField id="t-sub" name="subcity" label="Sub-City" required options={subcities.map(s => s.name)} placeholder="Choose or type a Sub-City" value={sub} onChange={v => { setSub(v); setWo(""); }} invalid="Choose a Sub-City from the list." />
+        <ComboField id="t-wo" name="woreda" label="Woreda (if known)" optional options={(subcities.find(s => s.name === sub)?.woredas ?? []).map(w => ({ value: String(w.number), label: `Woreda ${w.number}` }))}
+          placeholder={sub ? "Choose or type a Woreda" : "Choose a Sub-City first"} disabled={!sub} value={wo} onChange={setWo} />
         <TextField id="t-place" name="place" label="Market, street or landmark" full required maxLength={160}
           hint="Tell us where, so an officer can go and check." invalid="Tell us where." />
         <TextField id="t-biz" name="business" label="Business name (if known)" optional maxLength={120} />

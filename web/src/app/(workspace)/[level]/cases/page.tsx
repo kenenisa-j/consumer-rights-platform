@@ -14,8 +14,9 @@ const INTRO = {
 } as const;
 
 // Prototype: woreda|subcity|bureau/cases.html. The list comes from the database, limited to what this office may see.
-export default async function CasesPage({ params }: { params: Promise<{ level: string }> }) {
+export default async function CasesPage({ params, searchParams }: { params: Promise<{ level: string }>; searchParams: Promise<{ sent?: string; to?: string }> }) {
   const { level } = await params;
+  const { sent, to } = await searchParams;
   if (!isGovLevel(level)) notFound();
   const data = await getOfficeCases();
   const cases = data?.cases ?? [];
@@ -30,6 +31,7 @@ export default async function CasesPage({ params }: { params: Promise<{ level: s
         <div><h1>Cases</h1><p>{data ? `${INTRO[level]}: ${data.office.name}` : INTRO[level]}</p></div>
         <Link className="btn btn--accent" href={`/${level}/intake`}>New complaint</Link>
       </div>
+      {sent && to && <Alert tone="ok" icon="shield" role="status" title={`${sent} was sent to ${to}.`}>The consumer was told. The next office can see the whole history and your note.</Alert>}
       {data === null ? <Alert tone="warn" icon="flag" title="We could not load the cases.">Try again in a moment.</Alert> : (
         <>
           <div className="tiles">{tiles.map(([v, label]) => <div key={label} className="tile"><b>{v}</b><span>{label}</span></div>)}</div>

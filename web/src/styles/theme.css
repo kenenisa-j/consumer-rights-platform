@@ -1,0 +1,31 @@
+/* Navy and amber, as on the AddisB2B Trade Bureau site. Loaded last. Amber is a light colour, so text on it is navy, never white. */
+.btn--accent, .btn--accent:visited { background: var(--orange); border-color: var(--orange); color: var(--on-amber); }
+.btn--accent:hover { background: #ffc43d; border-color: #ffc43d; color: var(--on-amber); }
+.count, .rail .count, .call-box__num, .how li::before, .call-pill:hover, .steps .now::before, .ribbon a[aria-current="page"] { color: var(--on-amber); }
+.call-pill { background: var(--orange-pale); border-color: #f3dc9a; color: var(--orange-deep); }
+.badge--orange { background: var(--orange-pale); color: var(--orange-deep); }
+:focus-visible { outline-color: #b8780a; }
+.tg-open:focus-visible, .tg-chat:focus-visible { outline-color: #b8780a; }
+/* Tinted category links and icon circles (AddisB2B home page style) */
+.acc-orange { --acc: var(--acc-orange); --acc-bg: var(--acc-orange-bg); }
+.acc-blue { --acc: var(--acc-blue); --acc-bg: var(--acc-blue-bg); }
+.acc-green { --acc: var(--acc-green); --acc-bg: var(--acc-green-bg); }
+.acc-purple { --acc: var(--acc-purple); --acc-bg: var(--acc-purple-bg); }
+
+/* Languages: while a translated page is being prepared it stays hidden for a moment, so English never flashes. Amharic sub-lines are only for English pages. */
+html[data-translating="1"] body { opacity: 0; }
+html:not([lang="en"]) .am { display: none !important; }
+.lang-switch { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+.lang-switch__ico { width: 18px; height: 18px; fill: none; stroke: var(--green); stroke-width: 1.8; stroke-linecap: round; flex: none; }
+.lang-switch select { min-height: 40px; padding: 0 30px 0 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); font: inherit; font-size: .92rem; cursor: pointer; }
+.lang-switch select:hover { border-color: var(--line-strong); }
+
+/* notification bell (public header and workspaces) and notice list */
+.hdr-bell { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 10px; color: var(--green); background: #fff; }
+.hdr-bell:hover { background: var(--green-pale); }
+.hdr-bell .ico { width: 20px; height: 20px; }
+.hdr-bell__n { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; background: var(--orange); color: var(--on-amber); font-size: .7rem; font-weight: 800; border: 2px solid #fff; }
+.notes li.is-new { background: var(--orange-pale); }
+.note-btn { display: flex; align-items: flex-start; gap: var(--s3); width: 100%; padding: 0; border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; }
+.seg--sm { margin: 0; }
+.seg--sm button { padding: 6px 12px; font-size: .85rem; }

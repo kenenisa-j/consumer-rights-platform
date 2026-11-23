@@ -23,12 +23,38 @@ function createMockPrisma({
   const mockTx = {
     complaintCategory: {
       findUnique: async ({ where }) => (where.id === category?.id ? category : null),
+      findFirst: async ({ where }) => {
+        if (!category) return null;
+        if (where?.id && where.id === category.id) return category;
+        if (where?.OR) {
+          const match = where.OR.some(
+            (cond) =>
+              (cond.id && cond.id === category.id) ||
+              (cond.code && (cond.code === category.code || cond.code === category.id)),
+          );
+          if (match) return category;
+        }
+        return null;
+      },
     },
     administrativeOffice: {
       findUnique: async ({ where }) => (where.id === office?.id ? office : null),
     },
     merchant: {
       findUnique: async ({ where }) => (where.id === merchant?.id ? merchant : null),
+      findFirst: async ({ where }) => {
+        if (!merchant) return null;
+        if (where?.id && where.id === merchant.id) return merchant;
+        if (where?.OR) {
+          const match = where.OR.some(
+            (cond) =>
+              (cond.id && cond.id === merchant.id) ||
+              (cond.registrationNumber && cond.registrationNumber === merchant.registrationNumber),
+          );
+          if (match) return merchant;
+        }
+        return null;
+      },
     },
     market: {
       findUnique: async () => ({ id: "mkt-1", isActive: true }),

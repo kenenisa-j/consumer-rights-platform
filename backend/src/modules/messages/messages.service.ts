@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/database/prisma.service';
 import { officeScopeOf, type OfficeScope } from '../../lib/common/office-scope';
+import { businessUserIds, notify, officeStaffIds } from '../../lib/common/notify';
 
 const CLOSED = new Set(['RESOLVED_MUTUALLY', 'RESOLVED_ADMINISTRATIVE_ORDER', 'COURT_REFERRAL_ISSUED', 'CLOSED_OUTSIDE_JURISDICTION', 'CLOSED_WITHDRAWN']);
 const AT_BUSINESS = new Set(['SUBMITTED_TO_BUSINESS', 'BUSINESS_OFFER_PENDING']);
@@ -17,7 +18,7 @@ type Viewer =
 const convSelect = {
   id: true, kind: true, createdAt: true,
   case: { select: {
-    referenceNumber: true, subject: true, status: true, complainantAlias: true, merchantId: true, currentOfficeId: true, complainantId: true,
+    id: true, referenceNumber: true, subject: true, status: true, complainantAlias: true, merchantId: true, currentOfficeId: true, complainantId: true,
     merchant: { select: { tradeName: true } }, currentOffice: { select: { nameEn: true } }, complainant: { select: { fullName: true } },
   } },
   messages: { orderBy: { sentAt: 'desc' as const }, take: 1, select: { kind: true, content: true, sentAt: true, senderUserId: true } },
@@ -69,17 +70,36 @@ export class MessagesService {
     }
   }
 
+  /** How many messages from other people each conversation holds since this person last opened it. */
+  private async unreadBy(userId: string, ids: string[]): Promise<Map<string, number>> {
+    if (ids.length === 0) return new Map();
+    const rows = await this.prisma.$queryRaw<{ id: string; n: number }[]>`
+      SELECT m.conversation_id AS id, COUNT(*)::int AS n FROM messages m
+      LEFT JOIN conversation_reads r ON r.conversation_id = m.conversation_id AND r.user_id = ${userId}
+      WHERE m.conversation_id = ANY(${ids}) AND m.sender_user_id <> ${userId} AND (r.read_at IS NULL OR m.sent_at > r.read_at)
+      GROUP BY m.conversation_id`;
+    return new Map(rows.map(r => [r.id, r.n]));
+  }
+
+  async unreadTotal(userId: string) {
+    const v = await this.viewer(userId);
+    const ids = (await this.prisma.conversation.findMany({ where: this.where(v), select: { id: true }, take: 500 })).map(c => c.id);
+    let total = 0; for (const n of (await this.unreadBy(userId, ids)).values()) total += n;
+    return { total };
+  }
+
   async list(userId: string) {
     await this.ensureConversations();
     const v = await this.viewer(userId);
     const rows = await this.prisma.conversation.findMany({ where: this.where(v), select: convSelect, take: 100 });
+    const unread = await this.unreadBy(userId, rows.map(r => r.id));
     return rows.map(c => {
       const last = c.messages[0];
       return {
         id: c.id, caseRef: c.case.referenceNumber, title: c.case.subject, name: this.counterpart(v, c),
         subtitle: c.kind === 'CONSUMER_BUSINESS' ? 'The business' : 'Government office', open: this.canWrite(v, c),
         preview: last ? (last.kind === 'VOICE' ? 'Voice message' : last.content.slice(0, 80)) : 'No messages yet',
-        lastAt: (last?.sentAt ?? c.createdAt).toISOString(), lastMine: last?.senderUserId === userId,
+        lastAt: (last?.sentAt ?? c.createdAt).toISOString(), lastMine: last?.senderUserId === userId, unread: unread.get(c.id) ?? 0,
       };
     }).sort((a, b) => b.lastAt.localeCompare(a.lastAt));
   }
@@ -95,8 +115,11 @@ export class MessagesService {
     const { v, c } = await this.open(userId, id);
     const rows = await this.prisma.message.findMany({
       where: { conversationId: id }, orderBy: { sentAt: 'asc' }, take: 500,
-      select: { id: true, kind: true, content: true, durationMs: true, sentAt: true, senderUserId: true, sender: { select: { fullName: true } } },
+      select: { id: true, kind: true, content: true, durationMs: true, sentAt: true, senderUserId: true,
+        sender: { select: { fullName: true, offices: { where: { isActive: true }, take: 1, select: { office: { select: { nameEn: true } } } } } } },
     });
+    // Opening a conversation reads it. Messages that arrive later are unread again.
+    await this.prisma.conversationRead.upsert({ where: { conversationId_userId: { conversationId: id, userId } }, update: { readAt: new Date() }, create: { conversationId: id, userId } });
     return {
       id, caseRef: c.case.referenceNumber, title: c.case.subject, name: this.counterpart(v, c), open: this.canWrite(v, c),
       closedNote: this.canWrite(v, c) ? null : CLOSED.has(c.case.status) ? 'This complaint is closed.' : v.kind === 'staff' || v.kind === 'business'
@@ -104,10 +127,26 @@ export class MessagesService {
       messages: rows.map(m => {
         const mine = m.senderUserId === userId;
         const fromConsumer = m.senderUserId === c.case.complainantId;
-        const who = mine ? 'You' : fromConsumer ? this.counterpart(v, c) : v.kind === 'consumer' && c.kind === 'CONSUMER_BUSINESS' ? this.counterpart(v, c) : m.sender.fullName;
+        const office = m.sender.offices[0]?.office.nameEn;
+        const who = mine ? 'You' : fromConsumer ? this.counterpart(v, c) : v.kind === 'consumer' && c.kind === 'CONSUMER_BUSINESS' ? this.counterpart(v, c) : office ? `${m.sender.fullName} · ${office}` : m.sender.fullName;
         return { id: m.id, mine, who, kind: m.kind === 'VOICE' ? 'voice' as const : 'text' as const, text: m.content, durationMs: m.durationMs, sentAt: m.sentAt.toISOString() };
       }),
     };
+  }
+
+  /** A new message puts one unread notice in front of the people on the other side (several in a row fold into one). */
+  private async tell(v: Viewer, c: Conv, caseId: string, userId: string, preview: string) {
+    const ref = c.case.referenceNumber;
+    let to: string[] = [];
+    let who = 'Someone';
+    if (v.kind === 'consumer') {
+      to = c.kind === 'CONSUMER_BUSINESS' ? (c.case.merchantId ? await businessUserIds(this.prisma, c.case.merchantId) : []) : (c.case.currentOfficeId ? await officeStaffIds(this.prisma, c.case.currentOfficeId) : []);
+      who = c.kind === 'CONSUMER_BUSINESS' ? c.case.complainantAlias : c.case.complainant.fullName; // a business only ever learns the pseudonym
+    } else {
+      to = [c.case.complainantId];
+      who = c.kind === 'CONSUMER_BUSINESS' ? (c.case.merchant?.tradeName ?? 'The business') : (c.case.currentOffice?.nameEn ?? 'The office');
+    }
+    await notify(this.prisma, to.filter(u => u !== userId), { caseId, type: 'NEW_MESSAGE', title: `New message from ${who} about ${ref}`, body: preview, fold: true });
   }
 
   async sendText(userId: string, id: string, text: unknown) {
@@ -116,6 +155,7 @@ export class MessagesService {
     const { v, c } = await this.open(userId, id);
     if (!this.canWrite(v, c)) throw new ForbiddenException({ code: 'CLOSED', message: 'You cannot write in this conversation now.' });
     const m = await this.prisma.message.create({ data: { conversationId: id, senderUserId: userId, content: body }, select: { id: true, sentAt: true } });
+    await this.tell(v, c, c.case.id, userId, body.slice(0, 140));
     return { id: m.id, sentAt: m.sentAt.toISOString() };
   }
 
@@ -130,6 +170,7 @@ export class MessagesService {
     const m = await this.prisma.message.create({
       data: { conversationId: id, senderUserId: userId, content: '', kind: 'VOICE', audio: bytes, audioMime: mime, durationMs: Math.round(ms) }, select: { id: true, sentAt: true },
     });
+    await this.tell(v, c, c.case.id, userId, 'Sent a voice message');
     return { id: m.id, sentAt: m.sentAt.toISOString() };
   }
 

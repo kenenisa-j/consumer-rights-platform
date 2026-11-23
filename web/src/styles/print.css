@@ -9,3 +9,14 @@
   .print-only { display: block !important; }
 }
 .print-only { display: none; }
+
+/* A receipt in a dialog prints alone: the page behind it (header, footer, sections) is removed, so no second copy of the page is printed. */
+@media print {
+  body:has(dialog.dlg[open]) :is(.site-header, .site-footer, .skip-link, .ws-shell > aside, .ws-foot, .topbar, .hdr, .foot-cta) { display: none !important; }
+  body:has(dialog.dlg[open]) main > :not(dialog), body:has(dialog.dlg[open]) .ws-content > :not(dialog) { display: none !important; }
+  dialog.dlg[open] { position: static !important; display: block !important; width: auto !important; max-width: none !important; max-height: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: #fff !important; box-shadow: none !important; overflow: visible !important; }
+  dialog.dlg[open] .modal__box { position: static !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; border: 0 !important; padding: 0 !important; }
+  dialog.dlg[open] .modal__close, dialog.dlg[open] .modal-head { display: none !important; }
+  dialog.dlg::backdrop { display: none; }
+  .receipt { break-inside: avoid; }
+}

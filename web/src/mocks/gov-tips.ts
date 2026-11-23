@@ -53,5 +53,15 @@ export function TIP_45(level: GovLevel): GovTip {
 }
 
 export async function getTip(level: GovLevel, reference: string): Promise<GovTip | null> {
+  try {
+    const res = await fetch(`/api/government/tips/${reference}`, { credentials: "same-origin" });
+    if (res.ok) {
+      const body = await res.json();
+      const t = body?.tip || body?.data?.tip || body?.data;
+      if (t?.reference) return t;
+    }
+  } catch {
+    // offline/mock fallback
+  }
   return reference === "TIP-2026-00045" ? TIP_45(level) : null;
 }

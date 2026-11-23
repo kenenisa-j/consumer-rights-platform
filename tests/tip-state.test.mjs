@@ -1,7 +1,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyTipAction } from "../web/src/features/gov/tip-state.ts";
-import { TIP_45 } from "../web/src/mocks/gov-tips.ts";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import ts from "typescript";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+async function loadTsModule(relPath) {
+  const fullPath = path.resolve(__dirname, relPath);
+  const source = fs.readFileSync(fullPath, "utf8");
+  const transpiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2022,
+    },
+  }).outputText;
+  const dataUri = `data:text/javascript;base64,${Buffer.from(transpiled).toString("base64")}`;
+  return import(dataUri);
+}
+
+const { applyTipAction } = await loadTsModule("../web/src/features/gov/tip-state.ts");
+const { TIP_45 } = await loadTsModule("../web/src/mocks/gov-tips.ts");
 
 const at = { when: "Thursday 12 November 2026, 10:00", short: "Thu 12 Nov, 10:00", iso: "2026-11-12T10:00" };
 const tip = (level, over = {}) => ({ ...TIP_45(level), ...over });

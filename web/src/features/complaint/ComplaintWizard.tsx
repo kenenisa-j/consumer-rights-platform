@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiPost } from "@/lib/api";
+import { apiPost, type ApiResult } from "@/lib/api";
 import { uploadEvidence } from "@/lib/evidence";
 import type { RefData } from "@/lib/reference";
 import { saveHandoff } from "@/lib/handoff";
@@ -49,11 +49,14 @@ export function ComplaintWizard({ freeCall, contact, refData, locale = "en" }: {
   const back = () => go(step - 1);
 
   const send = async () => {
+    if (busy) return; // a second tap must not send a second complaint
     setBusy(true); setError(null);
     const { business: b, purchase: p, outcome: o } = draft;
     const sub = (name: string) => refData.subcities.find(s => s.name === name)?.code;
     const registered = b.mode === "registered";
-    const res = await apiPost<{ reference: string; sentAt: string; toBusiness: boolean; handledBy: string }>("/api/complaints", {
+    let res: ApiResult<{ reference: string; sentAt: string; toBusiness: boolean; handledBy: string }>;
+    try {
+      res = await apiPost<{ reference: string; sentAt: string; toBusiness: boolean; handledBy: string }>("/api/complaints", {
       category: draft.category, subject: draft.subject, narrative: draft.what, urgent: draft.urgent, destination: draft.destination,
       subcityCode: sub(draft.destination === "woreda" || draft.destination === "subcity" ? draft.destSubcity : p.subcity),
       woreda: draft.destination === "woreda" ? Number(draft.destWoreda) || null : null,
@@ -62,7 +65,12 @@ export function ComplaintWizard({ freeCall, contact, refData, locale = "en" }: {
       item: p.item, purchasedOn: p.date, paid: p.paid === "" ? null : Number(p.paid), loss: p.loss === "" ? null : Number(p.loss),
       receipt: p.receipt === "no" || p.receipt === "lost" ? "no" : "yes", want: o.want, wantAmount: o.amount === "" ? null : Number(o.amount),
       contactPhone: o.phone, contactEmail: o.email, language: o.lang, notifyEmail: o.byEmail, notifySms: o.bySms
-    });
+      });
+    } catch {
+      setError("Your complaint could not be submitted. Check your connection and try again. Your answers are still here.");
+      setBusy(false);
+      return;
+    }
     if (!res.ok) { setError(res.error); setBusy(false); return; }
     // The complaint exists now. Files go up one by one; any that fail are reported, and can be added again from the case page.
     const failed: string[] = [];
@@ -70,9 +78,14 @@ export function ComplaintWizard({ freeCall, contact, refData, locale = "en" }: {
     for (let i = 0; i < todo.length; i++) {
       setProgress(`Uploading file ${i + 1} of ${todo.length}…`);
       picker.mark(todo[i].id, "uploading");
-      const up = await uploadEvidence(res.data.reference, todo[i].file, !!todo[i].shared);
-      picker.mark(todo[i].id, up.ok ? "done" : "failed", up.ok ? undefined : up.error);
-      if (!up.ok) failed.push(todo[i].file.name);
+      try {
+        const up = await uploadEvidence(res.data.reference, todo[i].file, !!todo[i].shared);
+        picker.mark(todo[i].id, up.ok ? "done" : "failed", up.ok ? undefined : up.error);
+        if (!up.ok) failed.push(todo[i].file.name);
+      } catch {
+        failed.push(todo[i].file.name);
+        picker.mark(todo[i].id, "failed", "Upload failed. You can add it again from the case page.");
+      }
     }
     setProgress(null);
     saveHandoff("complaint-receipt", { ...res.data, first: contact.first, email: draft.outcome.email, phone4: draft.outcome.phone.replace(/D/g, "").slice(-4), failedFiles: failed, fileCount: todo.length });

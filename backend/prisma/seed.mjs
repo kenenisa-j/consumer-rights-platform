@@ -159,7 +159,7 @@ async function main() {
       data: {
         route: d.route, complainantId: consumer.id, complainantAlias: "Consumer", merchantId: d.merchantId ?? null, unregisteredMerchantName: d.unregistered ?? null,
         categoryId: cat.id, incidentDate: new Date("2026-11-01"), itemDescription: d.item, disputedAmount: d.amount, desiredRemedy: d.want,
-        subject: d.subject, narrative: d.narrative, status: d.status, currentOfficeId: office?.id ?? null, 
+        subject: d.subject, narrative: d.narrative, status: d.status, currentOfficeId: office?.id ?? null,
         slaDeadline: new Date(Date.now() + cat.defaultSlaDays * 86_400_000)
       }
     });

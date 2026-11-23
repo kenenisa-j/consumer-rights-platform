@@ -42,6 +42,24 @@ const CASE_118: CaseData = {
 };
 
 export async function getCase(reference: string, step?: string): Promise<CaseData | null> {
+  try {
+    const { cookies } = await import("next/headers");
+    const { API_URL } = await import("@/lib/session");
+    const jar = await cookies();
+    if (jar.getAll().length > 0) {
+      const res = await fetch(`${API_URL}/api/cases/${reference}`, {
+        headers: { cookie: jar.toString() },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const body = await res.json();
+        if (body?.case) return body.case as CaseData;
+      }
+    }
+  } catch {
+    // fallback
+  }
+
   if (reference === "CC-2026-00123") {
     const s = (CASE_123_STEPS as readonly string[]).includes(step ?? "") ? (step as Case123Step) : "offer";
     return buildCase123(s);
@@ -52,6 +70,46 @@ export async function getCase(reference: string, step?: string): Promise<CaseDat
 }
 
 export async function listCases(): Promise<{ attention: { reference: string; text: string }[]; cases: CaseSummary[] }> {
+  try {
+    const { cookies } = await import("next/headers");
+    const { API_URL } = await import("@/lib/session");
+    const jar = await cookies();
+    if (jar.getAll().length > 0) {
+      const res = await fetch(`${API_URL}/api/cases`, {
+        headers: { cookie: jar.toString() },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const body = await res.json();
+        const list = body?.cases;
+        if (Array.isArray(list) && list.length > 0) {
+          const attention: { reference: string; text: string }[] = [];
+          const cases: CaseSummary[] = list.map((c: any) => {
+            if (c.status === "BUSINESS_OFFER_PENDING") {
+              attention.push({ reference: c.referenceNumber, text: "the business made you an offer. Accept it, answer it, or move it to the Woreda." });
+            }
+            const isOffer = c.status === "BUSINESS_OFFER_PENDING";
+            const isResolved = c.status === "RESOLVED_MUTUALLY" || c.status === "RESOLVED_ADMINISTRATIVE_ORDER";
+            return {
+              reference: c.referenceNumber,
+              title: c.itemDescription,
+              business: c.merchant?.tradeName || c.unregisteredMerchantName || "Business",
+              status: {
+                label: isOffer ? "The business made you an offer" : isResolved ? "Resolved" : c.status.replace(/_/g, " ").toLowerCase(),
+                tone: isOffer ? "warn" : isResolved ? "ok" : "info",
+              },
+              updated: new Date(c.updatedAt || c.createdAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }),
+              href: `/cases/${c.referenceNumber}`,
+            };
+          });
+          return { cases, attention };
+        }
+      }
+    }
+  } catch {
+    // fallback
+  }
+
   const a = buildCase123("offer");
   const cases: CaseSummary[] = [
     { reference: a.reference, title: a.title, business: "Gebriel Grain Traders", status: a.status, updated: "Tuesday 3 November", href: "/cases/CC-2026-00123" },

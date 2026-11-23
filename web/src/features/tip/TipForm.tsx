@@ -26,15 +26,24 @@ export function TipForm({ subcities }: { subcities: RefData["subcities"] }) {
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (busy) return; // a second tap must not send a second tip
     const f = new FormData(e.currentTarget);
     const v = (k: string) => String(f.get(k) ?? "");
     setBusy(true); setFailed(null);
-    const res = await apiPost<{ reference: string; code: string; receivedAt: string; anonymous: boolean }>("/api/tips", {
-      kind: v("kind"), subcity: subcities.find(s => s.name === v("subcity"))?.code, woreda: v("woreda") || null, place: v("place"),
-      business: v("business"), product: v("product"), when: v("when"), text: v("text"), anonymous: who === "anon", name: v("name"), phone: v("phone")
-    });
-    if (!res.ok) { setFailed(res.error); setBusy(false); return; }
-    saveHandoff("tip-receipt", res.data); // the private code is shown once, on the next screen
+    try {
+      // An anonymous tip never carries a name or phone, even if something was typed and then switched off.
+      const res = await apiPost<{ reference: string; code: string; receivedAt: string; anonymous: boolean }>("/api/tips", {
+        kind: v("kind"), subcity: subcities.find(s => s.name === v("subcity"))?.code, woreda: v("woreda") || null, place: v("place"),
+        business: v("business"), product: v("product"), when: v("when"), text: v("text"), anonymous: who === "anon",
+        name: who === "contact" ? v("name") : "", phone: who === "contact" ? v("phone") : ""
+      });
+      if (!res.ok) { setFailed(res.error); setBusy(false); return; }
+      saveHandoff("tip-receipt", res.data); // the private code is shown once, on the next screen
+    } catch {
+      setFailed("Your tip could not be sent. Check your connection and try again.");
+      setBusy(false);
+      return;
+    }
     router.push("/tip/sent");
   };
 

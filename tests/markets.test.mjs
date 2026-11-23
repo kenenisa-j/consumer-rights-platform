@@ -218,6 +218,7 @@ test("Jurisdiction: Enforces administrative boundaries for market creation and u
       { id: "off-woreda-1", level: OfficeLevel.WOREDA, subcityCode: "AKAKI", isActive: true },
       { id: "off-woreda-2", level: OfficeLevel.WOREDA, subcityCode: "AKAKI", isActive: true },
       { id: "off-woreda-bole", level: OfficeLevel.WOREDA, subcityCode: "BOLE", isActive: true },
+      { id: "off-sc-akaki", level: OfficeLevel.SUBCITY, subcityCode: "AKAKI", isActive: true },
     ],
     initialUsers: [
       {

@@ -29,7 +29,7 @@ export interface CaseData {
   thread: ThreadMessage[];
   updates: UpdateEntry[];
   evidence: EvidenceFile[];
-  offer?: { title: string; text: string };
+  offer?: { id?: string; title: string; text: string };
   meeting?: { title: string; text: string };
   settlement?: ReadonlyArray<readonly [string, string]>;
   infoRequest?: { from: string; when: string; text: string; deadline: string };

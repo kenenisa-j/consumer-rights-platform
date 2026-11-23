@@ -77,7 +77,114 @@ const CASE_146: GovCase = {
   history: [u("Recorded on the free call line", "Thursday 12 November 2026, 08:50", "2026-11-12T08:50", "Passed to Woreda 7.")]
 };
 
+function mapBackendGovCase(c: any, level: GovLevel): GovCase {
+  const heldBy: GovLevel =
+    c.office?.level === "CITY_BUREAU" ? "bureau" :
+    c.office?.level === "SUBCITY" ? "subcity" : "woreda";
+
+  const isAccepted = c.status !== "ESCALATED_TO_GOVERNMENT" && c.status !== "RECEIVED_BY_OFFICE";
+  const isClosed = [
+    "RESOLVED_MUTUALLY",
+    "RESOLVED_ADMINISTRATIVE_ORDER",
+    "COURT_REFERRAL_ISSUED",
+    "CLOSED_OUTSIDE_JURISDICTION",
+    "CLOSED_WITHDRAWN",
+  ].includes(c.status);
+
+  const passedThrough: GovLevel[] = [];
+  if (c.transfers && c.transfers.length > 0) {
+    for (const t of c.transfers) {
+      if (t.fromOffice?.level === "WOREDA" && !passedThrough.includes("woreda")) passedThrough.push("woreda");
+      if (t.fromOffice?.level === "SUBCITY" && !passedThrough.includes("subcity")) passedThrough.push("subcity");
+    }
+  }
+
+  const handovers = (c.transfers || []).map((t: any) => ({
+    title: t.direction ? t.direction.replace(/_/g, " ") : "Transfer",
+    from: t.fromOffice?.nameEn || "Lower office",
+    when: t.transferredAt ? new Date(t.transferredAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "",
+    text: t.handoverNote || t.reason || "",
+  }));
+
+  const complaint: Rows = [
+    ["Problem", c.category?.nameEn || c.category?.name || "Problem"],
+    ["Business", c.merchant?.tradeName || c.unregisteredMerchantName || "Business"],
+    ["Bought", c.incidentDate ? new Date(c.incidentDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : "—"],
+    ["Paid", `${c.disputedAmount} ${c.currency || "ETB"}`],
+    ["Consumer asks for", c.desiredRemedy || "Remedy"],
+    ["Route", c.route ? c.route.replace(/_/g, " ") : "Standard"],
+  ];
+
+  const consumer: Rows = [
+    ["Complainant", c.complainantAlias || "Consumer"],
+    ["Office", c.office?.nameEn || "Assigned Office"],
+    ["Status", c.status.replace(/_/g, " ")],
+  ];
+
+  const evidence = (c.evidence || []).map((e: any) => ({
+    name: e.fileName || e.name || "document",
+    note: e.fileType || e.note || "File",
+    size: e.fileSizeBytes ? `${Math.round(e.fileSizeBytes / 1024)} KB` : (e.size || "100 KB"),
+    shared: !e.isOfficerOnly,
+  }));
+
+  const history = (c.history || []).map((h: any) => ({
+    title: h.toStatus ? h.toStatus.replace(/_/g, " ") : "Update",
+    when: h.createdAt ? new Date(h.createdAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "",
+    iso: h.createdAt || new Date().toISOString(),
+    text: h.note || h.publicNote || "",
+  }));
+
+  return {
+    reference: c.reference,
+    title: c.itemDescription || c.title || "Complaint",
+    heldBy,
+    accepted: isAccepted,
+    officer: c.activeAssignment?.assignedTo?.fullName || c.officer,
+    status: {
+      label: isAccepted ? (isClosed ? "Resolved" : "In progress") : "New: accept it",
+      tone: isClosed ? "ok" : isAccepted ? "info" : "warn",
+    },
+    official: c.status.replace(/_/g, " "),
+    onPlatform: c.route === "REGISTERED_BUSINESS",
+    passedThrough,
+    resolvedAt: isClosed ? heldBy : undefined,
+    closed: isClosed,
+    reached: {
+      title: isAccepted ? `With the ${heldBy === "bureau" ? "City Bureau" : heldBy === "subcity" ? "Sub-City" : "Woreda"}` : "Needs acceptance",
+      text: `Complaint held by ${c.office?.nameEn || "trade office"}.`,
+    },
+    handovers,
+    complaint,
+    consumer,
+    thread: [],
+    evidence,
+    history,
+  };
+}
+
 export async function getGovCase(level: GovLevel, reference: string): Promise<GovCase | null> {
+  try {
+    const { cookies } = await import("next/headers");
+    const { API_URL } = await import("@/lib/session");
+    const jar = await cookies();
+    if (jar.getAll().length > 0) {
+      const res = await fetch(`${API_URL}/api/government/cases/${reference}`, {
+        headers: { cookie: jar.toString() },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const body = await res.json();
+        const c = body?.complaint;
+        if (c) {
+          return mapBackendGovCase(c, level);
+        }
+      }
+    }
+  } catch {
+    // offline/mock fallback
+  }
+
   if (reference === "CC-2026-00123") return case123(level);
   if (level === "woreda" && reference === "CC-2026-00140") return CASE_140;
   if (level === "woreda" && reference === "CC-2026-00146") return CASE_146;

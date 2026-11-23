@@ -36,7 +36,44 @@ export function TipView({ initial, level }: { initial: GovTip; level: GovLevel }
   const act = useCallback((a: TipAction) => {
     const r = applyTipAction(latest.current, level, a, stamp());
     latest.current = r.next; setTip(r.next); setNotice({ text: r.notice, ok: r.ok }); setDlg(null);
-  }, [level]);
+    if (r.ok) {
+      const ref = tip.reference;
+      try {
+        if (a.type === "plan_visit") {
+          fetch(`/api/government/tips/${ref}/visit`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scheduledDate: a.date, assignedOfficer: a.officer, notes: a.note }),
+          }).catch(() => {});
+        } else if (a.type === "send_to_woreda") {
+          fetch(`/api/government/tips/${ref}/forward`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ woredaCode: a.woreda.replace(/[^0-9]/g, "") || a.woreda, notes: a.note }),
+          }).catch(() => {});
+        } else if (a.type === "make_case") {
+          fetch(`/api/government/tips/${ref}/convert-to-case`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notes: a.category }),
+          }).catch(() => {});
+        } else if (a.type === "close") {
+          const resCode = a.result.toLowerCase().includes("no action") ? "closed_no_action" : "closed_action_taken";
+          fetch(`/api/government/tips/${ref}/close`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ result: resCode, notes: a.note }),
+          }).catch(() => {});
+        }
+      } catch {
+        // offline/mock fallback
+      }
+    }
+  }, [level, tip.reference]);
 
   const items: TimelineItem[] = tip.history.map((h, i) => ({ title: h.title, when: h.when, iso: h.iso, text: h.text, state: i === 0 && !tip.closed ? "now" : "done" }));
   const open = !tip.closed && !tip.caseRef;

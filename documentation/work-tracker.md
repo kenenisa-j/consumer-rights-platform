@@ -37,6 +37,13 @@ you (and your agents) avoid duplicate or conflicting work.
 - Messages: unread counts per conversation and on the Messages menu (new table `conversation_reads`), officer messages show the officer and office, refresh every 2.5 seconds and when the tab gets focus. The conversation follows the case to the next office with its whole history. Menu counts on the government portals are real now (cases waiting, new tips, unread messages).
 - Tests: `npm run test:browser:offices` (25 checks). Typed-suggestion checks added to `evidence`.
 
+## Completed: Phase 7 Tikoma Anonymous Reporting, 16 November 2026
+
+- Implemented `TipsModule`, `TipsController`, `GovernmentTipsController`, `TipsService`, DTOs, and helpers.
+- Anonymous submission stores only SHA-256 token hash; tracking verified against hash with uniform 404.
+- Scoped government management (Woreda visit planning, Sub-City forwarding, closure, case conversion).
+- Verified with unit test suite `tests/anonymous-reports.test.mjs` and connected web views.
+
 ## Completed: evidence upload and office dropdowns, 16 November 2026
 
 - Evidence: a calm drop area (the raw browser file control is hidden), drag and drop, a tidy list with a state per file, and real storage (new `evidence` API module). Files appear on the consumer, office and business case pages with links; the consumer can add more later.
@@ -103,8 +110,8 @@ you (and your agents) avoid duplicate or conflicting work.
 ## Completed: Phase 4.8 Government Inter-Level Case Transfers, 15 November 2026
 
 - Owner: backend.
-- Implemented `GovernmentTransfersController` and `GovernmentTransfersService` managing inter-level case handovers (Woreda → Sub-City → City Bureau).
-- Validated single-step upward escalation (`isValidClimb`); blocked level skipping (e.g. Woreda → Bureau) and terminal upwards moves from Bureau.
+- Implemented `GovernmentTransfersController` and `GovernmentTransfersService` managing inter-level case handovers (Woreda -> Sub-City -> City Bureau).
+- Validated single-step upward escalation (`isValidClimb`); blocked level skipping (e.g. Woreda -> Bureau) and terminal upwards moves from Bureau.
 - Enforced custody rules: sending office must currently hold case; closed/resolved cases cannot be transferred; duplicate pending transfers blocked.
 - Transfer acceptance: updates `currentOfficeId`, transitions status to `RECEIVED_BY_OFFICE`, safely deactivates prior office officer assignment.
 - Transfer rejection & return: requires mandatory reason (min 5 chars), marks transfer `RETURNED`, preserves case custody with sending office.
@@ -164,7 +171,7 @@ you (and your agents) avoid duplicate or conflicting work.
 
 The frontend entries from 12 to 14 November 2026 (public site, workspaces, administration pages, first integration) are in [work-tracker-archive.md](work-tracker-archive.md).
 
-## Completed: Phase 3 — Better Auth Integration, 13 November 2026
+## Completed: Phase 3 ΓÇö Better Auth Integration, 13 November 2026
 
 - **Better Auth & Prisma Adapter Integration:**
   - Pinned `better-auth@^1.1.21` and `@better-auth/prisma-adapter@^1.1.21` in `backend/package.json`.
@@ -195,7 +202,7 @@ The frontend entries from 12 to 14 November 2026 (public site, workspaces, admin
   - Generated migration SQL at `backend/prisma/migrations/20261113150000_add_better_auth/migration.sql` (unapplied).
 - **Test Suite:** Created `tests/better-auth.test.mjs` verifying all 10 required scenarios.
 
-## In progress: Phase 2C — NestJS backend foundation, 12 November 2026
+## In progress: Phase 2C ΓÇö NestJS backend foundation, 12 November 2026
 
 ### Initial PostgreSQL Migration Completion (Unapplied)
 

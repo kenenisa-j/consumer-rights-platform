@@ -21,6 +21,52 @@ export function BizCaseView({ initial, freeCall }: { initial: BizCase; freeCall:
     latest.current = r.next;
     setData(r.next);
     setNotice({ text: r.notice, ok: r.ok });
+
+    if (r.ok) {
+      const ref = latest.current.reference;
+      if (action.type === "reply") {
+        fetch(`/api/business/cases/${ref}/respond`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ message: action.explanation }),
+        }).catch(() => {});
+        if (action.offer === "refund" && action.amount) {
+          fetch(`/api/business/cases/${ref}/offer`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({
+              offerType: "FULL_REFUND",
+              refundAmount: Number(action.amount),
+              termsDescription: action.detail || "Full refund offer",
+            }),
+          }).catch(() => {});
+        }
+      } else if (action.type === "offer_refund") {
+        fetch(`/api/business/cases/${ref}/offer`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            offerType: "FULL_REFUND",
+            refundAmount: Number(action.amount) || 0,
+            termsDescription: `Refund offer: ${action.when}`,
+          }),
+        }).catch(() => {});
+      } else if (action.type === "different_offer") {
+        fetch(`/api/business/cases/${ref}/offer`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            offerType: action.kind === "replacement" ? "REPLACEMENT" : "OTHER",
+            refundAmount: Number(action.amount) || undefined,
+            termsDescription: action.message || action.kind,
+          }),
+        }).catch(() => {});
+      }
+    }
   }, []);
 
   const history: TimelineItem[] = data.history.map((h, i) => ({ title: h.title, when: h.when, iso: h.iso, text: h.text, state: i === 0 && !data.closed ? "now" : "done" }));
